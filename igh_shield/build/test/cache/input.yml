@@ -24,6 +24,7 @@
   - "-:test/support"
   :source:
   - src/**
+  - C:/Users/Clarence.Alucho/.particle/toolchains/deviceOS/1.5.0/user/**
   :support:
   - test/support
   :include: []
@@ -61,7 +62,7 @@
 :flags: {}
 :extension:
   :header: ".h"
-  :source: ".c"
+  :source: ".cpp"
   :assembly: ".s"
   :object: ".o"
   :executable: ".out"

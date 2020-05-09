@@ -24,6 +24,7 @@
 
 :extension:
   :executable: .out
+  :source: .cpp
 
 :paths:
   :test:
@@ -31,6 +32,7 @@
     - -:test/support
   :source:
     - src/**
+    - C:/Users/Clarence.Alucho/.particle/toolchains/deviceOS/1.5.0/user/**
   :support:
     - test/support
 
