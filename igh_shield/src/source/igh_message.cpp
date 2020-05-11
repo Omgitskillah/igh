@@ -1,4 +1,4 @@
-#include "Particle.h"
+// #include "Particle.h"
 #include "include/igh_message.h"
 
 // size of each message type in bytes
@@ -79,7 +79,7 @@ void igh_message_add_to_payload(igh_pkt_id pkt_id, uint8_t * _msg)
     }
     else
     {
-        Serial.println("This happened");
+        // Throw error
     }
     
 }

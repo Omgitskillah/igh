@@ -1,6 +1,7 @@
 #ifndef IGH_MESSAGE
 #define IGH_MESSAGE
 
+#include <stdint.h>
 
 #define MESSAGE_SIZE 255
 #define SIZE_OF_HEADER 2

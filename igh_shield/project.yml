@@ -33,6 +33,7 @@
   :source:
     - src/**
     - C:/Users/Clarence.Alucho/.particle/toolchains/deviceOS/1.5.0/user/**
+    - C:/Users/Clarence.Alucho/.particle/toolchains/gcc-arm/5.3.1/arm-none-eabi/include/**
   :support:
     - test/support
 
