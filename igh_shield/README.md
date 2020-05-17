@@ -28,3 +28,44 @@ The following are the modules required for the Shield.
 
 ## Shield System Application Layer
 This section covers how all the various stacks come together to follow a routine of how the device works according to a process flow. This includes receiving and bundling together data from the various spears paired to the shield, encrypting and transmitting data to the cloud. The system application layer will also handle how the device interacts with the cloud and users.
+
+# Messaging Protocol
+
+Maximum length of data is 256 bytes over MQTT protocol
+
+| Start | length | Msg type | direction | s/n      | msg id | payload  | end  |  
+| :---  | :----: | :----:   | :----:    | :----:   | :----: | :----:   | ---: |  
+| 0x3C  | 1 byte | 1 byte   | 0x55/0x44 | 12 bytes | 1 byte | variable | 0x3E |
+
+### *Msg type*
+|value | Type            |
+| :--- | :---            |
+| 0x00 | Sensor data msg | 
+| 0x11 | Settings msg    |
+| 0x22 | Error msg       |
+| 0xAA | Message ACK     |
+
+### *direction*
+|value | direction            |
+| :--- | :---                 |
+| 0x55 | Upload to Server     | 
+| 0x44 | Download from server |
+
+if message is of type **Message ACK** , **payload** section will not be available  
+  
+Example serial number (**s/n**) in hex  
+```e00fce689a754705e79a0e37``` split into bytes like so ```e0,0f,ce,68,9a,75,47,05,e7,9a,0e,37```  
+
+**msg id** increments and overflows to start over from zero to prevent multiple processing of the same message
+
+### *payload*
+Message payload is packaged in form of a string of tuples in the followinf format  
+
+```tuple id, length, data bytes, tuple id, length, data bytes, ..., ..., ...,tuple id, length, data bytes```  
+
+| tuple member | size                          |
+| :---         | :---                          |
+| tuple id     | 1 byte                        |
+| length       | 1 byte                        |
+| data bytes   | Specified by **length** above |
+

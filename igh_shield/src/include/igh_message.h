@@ -1,11 +1,16 @@
 #ifndef IGH_MESSAGE
 #define IGH_MESSAGE
 
-#include <stdint.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define MESSAGE_SIZE 255
+#define MESSAGE_SIZE 256
 #define SIZE_OF_HEADER 2
 #define MESSAGE_FITS(X,Y) (((X)+(Y)) <= (MESSAGE_SIZE))
+
+#define FRAME_START 0x3C
+#define FRAME_END   0x3E
 
 // all possible message identifiers
 enum igh_pkt_id
@@ -32,9 +37,10 @@ enum igh_pkt_id
 };
 
 // function APIs
-void igh_message_init(void);
-void igh_message_clear_buffer(void);
-void igh_message_add_to_payload(igh_pkt_id pkt_id, uint8_t * _msg);
-void igh_message_complete_package(void);
+uint8_t igh_message_reset_buffer(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
