@@ -23,6 +23,9 @@ uint8_t size_of_shield_battery_level = 2;
 uint8_t size_of_spear_battery_level = 2;
 uint8_t size_of_valve_position = 1;
 
+#define LEN_INDEX       1
+#define MSG_TYPE_INDEX   2
+
 #ifdef TEST
 #define LOCAL 
 #else
@@ -30,7 +33,7 @@ uint8_t size_of_valve_position = 1;
 #endif
 
 LOCAL uint8_t igh_msg_buffer[MESSAGE_SIZE];  // global variable to be used to hold page for sending, maximum message size is 256 bytes
-static uint8_t igh_msg_buffer_tracker = 0; // track globally how full the message buffer is
+LOCAL uint8_t igh_msg_buffer_tracker = 0; // track globally how full the message buffer is
 uint32_t current_message_id = 0;
 
 // local functions
@@ -46,9 +49,54 @@ uint8_t igh_message_reset_buffer(void)
     return igh_msg_buffer_tracker;
 }
 
-// add frame end byte
-// add length
-// add message type
+uint8_t igh_message_add_frame_end(void)
+{
+    igh_msg_buffer[igh_msg_buffer_tracker] = FRAME_END;
+
+    return igh_msg_buffer_tracker;
+}
+
+uint8_t igh_message_add_length(void)
+{
+    if(igh_msg_buffer[igh_msg_buffer_tracker] != FRAME_END)
+    {
+        return igh_message_reset_buffer();
+    }
+    else
+    {
+        igh_msg_buffer[LEN_INDEX] = igh_msg_buffer_tracker;
+        return igh_msg_buffer_tracker;
+    }
+}
+
+igh_msg_type igh_message_add_msg_type(igh_msg_type msg_type)
+{
+    igh_msg_type _type; 
+
+    switch(msg_type)
+    {
+        case SENSOR_DATA:
+            _type = SENSOR_DATA;
+            break;
+        case SETTINGS_MSG:
+            _type = SETTINGS_MSG;
+            break;
+        case ERROR_MSG:
+            _type = ERROR_MSG;
+            break;
+        case MSG_ACK:
+            _type = MSG_ACK;
+            break;
+        default:
+            _type = UNKNOWN_MSG;
+            break;
+    }
+
+    // should return unknown for anything else
+    igh_msg_buffer[MSG_TYPE_INDEX] = _type;
+
+    return igh_msg_buffer[MSG_TYPE_INDEX];
+}
 // add direction
 // add serial number
 // add message id

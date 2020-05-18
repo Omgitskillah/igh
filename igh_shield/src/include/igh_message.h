@@ -36,8 +36,22 @@ enum igh_pkt_id
     unknown_pkt_id = 255
 };
 
+enum igh_msg_type
+{
+    UNKNOWN_MSG = 0x00,
+    SETTINGS_MSG = 0x22,
+    MSG_ACK = 0xAC,
+    SENSOR_DATA = 0xDA,
+    ERROR_MSG = 0xEE  
+};
+
+typedef enum igh_msg_type igh_msg_type;
+
 // function APIs
 uint8_t igh_message_reset_buffer(void);
+uint8_t igh_message_add_frame_end(void);
+uint8_t igh_message_add_length(void);
+igh_msg_type igh_message_add_msg_type(igh_msg_type msg_type);
 
 #ifdef __cplusplus
 }
