@@ -7,7 +7,6 @@ extern "C" {
 
 #define MESSAGE_SIZE 256
 #define SIZE_OF_HEADER 2
-#define MESSAGE_FITS(X,Y) (((X)+(Y)) <= (MESSAGE_SIZE))
 
 #define FRAME_START 0x3C
 #define FRAME_END   0x3E
@@ -44,14 +43,26 @@ enum igh_msg_type
     SENSOR_DATA = 0xDA,
     ERROR_MSG = 0xEE  
 };
-
 typedef enum igh_msg_type igh_msg_type;
+
+enum igh_msg_dir
+{
+    IGH_DOWNLOAD = 0x44,
+    IGH_UPLOAD = 0x55
+};
+typedef enum igh_msg_dir igh_msg_dir;
+
+
 
 // function APIs
 uint8_t igh_message_reset_buffer(void);
 uint8_t igh_message_add_frame_end(void);
 uint8_t igh_message_add_length(void);
 igh_msg_type igh_message_add_msg_type(igh_msg_type msg_type);
+igh_msg_dir igh_message_add_direction(igh_msg_dir msg_dir);
+uint8_t igh_message_add_serial_number(uint8_t * serial_number);
+uint8_t igh_message_add_msg_id(void);
+uint8_t igh_message_check_tuple_fits(uint8_t length);
 
 #ifdef __cplusplus
 }

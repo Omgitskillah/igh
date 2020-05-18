@@ -54,7 +54,7 @@ Maximum length of data is 256 bytes over MQTT protocol
 if message is of type **Message ACK** , **payload** section will not be available  
   
 Example serial number (**s/n**) in hex  
-```e00fce689a754705e79a0e37``` split into bytes like so ```e0,0f,ce,68,9a,75,47,05,e7,9a,0e,37```  
+```e00fce689a754705e79a0e37``` split into bytes like so ```0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37```  
 
 **msg id** increments and overflows to start over from zero to prevent multiple processing of the same message
 

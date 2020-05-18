@@ -23,8 +23,13 @@ uint8_t size_of_shield_battery_level = 2;
 uint8_t size_of_spear_battery_level = 2;
 uint8_t size_of_valve_position = 1;
 
+#define MESSAGE_FITS(X,Y) ((MESSAGE_SIZE - X) >= Y)
+
 #define LEN_INDEX       1
 #define MSG_TYPE_INDEX   2
+#define MSG_DIRECTION_INDEX 3
+#define SN_INDEX 4
+#define MSG_ID_INDEX 16
 
 #ifdef TEST
 #define LOCAL 
@@ -34,7 +39,8 @@ uint8_t size_of_valve_position = 1;
 
 LOCAL uint8_t igh_msg_buffer[MESSAGE_SIZE];  // global variable to be used to hold page for sending, maximum message size is 256 bytes
 LOCAL uint8_t igh_msg_buffer_tracker = 0; // track globally how full the message buffer is
-uint32_t current_message_id = 0;
+LOCAL uint8_t igh_device_serial[12];
+LOCAL uint8_t igh_message_id = 0; // always start as zero and overflow whenever we reach 256
 
 // local functions
 
@@ -95,12 +101,60 @@ igh_msg_type igh_message_add_msg_type(igh_msg_type msg_type)
     // should return unknown for anything else
     igh_msg_buffer[MSG_TYPE_INDEX] = _type;
 
-    return igh_msg_buffer[MSG_TYPE_INDEX];
+    return (igh_msg_type)igh_msg_buffer[MSG_TYPE_INDEX];
 }
-// add direction
-// add serial number
-// add message id
-// add payload
+
+igh_msg_dir igh_message_add_direction(igh_msg_dir msg_dir)
+{
+    igh_msg_type _dir;
+
+    switch(msg_dir)
+    {
+        case IGH_UPLOAD:
+            _dir = IGH_UPLOAD;
+            break;
+        case IGH_DOWNLOAD:
+            _dir = IGH_DOWNLOAD;
+            break;
+        default:
+            // TODO: through error here
+            break;
+    }
+
+    igh_msg_buffer[MSG_DIRECTION_INDEX] = _dir;
+
+    return (igh_msg_type)igh_msg_buffer[MSG_DIRECTION_INDEX];
+}
+
+uint8_t igh_message_add_serial_number(uint8_t * serial_number)
+{
+    memcpy(&igh_msg_buffer[SN_INDEX], serial_number, 12);
+    return igh_msg_buffer_tracker;
+}
+
+uint8_t igh_message_add_msg_id(void)
+{
+    igh_msg_buffer[MSG_ID_INDEX] = igh_message_id; // igh_message_id is a global variable
+    igh_message_id++;
+
+    return igh_message_id;
+}
+
+uint8_t igh_message_check_tuple_fits(uint8_t length)
+{
+    uint8_t total_tuple_len = length + 2;
+
+    if( MESSAGE_FITS(igh_msg_buffer_tracker, total_tuple_len) )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }  
+}
+
+// uint8_t igh_message_add_to_payload()
 
 
 
