@@ -14,26 +14,26 @@ extern "C" {
 // all possible message identifiers
 enum igh_pkt_id
 {
-    message_id = 1,
-    shield_id,
-    spear_id,
-    store_timestamp,
-    send_timestamp,
-    soil_moisture,
-    air_humidity,
-    soil_humidity,
-    water_dispensed, 
-    carbon_dioxide,
-    air_temperature,
-    soil_temperature,
-    soil_npk,
-    light_intensity,
-    shield_battery_level,
-    spear_battery_level,
-    valve_position,
-    msg_padding = 254,
-    unknown_pkt_id = 255
+    SPEAR_ID                = 0x01,
+    STORE_TIMESTAMP         = 0x02,
+    SEND_TIMESTAMP          = 0x03,
+    SOIL_MOISTURE           = 0x04,
+    AIR_HUMIDITY            = 0x05,
+    SOIL_HUMIDITY           = 0x06,
+    WATER_DISPENSED         = 0x07,
+    CARBON_DIOXIDE          = 0x08,
+    AIR_TEMPERATURE         = 0x09,
+    SOIL_TEMPERATURE        = 0x0A,
+    SOIL_NPK                = 0x0B,
+    LIGHT_INTENSITY         = 0x0C,
+    SHIELD_BATTERY_LEVEL    = 0x0D,
+    SPEAR_BATTERY_LEVEL     = 0x0E,
+    VALVE_POSITION          = 0x0F,
 };
+
+
+
+typedef enum igh_pkt_id igh_pkt_id;
 
 enum igh_msg_type
 {
@@ -63,6 +63,7 @@ igh_msg_dir igh_message_add_direction(igh_msg_dir msg_dir);
 uint8_t igh_message_add_serial_number(uint8_t * serial_number);
 uint8_t igh_message_add_msg_id(void);
 uint8_t igh_message_check_tuple_fits(uint8_t length);
+uint8_t igh_message_add_tuple_to_payload(igh_pkt_id _pkt_id, uint8_t * data);
 
 #ifdef __cplusplus
 }

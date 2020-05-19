@@ -69,3 +69,22 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 | length       | 1 byte                        |
 | data bytes   | Specified by **length** above |
 
+### *Currently supported tuple ids and their length*  
+
+| Tuple Name                 | Tuple ID| Length |
+| :---                       | :---    | :---   |
+|    SPEAR_ID                | 0x01    | 12     |
+|    STORE_TIMESTAMP         | 0x02    | 4      |  
+|    SEND_TIMESTAMP          | 0x03    | 4      |  
+|    SOIL_MOISTURE           | 0x04    | 2      |  
+|    AIR_HUMIDITY            | 0x05    | 2      |  
+|    SOIL_HUMIDITY           | 0x06    | 2      |  
+|    WATER_DISPENSED         | 0x07    | 4      |  
+|    CARBON_DIOXIDE          | 0x08    | 2      |  
+|    AIR_TEMPERATURE         | 0x09    | 2      |  
+|    SOIL_TEMPERATURE        | 0x0A    | 2      |  
+|    SOIL_NPK                | 0x0B    | 2      |  
+|    LIGHT_INTENSITY         | 0x0C    | 2      |  
+|    SHIELD_BATTERY_LEVEL    | 0x0D    | 2      |  
+|    SPEAR_BATTERY_LEVEL     | 0x0E    | 2      |  
+|    VALVE_POSITION          | 0x0F    | 1      |

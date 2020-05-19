@@ -5,23 +5,21 @@
 #include "include/igh_message.h"
 
 // size of each message type in bytes
-uint8_t size_of_message_id = 4;
-uint8_t size_of_shield_id = 12;  // eg: e00fce683f0ea854ec94ca8d
-uint8_t size_of_spear_id = 12;
-uint8_t size_of_store_timestamp = 4; 
-uint8_t size_of_send_timestamp = 4;
-uint8_t size_of_soil_moisture = 2;
-uint8_t size_of_air_humidity = 2;
-uint8_t size_of_soil_humidity = 2;
-uint8_t size_of_water_dispensed = 4;
-uint8_t size_of_carbon_dioxide = 2;
-uint8_t size_of_air_temperature = 2;
-uint8_t size_of_soil_temperature = 2;
-uint8_t size_of_soil_npk = 2;
-uint8_t size_of_light_intensity = 2;
-uint8_t size_of_shield_battery_level = 2;
-uint8_t size_of_spear_battery_level = 2;
-uint8_t size_of_valve_position = 1;
+uint8_t SIZE_OF_SPEAR_ID = 12;
+uint8_t SIZE_OF_STORE_TIMESTAMP = 4; 
+uint8_t SIZE_OF_SEND_TIMESTAMP = 4;
+uint8_t SIZE_OF_SOIL_MOISTURE = 2;
+uint8_t SIZE_OF_AIR_HUMIDITY = 2;
+uint8_t SIZE_OF_SOIL_HUMIDITY = 2;
+uint8_t SIZE_OF_WATER_DISPENSED = 4;
+uint8_t SIZE_OF_CARBON_DIOXIDE = 2;
+uint8_t SIZE_OF_AIR_TEMPERATURE = 2;
+uint8_t SIZE_OF_SOIL_TEMPERATURE = 2;
+uint8_t SIZE_OF_SOIL_NPK = 2;
+uint8_t SIZE_OF_LIGHT_INTENSITY = 2;
+uint8_t SIZE_OF_SHIELD_BATTERY_LEVEL = 2;
+uint8_t SIZE_OF_SPEAR_BATTERY_LEVEL = 2;
+uint8_t SIZE_OF_VALVE_POSITION = 1;
 
 #define MESSAGE_FITS(X,Y) ((MESSAGE_SIZE - X) >= Y)
 
@@ -154,7 +152,86 @@ uint8_t igh_message_check_tuple_fits(uint8_t length)
     }  
 }
 
-// uint8_t igh_message_add_to_payload()
+uint8_t igh_message_add_tuple_to_payload(igh_pkt_id _pkt_id, uint8_t * data)
+{
+    uint8_t _length = 0;
+    switch(_pkt_id)
+    {
+        case SPEAR_ID:
+            _length = SIZE_OF_SPEAR_ID;
+            break;
+        case STORE_TIMESTAMP:  
+            _length = SIZE_OF_STORE_TIMESTAMP;
+            break;    
+        case SEND_TIMESTAMP: 
+            _length = SIZE_OF_SEND_TIMESTAMP;
+            break;      
+        case SOIL_MOISTURE:
+            _length = SIZE_OF_SOIL_MOISTURE;
+            break;        
+        case AIR_HUMIDITY:
+            _length = SIZE_OF_AIR_HUMIDITY;
+            break;         
+        case SOIL_HUMIDITY:
+            _length = SIZE_OF_SOIL_HUMIDITY;
+            break;        
+        case WATER_DISPENSED:
+            _length = SIZE_OF_WATER_DISPENSED;
+            break;      
+        case CARBON_DIOXIDE:
+            _length = SIZE_OF_CARBON_DIOXIDE;
+            break;       
+        case AIR_TEMPERATURE:
+            _length = SIZE_OF_AIR_TEMPERATURE;
+            break;      
+        case SOIL_TEMPERATURE:
+            _length = SIZE_OF_SOIL_TEMPERATURE;
+            break;     
+        case SOIL_NPK:
+            _length = SIZE_OF_SOIL_NPK;
+            break;             
+        case LIGHT_INTENSITY:
+            _length = SIZE_OF_LIGHT_INTENSITY;
+            break;      
+        case SHIELD_BATTERY_LEVEL:
+            _length = SIZE_OF_SHIELD_BATTERY_LEVEL;
+            break; 
+        case SPEAR_BATTERY_LEVEL:
+            _length = SIZE_OF_SPEAR_BATTERY_LEVEL;
+            break;  
+        case VALVE_POSITION:
+            _length = SIZE_OF_VALVE_POSITION;
+            break; 
+        default:
+            _length = 0;
+            // TODO: throw error here
+            break;     
+    }
+
+    if( (_length > 0) &&  igh_message_check_tuple_fits(_length))
+    {
+        // add the packet id
+        igh_msg_buffer[igh_msg_buffer_tracker] = _pkt_id;
+        igh_msg_buffer_tracker++;
+        // add the length
+        igh_msg_buffer[igh_msg_buffer_tracker] = _length;
+        igh_msg_buffer_tracker++;
+        memcpy(&igh_msg_buffer[igh_msg_buffer_tracker], data, _length);
+        igh_msg_buffer_tracker += _length;
+    }
+    else
+    {
+        // throw error
+    }
+
+    return igh_msg_buffer_tracker;
+}
+
+// uint8_t igh_message_split_uint16(uint16_t _value, uint8_t * _buffer);
+// uint8_t igh_message_split_uint32(uint16_t _value, uint8_t * _buffer);
+// uint16_t igh_message_build_uint16(uint8_t * buffer); 
+// uint32_t igh_message_build_uint32(uint8_t * buffer);
+// Think about settings now 
 
 
 
@@ -199,92 +276,3 @@ uint8_t igh_message_check_tuple_fits(uint8_t length)
 
 
 
-
-
-
-// void add_message_id(void);
-// void add_bytes(uint8_t bytes, uint8_t * _msg);
-
-// void igh_message_init(void)
-// {
-//     igh_message_clear_buffer();
-// }
-
-// void igh_message_add_to_payload(enum igh_pkt_id pkt_id, uint8_t * _msg)
-// {
-//     uint8_t id = unknown_pkt_id;
-//     uint8_t msg_size = 0;
-
-//     switch (pkt_id)
-//     {
-//         case message_id:
-//             id = message_id;
-//             msg_size = size_of_message_id;
-//             break;
-//         case shield_id:
-//             id = shield_id;
-//             msg_size = size_of_shield_id;
-//             break;
-//         case spear_id:
-//             id = spear_id;
-//             msg_size = size_of_spear_id;
-//             break;
-//         case send_timestamp:
-//             id = send_timestamp;
-//             msg_size = size_of_send_timestamp;
-//             break;   
-//         case shield_battery_level:
-//             id = shield_battery_level;
-//             msg_size = size_of_shield_battery_level;
-//             break;
-//         case valve_position:
-//             id = valve_position;
-//             msg_size = size_of_valve_position;
-//             break;
-//         default:
-//             // don't build message if pkt id is unknown
-//             return;            
-//     }
-
-//     if( MESSAGE_FITS((msg_size + SIZE_OF_HEADER), igh_msg_buffer_tracker) )
-//     {
-//         igh_msg_buffer[igh_msg_buffer_tracker] = id;
-//         igh_msg_buffer_tracker++; 
-//         igh_msg_buffer[igh_msg_buffer_tracker] = msg_size;
-//         igh_msg_buffer_tracker++;
-//         add_bytes(msg_size, _msg);
-//     }
-//     else
-//     {
-//         // Throw error
-//     }
-    
-// }
-
-// void add_bytes(uint8_t bytes, uint8_t * _msg)
-// {
-//     for( int i = 0; i < bytes; i++ )
-//     {
-//         igh_msg_buffer[igh_msg_buffer_tracker] = _msg[i];
-//         igh_msg_buffer_tracker++;
-//     }
-// }
-
-
-// void igh_message_complete_package(void)
-// {
-//     igh_msg_buffer_tracker++;
-//     igh_msg_buffer[igh_msg_buffer_tracker] = msg_padding;
-//     igh_msg_buffer_tracker++;
-//     igh_msg_buffer[1] = igh_msg_buffer_tracker;
-// }
-
-// void add_message_id(void)
-// {
-//     uint8_t local_message_buffer[size_of_message_id];
-//     for(int i = 0; i < size_of_message_id; i++)
-//     {
-//         local_message_buffer[i] = (uint8_t)(current_message_id << (i*8) );
-//     }
-//     igh_message_add_to_payload(message_id, local_message_buffer);
-// }
