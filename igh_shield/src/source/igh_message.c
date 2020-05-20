@@ -1,4 +1,3 @@
-// #include "Particle.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,12 +36,12 @@ uint8_t SIZE_OF_VALVE_POSITION = 1;
 
 LOCAL uint8_t igh_msg_buffer[MESSAGE_SIZE];  // global variable to be used to hold page for sending, maximum message size is 256 bytes
 LOCAL uint8_t igh_msg_buffer_tracker = 0; // track globally how full the message buffer is
+LOCAL uint8_t igh_cmd_buffer_tracker = 0; // track globally how full the message buffer is
 LOCAL uint8_t igh_device_serial[12];
 LOCAL uint8_t igh_message_id = 0; // always start as zero and overflow whenever we reach 256
 
+
 // local functions
-
-
 uint8_t igh_message_reset_buffer(void)
 {
     memset(igh_msg_buffer,'\0',MESSAGE_SIZE);
@@ -152,7 +151,7 @@ uint8_t igh_message_check_tuple_fits(uint8_t length)
     }  
 }
 
-uint8_t igh_message_add_tuple_to_payload(igh_pkt_id _pkt_id, uint8_t * data)
+uint8_t igh_message_add_tuple(igh_pkt_id _pkt_id, uint8_t * data)
 {
     uint8_t _length = 0;
     switch(_pkt_id)
@@ -227,11 +226,10 @@ uint8_t igh_message_add_tuple_to_payload(igh_pkt_id _pkt_id, uint8_t * data)
     return igh_msg_buffer_tracker;
 }
 
-// uint8_t igh_message_split_uint16(uint16_t _value, uint8_t * _buffer);
-// uint8_t igh_message_split_uint32(uint16_t _value, uint8_t * _buffer);
-// uint16_t igh_message_build_uint16(uint8_t * buffer); 
-// uint32_t igh_message_build_uint32(uint8_t * buffer);
-// Think about settings now 
+uint8_t igh_message_process_commands(uint8_t * buffer)
+{
+    return igh_cmd_buffer_tracker;
+}
 
 
 

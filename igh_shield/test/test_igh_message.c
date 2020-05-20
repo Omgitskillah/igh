@@ -131,7 +131,7 @@ void test_igh_message_check_tuple_fits_returns_false_or_true_appropriately(void)
     TEST_ASSERT_FALSE(_ret);
 }
 
-void test_igh_message_add_tuple_to_payload_adds_tuple_to_payload_if_tuple_fits(void)
+void test_igh_message_add_tuple_adds_tuple_to_payload_if_tuple_fits(void)
 {
     igh_msg_buffer_tracker = 54;
 
@@ -142,7 +142,7 @@ void test_igh_message_add_tuple_to_payload_adds_tuple_to_payload_if_tuple_fits(v
     expected_tuple[1] = 12;
     memcpy(&expected_tuple[2], test_shield_id, 12);
 
-    uint8_t local_buffer_tracker = igh_message_add_tuple_to_payload(local_pkt_id, test_shield_id);
+    uint8_t local_buffer_tracker = igh_message_add_tuple(local_pkt_id, test_shield_id);
     
     uint8_t actual_tuple[14];
     memcpy(actual_tuple, &igh_msg_buffer[54], 14);
@@ -151,26 +151,26 @@ void test_igh_message_add_tuple_to_payload_adds_tuple_to_payload_if_tuple_fits(v
     TEST_ASSERT(local_buffer_tracker == (54 + 14));
 }
 
-void test_igh_message_add_tuple_to_payload_does_nothing_if_tuple_does_not_fit(void)
+void test_igh_message_add_tuple_does_nothing_if_tuple_does_not_fit(void)
 {
     igh_msg_buffer_tracker = 250;
 
     igh_pkt_id local_pkt_id = SPEAR_ID;
     uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
 
-    uint8_t local_buffer_tracker = igh_message_add_tuple_to_payload(local_pkt_id, test_shield_id);
+    uint8_t local_buffer_tracker = igh_message_add_tuple(local_pkt_id, test_shield_id);
     
     TEST_ASSERT(local_buffer_tracker == 250);
 }
 
-void test_igh_message_add_tuple_to_payload_does_nothing_if_pkt_id_is_unknown(void)
+void test_igh_message_add_tuple_does_nothing_if_pkt_id_is_unknown(void)
 {
     igh_msg_buffer_tracker = 38;
 
     igh_pkt_id local_pkt_id = (igh_pkt_id)0x70; // unknown tuple id
     uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
 
-    uint8_t local_buffer_tracker = igh_message_add_tuple_to_payload(local_pkt_id, test_shield_id);
+    uint8_t local_buffer_tracker = igh_message_add_tuple(local_pkt_id, test_shield_id);
     
     TEST_ASSERT(local_buffer_tracker == 38);
 }

@@ -87,4 +87,6 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 |    LIGHT_INTENSITY         | 0x0C    | 2      |  
 |    SHIELD_BATTERY_LEVEL    | 0x0D    | 2      |  
 |    SPEAR_BATTERY_LEVEL     | 0x0E    | 2      |  
-|    VALVE_POSITION          | 0x0F    | 1      |
+|    VALVE_POSITION          | 0x0F    | 1      |  
+
+
