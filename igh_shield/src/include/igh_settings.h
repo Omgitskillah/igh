@@ -10,7 +10,7 @@ enum device_op_state
 {
     OP_INACTIVE = 0x00,
     OP_BASIC = 0x01,
-    OP_ADVANCE = 0x02,
+    OP_STANDARD = 0x02,
     OP_PREMIUM = 0x03
 };
 typedef enum device_op_state device_op_state;
@@ -50,12 +50,23 @@ struct thresholds
     uint16_t shield_battery_level_high;   
     uint16_t spear_battery_level_high;             
     uint32_t water_dispensed_period_high;
-}; // Requires subid settings and defaults set at bootup
+};
+typedef struct thresholds thresholds;
+
+struct system_settings
+{
+    device_op_state op_state; // inactive, basic, standard, premium
+    uint32_t reporting_interval; // frequency of data sending to cloud
+    uint32_t data_resolution; // frequency of data collection
+};
+typedef struct system_settings system_settings;
 
 enum igh_settings_subid
 {
     // System settings
     SUBID_NEW_OPSTATE = 0x01,
+    SUBID_REPORTING_INTERVAL,
+    SUBID_DATA_RESOLUTION,
     
     //High Threshold tirggers
     SUBID_SOIL_MOISTURE_LOW,          

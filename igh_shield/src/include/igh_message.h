@@ -35,9 +35,8 @@ enum igh_pkt_id
     SHIELD_BATTERY_LEVEL    = 0x0D,
     SPEAR_BATTERY_LEVEL     = 0x0E,
     VALVE_POSITION          = 0x0F,
-    IGH_SETTINGS            = 0x10,
-    IGH_READ_SETTINGS       = 0x11,
-    IGH_OPSTATE_CHANGE      = 0x12
+    IGH_SEND_SETTINGS       = 0x10,
+    IGH_READ_SETTINGS       = 0x11
 };
 
 
