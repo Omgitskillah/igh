@@ -238,12 +238,7 @@ uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
     igh_msg_type message_type = UNKNOWN_MSG;
     uint8_t length = buffer[1]; // get the length
 
-    if( (buffer[0] != FRAME_START) && (buffer[length-1] != FRAME_END) )
-    {
-        // if there is no frame start or no frame end, do nothing and return zer0
-        // This may mean the length was wrong or the message was corrupted
-    }
-    else
+    if( (buffer[0] == FRAME_START) && (buffer[length-1] == FRAME_END) )
     {
         // check the serial number
         if( 0 != memcmp(igh_current_system_settings.serial_number, &buffer[SN_INDEX], 12))
@@ -266,7 +261,11 @@ uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
             }
         }
     }
-
+    else    
+    {
+        // if there is no frame start or no frame end, do nothing and return zer0
+        // This may mean the length was wrong or the message was corrupted
+    }
 
     return message_type; // should return the extracted tuple id for processing later
 }

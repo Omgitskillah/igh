@@ -2,7 +2,7 @@
 
 #include "string.h" 
 #include "igh_message.h"
-#include "mock_igh_settings.h"
+#include "igh_settings.h"
 
 extern uint8_t igh_cmd_buffer[MESSAGE_SIZE];
 extern uint8_t igh_cmd_buffer_tracker;
@@ -10,8 +10,6 @@ extern uint8_t igh_cmd_buffer_tracker;
 extern uint8_t igh_msg_buffer[MESSAGE_SIZE];
 extern uint8_t igh_msg_buffer_tracker;
 extern uint8_t igh_message_id;
-
-extern thresholds igh_current_threshold_settings;
 extern system_settings igh_current_system_settings;
 
 void setUp(void)
@@ -182,7 +180,7 @@ void test_igh_message_add_tuple_does_nothing_if_pkt_id_is_unknown(void)
     TEST_ASSERT(local_buffer_tracker == 38);
 }
 
-void test_igh_message_process_incoming_msg_returns_zero_if_there_is_no_start_or_stop_byte(void)
+void test_igh_message_process_incoming_msg_returns_zero_if_there_is_no_start_byte(void)
 {
     uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
     memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
@@ -191,14 +189,14 @@ void test_igh_message_process_incoming_msg_returns_zero_if_there_is_no_start_or_
     uint8_t direction = 0x44;
     uint8_t msg_id = 0x35;
 
-    igh_cmd_buffer[0] = 0x29; // start of frame
-    igh_cmd_buffer[1] = 0x10; // The wrong length
+    igh_cmd_buffer[0] = 0x29; // wrong start of frame
+    igh_cmd_buffer[1] = 0x21; // right length
     igh_cmd_buffer[2] = msg_type; 
     igh_cmd_buffer[3] = direction;
     memcpy(&igh_cmd_buffer[4], test_shield_id, 12); 
     igh_cmd_buffer[16] = msg_id;
     memcpy(&igh_cmd_buffer[17], settings_cmd, 15);
-    igh_cmd_buffer[20] = 0x50; // end of frame  
+    igh_cmd_buffer[32] = 0x3E; // end of frame  
 
     uint8_t _ret = igh_message_process_incoming_msg(igh_cmd_buffer);
     TEST_ASSERT(_ret == 0x00);
@@ -214,19 +212,41 @@ void test_igh_message_process_incoming_msg_returns_zero_if_length_is_not_valid(v
     uint8_t msg_id = 0x35;
 
     igh_cmd_buffer[0] = 0x3C; // start of frame
-    igh_cmd_buffer[1] = 0x10; // The wrong length
+    igh_cmd_buffer[1] = 0x14; // The wrong length  
     igh_cmd_buffer[2] = msg_type; 
     igh_cmd_buffer[3] = direction;
     memcpy(&igh_cmd_buffer[4], test_shield_id, 12); 
     igh_cmd_buffer[16] = msg_id;
     memcpy(&igh_cmd_buffer[17], settings_cmd, 15);
-    igh_cmd_buffer[20] = 0x3E; // end of frame  
+    igh_cmd_buffer[32] = 0x3E; // end of frame  
 
     uint8_t _ret = igh_message_process_incoming_msg(igh_cmd_buffer);
     TEST_ASSERT(_ret == 0x00);
 }
 
-void test_igh_message_process_incoming_msg_returns_zero_is_msg_is_serial_is_wrong(void)
+void test_igh_message_process_incoming_msg_returns_zero_if_there_is_no_stop_byte(void)
+{
+    uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
+    memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
+    uint8_t settings_cmd[15] = {0x10,0x0D,0x01,0x01,0x02,0x04,0x02,0x23,0x45,0x19,0x04,0x37,0x52,0x67,0x90};
+    uint8_t msg_type = 0x11;  // Settings message 
+    uint8_t direction = 0x44;
+    uint8_t msg_id = 0x35;
+
+    igh_cmd_buffer[0] = 0x3C; // start of frame
+    igh_cmd_buffer[1] = 0x21; // The right length  
+    igh_cmd_buffer[2] = msg_type; 
+    igh_cmd_buffer[3] = direction;
+    memcpy(&igh_cmd_buffer[4], test_shield_id, 12); 
+    igh_cmd_buffer[16] = msg_id;
+    memcpy(&igh_cmd_buffer[17], settings_cmd, 15);
+    igh_cmd_buffer[32] = 0x23; // wrong end of frame  
+
+    uint8_t _ret = igh_message_process_incoming_msg(igh_cmd_buffer);
+    TEST_ASSERT(_ret == 0x00);
+}
+
+void test_igh_message_process_incoming_msg_returns_zero_if_serial_is_wrong(void)
 {
     uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
     memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
@@ -254,7 +274,7 @@ void test_igh_message_process_incoming_msg_returns_ACK_if_message_is_ACK(void)
     uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
     memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
     uint8_t ack_msg[3] = {0x00,0x01,0x13}; // An Ack that says message number 0x13 was processed by cloud
-    uint8_t msg_type = 0xAA;  // ACK message 
+    uint8_t msg_type = MSG_ACK;  // ACK message 
     uint8_t direction = 0x44;
     uint8_t msg_id = 0x35;
 
@@ -268,7 +288,7 @@ void test_igh_message_process_incoming_msg_returns_ACK_if_message_is_ACK(void)
     igh_cmd_buffer[20] = 0x3E; // end of frame  
 
     uint8_t _ret = igh_message_process_incoming_msg(igh_cmd_buffer);
-    TEST_ASSERT(_ret == 0xAA);
+    TEST_ASSERT(_ret == MSG_ACK);
 }
 
 void test_igh_message_process_incoming_msg_returns_settings_if_message_is_settings(void)
@@ -276,7 +296,7 @@ void test_igh_message_process_incoming_msg_returns_settings_if_message_is_settin
     uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
     memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
     uint8_t settings_cmd[15] = {0x10,0x0D,0x01,0x01,0x02,0x04,0x02,0x23,0x45,0x19,0x04,0x37,0x52,0x67,0x90};
-    uint8_t msg_type = 0x11;  // Settings message 
+    uint8_t msg_type = SETTINGS_MSG;  // Settings message 
     uint8_t direction = 0x44;
     uint8_t msg_id = 0x35;
 
@@ -287,14 +307,8 @@ void test_igh_message_process_incoming_msg_returns_settings_if_message_is_settin
     memcpy(&igh_cmd_buffer[4], test_shield_id, 12); 
     igh_cmd_buffer[16] = msg_id;
     memcpy(&igh_cmd_buffer[17], settings_cmd, 15);
-    igh_cmd_buffer[20] = 0x3E; // end of frame  
+    igh_cmd_buffer[32] = 0x3E; // end of frame  
 
     uint8_t _ret = igh_message_process_incoming_msg(igh_cmd_buffer);
-    TEST_ASSERT(_ret == 0x11);
+    TEST_ASSERT(_ret == SETTINGS_MSG);
 }
-
-
-/*
-    uint8_t ack_msg[] = {0x00, 0x01, 0x13 } // An Ack that says message number 0x13 was processed by cloud
-    uint8_t settings_cmd[] = {0x10,0x0D,0x01,0x01,0x02,0x04,0x02,0x23,0x45,0x19,0x04,0x37,0x52,0x67,0x90};
-    */

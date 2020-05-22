@@ -62,7 +62,6 @@ enum igh_msg_dir
 typedef enum igh_msg_dir igh_msg_dir;
 
 
-
 // function APIs
 uint8_t igh_message_reset_buffer(void);
 uint8_t igh_message_add_frame_end(void);
