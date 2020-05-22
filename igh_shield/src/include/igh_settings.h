@@ -58,6 +58,7 @@ struct system_settings
     device_op_state op_state; // inactive, basic, standard, premium
     uint32_t reporting_interval; // frequency of data sending to cloud
     uint32_t data_resolution; // frequency of data collection
+    uint8_t serial_number[12]; // The device serial number/ID
 };
 typedef struct system_settings system_settings;
 

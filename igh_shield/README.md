@@ -40,10 +40,11 @@ Maximum length of data is 256 bytes over MQTT protocol
 ### *Msg type*
 |value | Type            |
 | :--- | :---            |
-| 0x00 | Sensor data msg | 
-| 0x11 | Settings msg    |
-| 0x22 | Error msg       |
-| 0xAA | Message ACK     |
+| 0x44 | Sensor data msg | 
+| 0x53 | Settings msg    |
+| 0x45 | Error msg       |
+| 0x41 | Message ACK     |
+| 0x00 | Unknown type    |
 
 ### *direction*
 |value | direction            |
@@ -73,6 +74,7 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 
 | Tuple Name                 | Tuple ID| Length     |
 | :---                       | :---    | :---       |
+|    MSG_ACK                 | 0x00    | 1          |
 |    SPEAR_ID                | 0x01    | 12         |
 |    STORE_TIMESTAMP         | 0x02    | 4          |  
 |    SEND_TIMESTAMP          | 0x03    | 4          |  

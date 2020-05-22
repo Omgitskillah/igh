@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "include/igh_message.h"
+#include "include/igh_settings.h"
 
 // size of each message type in bytes
 uint8_t SIZE_OF_SPEAR_ID = 12;
@@ -36,9 +37,15 @@ uint8_t SIZE_OF_VALVE_POSITION = 1;
 
 LOCAL uint8_t igh_msg_buffer[MESSAGE_SIZE];  // global variable to be used to hold page for sending, maximum message size is 256 bytes
 LOCAL uint8_t igh_msg_buffer_tracker = 0; // track globally how full the message buffer is
+
+LOCAL uint8_t igh_cmd_buffer[MESSAGE_SIZE];
 LOCAL uint8_t igh_cmd_buffer_tracker = 0; // track globally how full the message buffer is
+
 LOCAL uint8_t igh_device_serial[12];
 LOCAL uint8_t igh_message_id = 0; // always start as zero and overflow whenever we reach 256
+
+extern thresholds igh_current_threshold_settings;
+extern system_settings igh_current_system_settings;
 
 
 // local functions
@@ -226,10 +233,44 @@ uint8_t igh_message_add_tuple(igh_pkt_id _pkt_id, uint8_t * data)
     return igh_msg_buffer_tracker;
 }
 
-uint8_t igh_message_process_commands(uint8_t * buffer)
+uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
 {
-    return igh_cmd_buffer_tracker;
+    igh_msg_type message_type = UNKNOWN_MSG;
+    uint8_t length = buffer[1]; // get the length
+
+    if( (buffer[0] != FRAME_START) && (buffer[length-1] != FRAME_END) )
+    {
+        // if there is no frame start or no frame end, do nothing and return zer0
+        // This may mean the length was wrong or the message was corrupted
+    }
+    else
+    {
+        // check the serial number
+        if( 0 != memcmp(igh_current_system_settings.serial_number, &buffer[SN_INDEX], 12))
+        {
+            // is the serial number does not match, do nothing as this message wasn't meant for this device,
+            // THis ideally should never happen
+        }
+        else
+        {
+            // Message process message if all is well
+            message_type = (igh_msg_type)buffer[MSG_TYPE_INDEX];
+
+            if( MSG_ACK == message_type )
+            {
+                // TODO: prcoess ACK here
+            }
+            else if( SETTINGS_MSG == message_type )
+            {
+                // TODO: process settings here
+            }
+        }
+    }
+
+
+    return message_type; // should return the extracted tuple id for processing later
 }
+
 
 
 

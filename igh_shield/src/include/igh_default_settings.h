@@ -35,6 +35,7 @@ extern "C" {
 #define DEFAULT_SHIELD_BATTERY_LEVEL_HIGH       255            
 #define DEFAULT_SPEAR_BATTERY_LEVEL_HIGH        255                     
 #define DEFAULT_WATER_DISPENSED_PERIOD_HIGH     255
+#define DEFAULT_SERIAL_NUMBER                   {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff}
 
 #ifdef __cplusplus
 }

@@ -10,10 +10,15 @@ device_op_state previous_op_state;
 
 thresholds igh_default_thresholds;
 system_settings igh_default_system_settings;
+uint8_t default_serial_number[] = DEFAULT_SERIAL_NUMBER;
+
+thresholds igh_current_threshold_settings;
+system_settings igh_current_system_settings;
 
 void igh_settings_get_defaults(void) // Total bytes 
 {
     // System settings
+    memcpy(igh_default_system_settings.serial_number, default_serial_number, 12);
     igh_default_system_settings.op_state                    = DEFAULT_NEW_OPSTATE;
     igh_default_system_settings.reporting_interval          = DEFAULT_REPORTING_INTERVAL;
     igh_default_system_settings.data_resolution             = DEFAULT_DATA_RESOLUTION;

@@ -20,6 +20,7 @@ extern "C" {
 // all possible message identifiers
 enum igh_pkt_id
 {
+    MSG_ACK_TUPLE           = 0x00,
     SPEAR_ID                = 0x01,
     STORE_TIMESTAMP         = 0x02,
     SEND_TIMESTAMP          = 0x03,
@@ -46,10 +47,10 @@ typedef enum igh_pkt_id igh_pkt_id;
 enum igh_msg_type
 {
     UNKNOWN_MSG = 0x00,
-    SETTINGS_MSG = 0x22,
-    MSG_ACK = 0xAC,
-    SENSOR_DATA = 0xDA,
-    ERROR_MSG = 0xEE  
+    MSG_ACK = 0x41,
+    SENSOR_DATA = 0x44,
+    ERROR_MSG = 0x45,
+    SETTINGS_MSG = 0x53  
 };
 typedef enum igh_msg_type igh_msg_type;
 
@@ -72,6 +73,7 @@ uint8_t igh_message_add_serial_number(uint8_t * serial_number);
 uint8_t igh_message_add_msg_id(void);
 uint8_t igh_message_check_tuple_fits(uint8_t length);
 uint8_t igh_message_add_tuple(igh_pkt_id _pkt_id, uint8_t * data);
+uint8_t igh_message_process_incoming_msg(uint8_t * buffer);
 
 #ifdef __cplusplus
 }
