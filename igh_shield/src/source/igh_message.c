@@ -23,12 +23,6 @@ uint8_t SIZE_OF_VALVE_POSITION = 1;
 
 #define MESSAGE_FITS(X,Y) ((MESSAGE_SIZE - X) >= Y)
 
-#define LEN_INDEX       1
-#define MSG_TYPE_INDEX   2
-#define MSG_DIRECTION_INDEX 3
-#define SN_INDEX 4
-#define MSG_ID_INDEX 16
-
 #ifdef TEST
 #define LOCAL 
 #else
@@ -54,7 +48,7 @@ uint8_t igh_message_reset_buffer(void)
     memset(igh_msg_buffer,'\0',MESSAGE_SIZE);
 
     igh_msg_buffer[0] = FRAME_START; // place the frame start at the beginning of the buffer
-    igh_msg_buffer_tracker = 17; // move the index tracker to leave room for data header
+    igh_msg_buffer_tracker = PAYLOAD_INDEX; // move the index tracker to leave room for data header
 
     return igh_msg_buffer_tracker;
 }
@@ -238,6 +232,11 @@ uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
     igh_msg_type message_type = UNKNOWN_MSG;
     uint8_t length = buffer[1]; // get the length
 
+    if(length <= 0) // prevent any messages with zero length from being processed
+    {
+        return message_type;    
+    }
+
     if( (buffer[0] == FRAME_START) && (buffer[length-1] == FRAME_END) )
     {
         // check the serial number
@@ -253,7 +252,7 @@ uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
 
             if( MSG_ACK == message_type )
             {
-                // TODO: prcoess ACK here
+                // TODO: process ACK here
             }
             else if( SETTINGS_MSG == message_type )
             {

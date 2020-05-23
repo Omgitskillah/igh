@@ -1,9 +1,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include "include/igh_message.h"
 #include "include/igh_settings.h"
 #include "include/igh_default_settings.h"
 // #include "include/igh_message.h"
+
+#define SETTINGS_LEN_INDEX (PAYLOAD_INDEX + 1)
+#define FIRST_SETTINGS_TUPLE_INDEX (SETTINGS_LEN_INDEX + 1)
 
 device_op_state current_op_state;
 device_op_state previous_op_state;
@@ -47,6 +51,79 @@ void igh_settings_get_defaults(void) // Total bytes
     igh_default_thresholds.spear_battery_level_high         = DEFAULT_SPEAR_BATTERY_LEVEL_HIGH;     
     igh_default_thresholds.water_dispensed_period_high      = DEFAULT_WATER_DISPENSED_PERIOD_HIGH;
 } // test this function
+
+uint8_t igh_settings_parse_new_settings(uint8_t * settings)
+{
+    // get the length
+    uint8_t length = settings[SETTINGS_LEN_INDEX]; // bit at position one should always be length
+    // guard the process
+    if(0 >= length)
+    {
+        return 0; // do not allow settings with zero payload to be processed
+    }
+    // get index of last byte to process
+    uint8_t settings_end_index = FIRST_SETTINGS_TUPLE_INDEX + length;
+    // get the location of first tuple
+    uint8_t settings_byte_tracker = FIRST_SETTINGS_TUPLE_INDEX;
+    //cycle through tuples to get the settings data
+    uint8_t current_tuple_id;
+    uint8_t current_tuple_length;
+    uint8_t current_data_index;
+    while(settings_byte_tracker < settings_end_index)
+    {
+        // extract tuples
+        current_tuple_id = settings[settings_byte_tracker];
+        // extract the length
+        current_tuple_length = settings[settings_byte_tracker + 1]; // should always follow
+        // extract the tuple data based on tuple id
+        current_data_index = settings_byte_tracker+2;
+
+        switch(current_tuple_id)
+        {
+            case SUBID_NEW_OPSTATE:
+            if(LENGTH_SUBID_NEW_OPSTATE == current_tuple_length)
+            {
+                // check if new state is valid
+                if( (OP_INACTIVE == (settings[current_data_index]))|| 
+                    (OP_BASIC == (settings[current_data_index]))||
+                    (OP_STANDARD == (settings[current_data_index]))||
+                    (OP_PREMIUM == (settings[current_data_index]))  
+                )
+                {
+                    igh_current_system_settings.op_state = (device_op_state)settings[current_data_index];
+                }  
+                else
+                {
+                    // do nothing
+                }
+                  
+            }
+            else
+            {
+                // do nothing
+            }
+            break;
+
+            case SUBID_SET_SERIAL_NUMBER:
+            if(LENGTH_SUBID_SET_SERIAL_NUMBER == current_tuple_length)
+            {
+                memcpy(igh_current_system_settings.serial_number, &settings[current_data_index], LENGTH_SUBID_SET_SERIAL_NUMBER);
+            }
+            else
+            {
+                // do nothing
+            }
+            break;
+
+            default:
+            break;
+        }
+        // move index to next tuple id
+        settings_byte_tracker += current_tuple_length + TUPLE_HEADER_LEN;
+    }
+
+    return 1;
+}
 
 // parse settings here
 // validate settings

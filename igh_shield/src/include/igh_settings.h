@@ -68,6 +68,7 @@ enum igh_settings_subid
     SUBID_NEW_OPSTATE = 0x01,
     SUBID_REPORTING_INTERVAL,
     SUBID_DATA_RESOLUTION,
+    SUBID_SET_SERIAL_NUMBER,
     
     //High Threshold tirggers
     SUBID_SOIL_MOISTURE_LOW,          
@@ -95,6 +96,40 @@ enum igh_settings_subid
     SUBID_SPEAR_BATTERY_LEVEL_HIGH,             
     SUBID_WATER_DISPENSED_PERIOD_HIGH
 };
+
+    // System settings
+#define LENGTH_SUBID_NEW_OPSTATE                    1
+#define LENGTH_SUBID_REPORTING_INTERVAL             4
+#define LENGTH_SUBID_DATA_RESOLUTION                4
+#define LENGTH_SUBID_SET_SERIAL_NUMBER              12
+//High Threshold tirggers
+#define LENGTH_SUBID_SOIL_MOISTURE_LOW              2          
+#define LENGTH_SUBID_AIR_HUMIDITY_LOW               2           
+#define LENGTH_SUBID_SOIL_HUMIDITY_LOW              2               
+#define LENGTH_SUBID_CARBON_DIOXIDE_LOW             2
+#define LENGTH_SUBID_AIR_TEMPERATURE_LOW            2        
+#define LENGTH_SUBID_SOIL_TEMPERATURE_LOW           2       
+#define LENGTH_SUBID_SOIL_NPK_LOW                   2               
+#define LENGTH_SUBID_LIGHT_INTENSITY_LOW            2        
+#define LENGTH_SUBID_SHIELD_BATTERY_LEVEL_LOW       2   
+#define LENGTH_SUBID_SPEAR_BATTERY_LEVEL_LOW        2   
+#define LENGTH_SUBID_WATER_DISPENSED_PERIOD_LOW     4
+// Low Threshold Trigger
+#define LENGTH_SUBID_SOIL_MOISTURE_HIGH             2          
+#define LENGTH_SUBID_AIR_HUMIDITY_HIGH              2           
+#define LENGTH_SUBID_SOIL_HUMIDITY_HIGH             2                
+#define LENGTH_SUBID_CARBON_DIOXIDE_HIGH            2
+#define LENGTH_SUBID_AIR_TEMPERATURE_HIGH           2           
+#define LENGTH_SUBID_SOIL_TEMPERATURE_HIGH          2       
+#define LENGTH_SUBID_SOIL_NPK_HIGH                  2               
+#define LENGTH_SUBID_LIGHT_INTENSITY_HIGH           2        
+#define LENGTH_SUBID_SHIELD_BATTERY_LEVEL_HIGH      2   
+#define LENGTH_SUBID_SPEAR_BATTERY_LEVEL_HIGH       2             
+#define LENGTH_SUBID_WATER_DISPENSED_PERIOD_HIGH    4
+
+// functions
+void igh_settings_get_defaults(void);
+uint8_t igh_settings_parse_new_settings(uint8_t * settings);
 
 // Reporting interval
 // Data Collection interval

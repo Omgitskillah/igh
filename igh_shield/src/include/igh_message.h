@@ -11,6 +11,16 @@ extern "C" {
 #define FRAME_START 0x3C
 #define FRAME_END   0x3E
 
+
+#define LEN_INDEX       1
+#define MSG_TYPE_INDEX   2
+#define MSG_DIRECTION_INDEX 3
+#define SN_INDEX 4
+#define MSG_ID_INDEX 16
+#define PAYLOAD_INDEX 17
+#define HEADER_AND_FOOTER 18
+#define TUPLE_HEADER_LEN 2
+
 // Macro functions for breaking large numbers into multiple bytes and the opposite
 #define GET16(buf)          (((uint16_t)(buf)[1]<<8)+(buf)[0])
 #define PUT16(val, buf)     {(buf)[0]=((val)&0xff);(buf)[1]=((val)>>8);}
@@ -37,7 +47,8 @@ enum igh_pkt_id
     SPEAR_BATTERY_LEVEL     = 0x0E,
     VALVE_POSITION          = 0x0F,
     IGH_SEND_SETTINGS       = 0x10,
-    IGH_READ_SETTINGS       = 0x11
+    IGH_READ_SETTINGS       = 0x11,
+    SPEAR_DATA              = 0x12
 };
 
 

@@ -92,6 +92,7 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 |    VALVE_POSITION          | 0x0F    | 1          |  
 |    IGH_SEND_SETTINGS       | 0x10    | Variable   |  
 |    IGH_READ_SETTINGS       | 0x11    | Variable   | 
+|    SPEAR_DATA              | 0x12    | Variable   | 
 
 ### **IGH_READ_SETTINGS**
 In order to get the current settings in a device, the cloud platform must send a message with and **IGH_READ_SETTINGS** tuple in the payload.  
