@@ -6,8 +6,8 @@
 #include "include/igh_default_settings.h"
 // #include "include/igh_message.h"
 
-#define SETTINGS_LEN_INDEX (PAYLOAD_INDEX + 1)
-#define FIRST_SETTINGS_TUPLE_INDEX (SETTINGS_LEN_INDEX + 1)
+#define PAYLOAD_LEN_INDEX (PAYLOAD_INDEX + 1)
+#define FIRST_TUPLE_INDEX (PAYLOAD_LEN_INDEX + 1)
 
 device_op_state current_op_state;
 device_op_state previous_op_state;
@@ -55,16 +55,16 @@ void igh_settings_get_defaults(void) // Total bytes
 uint8_t igh_settings_parse_new_settings(uint8_t * settings)
 {
     // get the length
-    uint8_t length = settings[SETTINGS_LEN_INDEX]; // bit at position one should always be length
+    uint8_t length = settings[PAYLOAD_LEN_INDEX]; // byte at position one should always be length
     // guard the process
     if(0 >= length)
     {
         return 0; // do not allow settings with zero payload to be processed
     }
     // get index of last byte to process
-    uint8_t settings_end_index = FIRST_SETTINGS_TUPLE_INDEX + length;
+    uint8_t settings_end_index = FIRST_TUPLE_INDEX + length;
     // get the location of first tuple
-    uint8_t settings_byte_tracker = FIRST_SETTINGS_TUPLE_INDEX;
+    uint8_t settings_byte_tracker = FIRST_TUPLE_INDEX;
     //cycle through tuples to get the settings data
     uint8_t current_tuple_id;
     uint8_t current_tuple_length;
@@ -451,8 +451,22 @@ void igh_settings_reset_system_to_default(void)
 
 // payload build settings for sending
 
-uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer)
+uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index)
 {
+    uint8_t settings_request_tracker = 0;
+    // get the number of all requested settings
+    uint8_t settings_request_len = settings_req[PAYLOAD_LEN_INDEX]; // byte at position one should always be length
+    // check that the request is valid
+    if ( settings_request_len <= 0)
+    {
+        settings_request_tracker = 0;
+        return settings_request_tracker;
+    }
+    // start processing the requested settings here
+    
+
+
+    return settings_request_tracker;
 }
 
 

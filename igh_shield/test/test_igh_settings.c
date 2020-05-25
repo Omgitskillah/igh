@@ -1970,4 +1970,107 @@ void test_igh_settings_reset_system__to_default_resets_all_settings_to_defalult(
     TEST_ASSERT(igh_current_threshold_settings.water_dispensed_period_high      == DEFAULT_WATER_DISPENSED_PERIOD_HIGH); 
 }
 
+void test_igh_settings_build_settings_request_payload_returns_zero_if_if_settings_request_length_is_zero(void)
+{
+    uint8_t settings_request[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        IGH_READ_SETTINGS,0x00, // wrong length, 0x1A is the right length
+        SUBID_NEW_OPSTATE,
+        SUBID_REPORTING_INTERVAL,
+        SUBID_DATA_RESOLUTION,
+        SUBID_SET_SERIAL_NUMBER,
+        
+        //High Threshold tirggers
+        SUBID_SOIL_MOISTURE_LOW,          
+        SUBID_AIR_HUMIDITY_LOW,           
+        SUBID_SOIL_HUMIDITY_LOW,               
+        SUBID_CARBON_DIOXIDE_LOW,
+        SUBID_AIR_TEMPERATURE_LOW,        
+        SUBID_SOIL_TEMPERATURE_LOW,       
+        SUBID_SOIL_NPK_LOW,               
+        SUBID_LIGHT_INTENSITY_LOW,        
+        SUBID_SHIELD_BATTERY_LEVEL_LOW,   
+        SUBID_SPEAR_BATTERY_LEVEL_LOW,   
+        SUBID_WATER_DISPENSED_PERIOD_LOW,
+
+        // Low Threshold Trigger
+        SUBID_SOIL_MOISTURE_HIGH,          
+        SUBID_AIR_HUMIDITY_HIGH,           
+        SUBID_SOIL_HUMIDITY_HIGH,                
+        SUBID_CARBON_DIOXIDE_HIGH,
+        SUBID_AIR_TEMPERATURE_HIGH,        
+        SUBID_SOIL_TEMPERATURE_HIGH,       
+        SUBID_SOIL_NPK_HIGH,               
+        SUBID_LIGHT_INTENSITY_HIGH,        
+        SUBID_SHIELD_BATTERY_LEVEL_HIGH,   
+        SUBID_SPEAR_BATTERY_LEVEL_HIGH,             
+        SUBID_WATER_DISPENSED_PERIOD_HIGH,
+        0x3E // end 
+    };
+    settings_request[1] = sizeof(settings_request); // update the length
+
+    uint8_t buffer[256];
+    uint8_t ret = igh_settings_build_settings_request_payload(settings_request, buffer, 20);
+
+    TEST_ASSERT(ret == 0);
+}
+
+void test_igh_settings_build_settings_request_payload_populates_buffer_withsystem_settings_when_requested(void)
+{
+    uint8_t settings_request[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        IGH_READ_SETTINGS,0x30, // wrong length, 0x1A is the right length
+        SUBID_NEW_OPSTATE,
+        SUBID_REPORTING_INTERVAL,
+        SUBID_DATA_RESOLUTION,
+        SUBID_SET_SERIAL_NUMBER,
+        
+        //High Threshold tirggers
+        SUBID_SOIL_MOISTURE_LOW,          
+        SUBID_AIR_HUMIDITY_LOW,           
+        SUBID_SOIL_HUMIDITY_LOW,               
+        SUBID_CARBON_DIOXIDE_LOW,
+        SUBID_AIR_TEMPERATURE_LOW,        
+        SUBID_SOIL_TEMPERATURE_LOW,       
+        SUBID_SOIL_NPK_LOW,               
+        SUBID_LIGHT_INTENSITY_LOW,        
+        SUBID_SHIELD_BATTERY_LEVEL_LOW,   
+        SUBID_SPEAR_BATTERY_LEVEL_LOW,   
+        SUBID_WATER_DISPENSED_PERIOD_LOW,
+
+        // Low Threshold Trigger
+        SUBID_SOIL_MOISTURE_HIGH,          
+        SUBID_AIR_HUMIDITY_HIGH,           
+        SUBID_SOIL_HUMIDITY_HIGH,                
+        SUBID_CARBON_DIOXIDE_HIGH,
+        SUBID_AIR_TEMPERATURE_HIGH,        
+        SUBID_SOIL_TEMPERATURE_HIGH,       
+        SUBID_SOIL_NPK_HIGH,               
+        SUBID_LIGHT_INTENSITY_HIGH,        
+        SUBID_SHIELD_BATTERY_LEVEL_HIGH,   
+        SUBID_SPEAR_BATTERY_LEVEL_HIGH,             
+        SUBID_WATER_DISPENSED_PERIOD_HIGH,
+        0x3E // end 
+    };
+    settings_request[1] = sizeof(settings_request); // update the length
+
+    uint8_t buffer[256];
+    uint8_t ret = igh_settings_build_settings_request_payload(settings_request, buffer, 20);
+
+    TEST_ASSERT(ret > 0 ); // correct this
+}
+
+
 
