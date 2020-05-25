@@ -130,6 +130,8 @@ enum igh_settings_subid
 // functions
 void igh_settings_get_defaults(void);
 uint8_t igh_settings_parse_new_settings(uint8_t * settings);
+void igh_settings_reset_system_to_default(void);
+uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer);
 
 // Reporting interval
 // Data Collection interval
