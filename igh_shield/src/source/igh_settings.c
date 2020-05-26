@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * @file igh_air.h
+ * @brief manage air sensor data
+ * @auther Alucho C. Ayisi
+ * Copyright (C), Illuminum Greenhouses Ltd. All rights reserved.
+ *******************************************************************************/
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -679,5 +686,7 @@ uint8_t igh_settings_remote_valvle_control(uint8_t * settings)
 
     return 0;
 }
+
+
 
 

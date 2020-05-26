@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * @file igh_air.h
+ * @brief manage air sensor data
+ * @auther Alucho C. Ayisi
+ * Copyright (C), Illuminum Greenhouses Ltd. All rights reserved.
+ *******************************************************************************/
+
 #ifndef IGH_DEFAULT_SETTINGS
 #define IGH_DEFAULT_SETTINGS
 

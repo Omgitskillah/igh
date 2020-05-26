@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * @file igh_air.h
+ * @brief manage air sensor data
+ * @auther Alucho C. Ayisi
+ * Copyright (C), Illuminum Greenhouses Ltd. All rights reserved.
+ *******************************************************************************/
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -104,7 +111,7 @@ igh_msg_type igh_message_add_msg_type(igh_msg_type msg_type)
 
 igh_msg_dir igh_message_add_direction(igh_msg_dir msg_dir)
 {
-    igh_msg_type _dir;
+    igh_msg_dir _dir;
 
     switch(msg_dir)
     {
@@ -121,7 +128,7 @@ igh_msg_dir igh_message_add_direction(igh_msg_dir msg_dir)
 
     igh_msg_buffer[MSG_DIRECTION_INDEX] = _dir;
 
-    return (igh_msg_type)igh_msg_buffer[MSG_DIRECTION_INDEX];
+    return (igh_msg_dir)igh_msg_buffer[MSG_DIRECTION_INDEX];
 }
 
 uint8_t igh_message_add_serial_number(uint8_t * serial_number)
@@ -267,6 +274,11 @@ uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
     }
 
     return message_type; // should return the extracted tuple id for processing later
+}
+
+igh_msg_type igh_message_process_ACK(uint8_t * settings)
+{
+    // get the ACK
 }
 
 
