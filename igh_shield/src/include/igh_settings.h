@@ -65,7 +65,7 @@ typedef struct system_settings system_settings;
 enum igh_settings_subid
 {
     // System settings
-    SUBID_NEW_OPSTATE = 0x01,
+    SUBID_OPSTATE = 0x01,
     SUBID_REPORTING_INTERVAL,
     SUBID_DATA_RESOLUTION,
     SUBID_SET_SERIAL_NUMBER,
@@ -98,7 +98,7 @@ enum igh_settings_subid
 };
 
     // System settings
-#define LENGTH_SUBID_NEW_OPSTATE                    1
+#define LENGTH_SUBID_OPSTATE                    1
 #define LENGTH_SUBID_REPORTING_INTERVAL             4
 #define LENGTH_SUBID_DATA_RESOLUTION                4
 #define LENGTH_SUBID_SET_SERIAL_NUMBER              12
@@ -132,7 +132,7 @@ void igh_settings_get_defaults(void);
 uint8_t igh_settings_parse_new_settings(uint8_t * settings);
 void igh_settings_reset_system_to_default(void);
 uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
-
+uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
 // Reporting interval
 // Data Collection interval
 

@@ -105,7 +105,7 @@ The device will respond with the requested settings in the next payload in the f
 
 | Subid Name                        | Tuple ID | Length     |
 | :---                              | :---     | :---       |
-|SUBID_NEW_OPSTATE                  |  0x01    | 1          |
+|SUBID_OPSTATE                      |  0x01    | 1          |
 |SUBID_REPORTING_INTERVAL           |  0x02    | 4          |
 |SUBID_DATA_RESOLUTION              |  0x03    | 4          |
 |SUBID_SOIL_MOISTURE_LOW            |  0x04    | 2          |

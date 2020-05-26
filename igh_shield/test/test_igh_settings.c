@@ -9,6 +9,7 @@ extern thresholds igh_default_thresholds;
 extern system_settings igh_default_system_settings;
 extern system_settings igh_current_system_settings;
 extern thresholds igh_current_threshold_settings;
+extern valve_position current_valve_position;
 
 extern uint8_t default_serial_number[];
 
@@ -16,6 +17,8 @@ uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,
 
 void setUp(void)
 {
+    current_valve_position = VALVE_CLOSE;
+
     memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
     igh_current_system_settings.op_state = OP_INACTIVE;
     igh_current_system_settings.reporting_interval = 0x11111111;
@@ -95,7 +98,7 @@ void test_igh_settings_parse_new_settings_does_nothing_if_total_settings_length_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x00, // settings with invalid length
-        SUBID_NEW_OPSTATE,0x01,0x01, // new op state setting 3
+        SUBID_OPSTATE,0x01,0x01, // new op state setting 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number 14
         SUBID_CARBON_DIOXIDE_HIGH, 0x02, 0x30, 0x54, // co2 settings 4
@@ -119,7 +122,7 @@ void test_igh_settings_parse_new_settings_sets_serial_number_if_serial_number_le
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x19, // length
-        SUBID_NEW_OPSTATE,0x01,0x01, // new op state setting 3
+        SUBID_OPSTATE,0x01,0x01, // new op state setting 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number 14
         SUBID_CARBON_DIOXIDE_HIGH, 0x02, 0x30, 0x54, // co2 settings 4
@@ -147,7 +150,7 @@ void test_igh_settings_parse_new_settings_does_not_set_serial_number_if_serial_n
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x19, // length
-        SUBID_NEW_OPSTATE,0x01,0x01, // new op state setting 3
+        SUBID_OPSTATE,0x01,0x01, // new op state setting 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_SET_SERIAL_NUMBER, 0x12, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
         SUBID_CARBON_DIOXIDE_HIGH, 0x02, 0x30, 0x54, // co2 settings 4
@@ -175,7 +178,7 @@ void test_igh_settings_parse_new_settings_sets_the_op_state_to_standard_if_state
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x19, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to Standard mode
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to Standard mode
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
         SUBID_CARBON_DIOXIDE_HIGH, 0x02, 0x30, 0x54, // co2 settings 4
@@ -201,7 +204,7 @@ void test_igh_settings_parse_new_settings_sets_the_op_state_to_premium_if_state_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x19, // length
-        SUBID_NEW_OPSTATE,0x01,OP_PREMIUM, // new op state settings change to premium
+        SUBID_OPSTATE,0x01,OP_PREMIUM, // new op state settings change to premium
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
         SUBID_CARBON_DIOXIDE_HIGH, 0x02, 0x30, 0x54, // co2 settings 4
@@ -227,7 +230,7 @@ void test_igh_settings_parse_new_settings_sets_the_op_state_to_basic_if_state_an
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x19, // length
-        SUBID_NEW_OPSTATE,0x01,OP_BASIC, // new op state settings change to basic
+        SUBID_OPSTATE,0x01,OP_BASIC, // new op state settings change to basic
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
         SUBID_CARBON_DIOXIDE_HIGH, 0x02, 0x30, 0x54, // co2 settings 4
@@ -253,7 +256,7 @@ void test_igh_settings_parse_new_settings_sets_the_op_state_to_inactive_if_state
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x19, // length
-        SUBID_NEW_OPSTATE,0x01,OP_INACTIVE, // new op state settings change to inactive
+        SUBID_OPSTATE,0x01,OP_INACTIVE, // new op state settings change to inactive
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
         SUBID_CARBON_DIOXIDE_HIGH, 0x02, 0x30, 0x54, // co2 settings 4
@@ -281,7 +284,7 @@ void test_igh_settings_parse_new_settings_does_nothing_to_op_state_if_op_state_i
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x19, // length
-        SUBID_NEW_OPSTATE,0x01,0xFF, // new op state settings change to unknown
+        SUBID_OPSTATE,0x01,0xFF, // new op state settings change to unknown
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
         SUBID_CARBON_DIOXIDE_HIGH, 0x02, 0x30, 0x54, // co2 settings 4
@@ -307,7 +310,7 @@ void test_igh_settings_parse_new_settings_does_nothing_to_op_state_if_op_state_l
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x19, // length
-        SUBID_NEW_OPSTATE,0x03,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x03,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
         SUBID_CARBON_DIOXIDE_HIGH, 0x02, 0x30, 0x54, // co2 settings 4
@@ -333,7 +336,7 @@ void test_igh_settings_parse_new_settings_updates_the_reporting_interval_if_leng
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x1F, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
@@ -361,7 +364,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_reporting_interval
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x1F, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x02, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
@@ -390,7 +393,7 @@ void test_igh_settings_parse_new_settings_returns_zero_if_any_setting_is_invalid
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x1F, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state 
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state 
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x02, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
@@ -417,7 +420,7 @@ void test_igh_settings_parse_new_settings_updates_the_data_resolution_if_length_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x1F, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -446,7 +449,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_data_resolution_if
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x1F, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x02, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -476,7 +479,7 @@ void test_igh_settings_parse_new_settings_updates_the_soil_moisture_low_th_if_le
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x29, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -506,7 +509,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_soil_moisture_low_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x29, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -537,7 +540,7 @@ void test_igh_settings_parse_new_settings_updates_the_soil_moisture_high_th_if_l
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x2D, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -568,7 +571,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_soil_moisture_high
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x2D, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -600,7 +603,7 @@ void test_igh_settings_parse_new_settings_updates_the_air_humidity_low_th_if_len
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -632,7 +635,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_air_humidity_low_t
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -665,7 +668,7 @@ void test_igh_settings_parse_new_settings_updates_the_air_humidity_high_th_if_le
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -698,7 +701,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_air_humidity_high_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -732,7 +735,7 @@ void test_igh_settings_parse_new_settings_updates_the_soil_humidity_low_th_if_le
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -765,7 +768,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_soil_humidity_low_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -799,7 +802,7 @@ void test_igh_settings_parse_new_settings_updates_the_soil_humidity_high_th_if_l
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -833,7 +836,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_soil_humidity_high
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -868,7 +871,7 @@ void test_igh_settings_parse_new_settings_updates_the_carbon_dioxide_low_th_if_l
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -901,7 +904,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_carbon_dioxide_low
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -935,7 +938,7 @@ void test_igh_settings_parse_new_settings_updates_the_carbon_dioxide_high_th_if_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -969,7 +972,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_carbon_dioxide_hig
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -1004,7 +1007,7 @@ void test_igh_settings_parse_new_settings_updates_the_air_temperature_low_th_if_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1037,7 +1040,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_air_temperature_lo
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -1071,7 +1074,7 @@ void test_igh_settings_parse_new_settings_updates_the_air_temperature_high_th_if
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1105,7 +1108,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_air_temperature_hi
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -1140,7 +1143,7 @@ void test_igh_settings_parse_new_settings_updates_the_soil_temperature_low_th_if
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_NPK_LOW, 0x02, 0x12, 0x32,
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1173,7 +1176,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_soil_temperature_l
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
@@ -1206,7 +1209,7 @@ void test_igh_settings_parse_new_settings_updates_the_soil_temperature_high_th_i
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1240,7 +1243,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_soil_temperature_h
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -1275,7 +1278,7 @@ void test_igh_settings_parse_new_settings_updates_the_soil_npk_low_th_if_length_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1308,7 +1311,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_soil_npk_low_th_if
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
@@ -1341,7 +1344,7 @@ void test_igh_settings_parse_new_settings_updates_the_soil_npk_high_th_if_length
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1375,7 +1378,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_soil_npk_high_th_i
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -1410,7 +1413,7 @@ void test_igh_settings_parse_new_settings_updates_the_light_intensoty_low_th_if_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1443,7 +1446,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_light_intensity_lo
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
@@ -1476,7 +1479,7 @@ void test_igh_settings_parse_new_settings_updates_the_light_intensity_high_th_if
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1510,7 +1513,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_light_intenisty_hi
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -1545,7 +1548,7 @@ void test_igh_settings_parse_new_settings_updates_the_shield_battery_level_low_t
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1578,7 +1581,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_shield_battery_lev
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
@@ -1611,7 +1614,7 @@ void test_igh_settings_parse_new_settings_updates_the_shield_battery_level_high_
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1645,7 +1648,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_shield_battery_lev
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -1680,7 +1683,7 @@ void test_igh_settings_parse_new_settings_updates_the_spear_battery_level_low_th
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1713,7 +1716,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_spear_battery_leve
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
@@ -1746,7 +1749,7 @@ void test_igh_settings_parse_new_settings_updates_the_spear_battery_level_high_t
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 6
@@ -1780,7 +1783,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_spear_battery_leve
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x35, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_DATA_RESOLUTION, 0x04, 0x23, 0x33, 0x44, 0x98, // new data resolution 
@@ -1815,7 +1818,7 @@ void test_igh_settings_parse_new_settings_updates_the_water_dispensed_period_low
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_WATER_DISPENSED_PERIOD_LOW, 0x04, 0x23, 0x33, 0x44, 0x98,
@@ -1848,7 +1851,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_water_dispensed_pe
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_WATER_DISPENSED_PERIOD_LOW, 0x12, 0x23, 0x33, 0x44, 0x98,
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
@@ -1881,7 +1884,7 @@ void test_igh_settings_parse_new_settings_updates_the_water_dispensed_period_hig
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length 3
         SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x12, 0x32, // temp threshold 4
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent 6
         SUBID_WATER_DISPENSED_PERIOD_HIGH, 0x04, 0x23, 0x33, 0x44, 0x98,
@@ -1914,7 +1917,7 @@ void test_igh_settings_parse_new_settings_does_not_update_the_water_dispensed_pe
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_SEND_SETTINGS,0x31, // length
-        SUBID_NEW_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
+        SUBID_OPSTATE,0x01,OP_STANDARD, // new op state settings change to standard with invalid length
         SUBID_REPORTING_INTERVAL, 0x04, 0x23, 0x33, 0x44, 0x98, // reporting interval uint32 equivalent
         SUBID_WATER_DISPENSED_PERIOD_HIGH, 0x12, 0x23, 0x33, 0x44, 0x98,
         SUBID_SET_SERIAL_NUMBER, 0x0C, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, // new serial number but with the wrong length
@@ -1981,7 +1984,7 @@ void test_igh_settings_build_settings_request_payload_returns_zero_if_if_setting
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
         IGH_READ_SETTINGS,0x00, // wrong length, 0x1A is the right length
-        SUBID_NEW_OPSTATE,
+        SUBID_OPSTATE,
         SUBID_REPORTING_INTERVAL,
         SUBID_DATA_RESOLUTION,
         SUBID_SET_SERIAL_NUMBER,
@@ -2016,12 +2019,13 @@ void test_igh_settings_build_settings_request_payload_returns_zero_if_if_setting
     settings_request[1] = sizeof(settings_request); // update the length
 
     uint8_t buffer[256];
-    uint8_t ret = igh_settings_build_settings_request_payload(settings_request, buffer, 20);
+    uint8_t start_index = 20;
+    uint8_t ret = igh_settings_build_settings_request_payload(settings_request, buffer, start_index);
 
-    TEST_ASSERT(ret == 0);
+    TEST_ASSERT_EQUAL_UINT8(start_index, ret);
 }
 
-void test_igh_settings_build_settings_request_payload_populates_buffer_withsystem_settings_when_requested(void)
+void test_igh_settings_build_settings_request_payload_populates_buffer_with_system_settings_when_requested(void)
 {
     uint8_t settings_request[] =
     {
@@ -2031,11 +2035,73 @@ void test_igh_settings_build_settings_request_payload_populates_buffer_withsyste
         IGH_DOWNLOAD,
         0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
         0x35, // message id
-        IGH_READ_SETTINGS,0x30, // wrong length, 0x1A is the right length
-        SUBID_NEW_OPSTATE,
-        SUBID_REPORTING_INTERVAL,
-        SUBID_DATA_RESOLUTION,
-        SUBID_SET_SERIAL_NUMBER,
+        IGH_READ_SETTINGS,0x04, 
+        SUBID_OPSTATE, //3
+        SUBID_REPORTING_INTERVAL, //6
+        SUBID_DATA_RESOLUTION, //6
+        SUBID_SET_SERIAL_NUMBER, //14
+        
+        // //High Threshold tirggers
+        // SUBID_SOIL_MOISTURE_LOW,          
+        // SUBID_AIR_HUMIDITY_LOW,           
+        // SUBID_SOIL_HUMIDITY_LOW,               
+        // SUBID_CARBON_DIOXIDE_LOW,
+        // SUBID_AIR_TEMPERATURE_LOW,        
+        // SUBID_SOIL_TEMPERATURE_LOW,       
+        // SUBID_SOIL_NPK_LOW,               
+        // SUBID_LIGHT_INTENSITY_LOW,        
+        // SUBID_SHIELD_BATTERY_LEVEL_LOW,   
+        // SUBID_SPEAR_BATTERY_LEVEL_LOW,   
+        // SUBID_WATER_DISPENSED_PERIOD_LOW,
+
+        // // Low Threshold Trigger
+        // SUBID_SOIL_MOISTURE_HIGH,          
+        // SUBID_AIR_HUMIDITY_HIGH,           
+        // SUBID_SOIL_HUMIDITY_HIGH,                
+        // SUBID_CARBON_DIOXIDE_HIGH,
+        // SUBID_AIR_TEMPERATURE_HIGH,        
+        // SUBID_SOIL_TEMPERATURE_HIGH,       
+        // SUBID_SOIL_NPK_HIGH,               
+        // SUBID_LIGHT_INTENSITY_HIGH,        
+        // SUBID_SHIELD_BATTERY_LEVEL_HIGH,   
+        // SUBID_SPEAR_BATTERY_LEVEL_HIGH,             
+        // SUBID_WATER_DISPENSED_PERIOD_HIGH,
+        0x3E // end 
+    };
+    settings_request[1] = sizeof(settings_request); // update the length
+
+    uint8_t buffer[256];
+    uint8_t start_index = 20;
+    uint8_t ret = igh_settings_build_settings_request_payload(settings_request, buffer, start_index);
+
+    uint8_t expected_conntents[] = {
+        IGH_READ_SETTINGS, 0x00,
+        SUBID_OPSTATE, 0x01, OP_INACTIVE,
+        SUBID_REPORTING_INTERVAL, 0x04, 0x11, 0x11, 0x11, 0x11,
+        SUBID_DATA_RESOLUTION, 0x04, 0x11, 0x11, 0x11, 0x11,
+        SUBID_SET_SERIAL_NUMBER, 0x0C, 0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37   
+    };
+    expected_conntents[1] = sizeof(expected_conntents) - 2; // minus two to remove the header
+
+    TEST_ASSERT_EQUAL_UINT8((sizeof(expected_conntents) + start_index) , ret ); // the sum of all the bytes expected
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(expected_conntents, &buffer[start_index], sizeof(expected_conntents));
+}
+
+void test_igh_settings_build_settings_request_payload_populates_buffer_with_threshold_settings_when_requested(void)
+{
+    uint8_t settings_request[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        IGH_READ_SETTINGS,0x1A, 
+        SUBID_OPSTATE, //3
+        SUBID_REPORTING_INTERVAL, //6
+        SUBID_DATA_RESOLUTION, //6
+        SUBID_SET_SERIAL_NUMBER, //14
         
         //High Threshold tirggers
         SUBID_SOIL_MOISTURE_LOW,          
@@ -2067,9 +2133,109 @@ void test_igh_settings_build_settings_request_payload_populates_buffer_withsyste
     settings_request[1] = sizeof(settings_request); // update the length
 
     uint8_t buffer[256];
-    uint8_t ret = igh_settings_build_settings_request_payload(settings_request, buffer, 20);
+    uint8_t start_index = 20;
+    uint8_t ret = igh_settings_build_settings_request_payload(settings_request, buffer, start_index);
 
-    TEST_ASSERT(ret > 0 ); // correct this
+    uint8_t expected_conntents[] = {
+        IGH_READ_SETTINGS, 0x00,
+        SUBID_OPSTATE, 0x01, OP_INACTIVE,
+        SUBID_REPORTING_INTERVAL, 0x04, 0x11, 0x11, 0x11, 0x11,
+        SUBID_DATA_RESOLUTION, 0x04, 0x11, 0x11, 0x11, 0x11,
+        SUBID_SET_SERIAL_NUMBER, 0x0C, 0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,  
+        //High Threshold tirggers
+        SUBID_SOIL_MOISTURE_LOW, 0x02, 0x11, 0x11,          
+        SUBID_AIR_HUMIDITY_LOW, 0x02, 0x11, 0x11,           
+        SUBID_SOIL_HUMIDITY_LOW, 0x02, 0x11, 0x11,               
+        SUBID_CARBON_DIOXIDE_LOW, 0x02, 0x11, 0x11,
+        SUBID_AIR_TEMPERATURE_LOW, 0x02, 0x11, 0x11,        
+        SUBID_SOIL_TEMPERATURE_LOW, 0x02, 0x11, 0x11,       
+        SUBID_SOIL_NPK_LOW, 0x02, 0x11, 0x11,               
+        SUBID_LIGHT_INTENSITY_LOW, 0x02, 0x11, 0x11,        
+        SUBID_SHIELD_BATTERY_LEVEL_LOW, 0x02, 0x11, 0x11,   
+        SUBID_SPEAR_BATTERY_LEVEL_LOW, 0x02, 0x11, 0x11,   
+        SUBID_WATER_DISPENSED_PERIOD_LOW, 0x04, 0x11, 0x11, 0x11, 0x11,
+        // Low Threshold Trigger
+        SUBID_SOIL_MOISTURE_HIGH, 0x02, 0x11, 0x11,          
+        SUBID_AIR_HUMIDITY_HIGH, 0x02, 0x11, 0x11,           
+        SUBID_SOIL_HUMIDITY_HIGH, 0x02, 0x11, 0x11,                
+        SUBID_CARBON_DIOXIDE_HIGH, 0x02, 0x11, 0x11,
+        SUBID_AIR_TEMPERATURE_HIGH, 0x02, 0x11, 0x11,        
+        SUBID_SOIL_TEMPERATURE_HIGH, 0x02, 0x11, 0x11,       
+        SUBID_SOIL_NPK_HIGH, 0x02, 0x11, 0x11,               
+        SUBID_LIGHT_INTENSITY_HIGH, 0x02, 0x11, 0x11,        
+        SUBID_SHIELD_BATTERY_LEVEL_HIGH, 0x02, 0x11, 0x11,   
+        SUBID_SPEAR_BATTERY_LEVEL_HIGH, 0x02, 0x11, 0x11,             
+        SUBID_WATER_DISPENSED_PERIOD_HIGH, 0x04, 0x11, 0x11, 0x11, 0x11
+    };
+    expected_conntents[1] = sizeof(expected_conntents) - 2; // minus two to remove the header
+
+    TEST_ASSERT_EQUAL_UINT8((sizeof(expected_conntents) + start_index) , ret ); // the sum of all the bytes expected
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(expected_conntents, &buffer[start_index], sizeof(expected_conntents));
+}
+
+void test_igh_settings_remote_valvle_control_opens_the_valve_if_valid(void)
+{
+    uint8_t valve_position_change[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        VALVE_POSITION, 0x01, VALVE_OPEN, // open the valve
+        0x3E // end 
+    };
+    valve_position_change[1] = sizeof(valve_position_change); // update the length
+
+    uint8_t ret = igh_settings_remote_valvle_control(valve_position_change);
+
+    TEST_ASSERT_TRUE(ret);
+    TEST_ASSERT_EQUAL_UINT8(VALVE_OPEN, current_valve_position);
+}
+
+void test_igh_settings_remote_valvle_control_closes_the_valve_if_valid(void)
+{
+    current_valve_position = VALVE_OPEN;
+
+    uint8_t valve_position_change[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        VALVE_POSITION, 0x01, VALVE_CLOSE, // open the valve
+        0x3E // end 
+    };
+    valve_position_change[1] = sizeof(valve_position_change); // update the length
+
+    uint8_t ret = igh_settings_remote_valvle_control(valve_position_change);
+
+    TEST_ASSERT_TRUE(ret);
+    TEST_ASSERT_EQUAL_UINT8(VALVE_CLOSE, current_valve_position);
+}
+
+void test_igh_settings_remote_valvle_control_does_nothing_if_valve_state_is_invalid(void)
+{   
+    uint8_t valve_position_change[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        VALVE_POSITION, 0x01, 0x20, // open the valve
+        0x3E // end 
+    };
+    valve_position_change[1] = sizeof(valve_position_change); // update the length
+
+    uint8_t ret = igh_settings_remote_valvle_control(valve_position_change);
+
+    TEST_ASSERT_FALSE(ret);
+    TEST_ASSERT_EQUAL_UINT8(VALVE_CLOSE, current_valve_position);
 }
 
 
