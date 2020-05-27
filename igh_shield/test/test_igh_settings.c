@@ -5,14 +5,6 @@
 #include "igh_default_settings.h"
 #include "igh_message.h"
 
-extern thresholds igh_default_thresholds;
-extern system_settings igh_default_system_settings;
-extern system_settings igh_current_system_settings;
-extern thresholds igh_current_threshold_settings;
-extern valve_position current_valve_position;
-
-extern uint8_t default_serial_number[];
-
 uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
 
 void setUp(void)

@@ -2,7 +2,7 @@
  * @file igh_air.h
  * @brief manage air sensor data
  * @auther Alucho C. Ayisi
- * Copyright (C), Illuminum Greenhouses Ltd. All rights reserved.
+ * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 
 #include <stdint.h>
@@ -27,7 +27,15 @@ thresholds igh_current_threshold_settings;
 system_settings igh_current_system_settings;
 valve_position current_valve_position;
 
-void igh_settings_get_defaults(void) // Total bytes 
+// functions
+#ifndef TEST
+LOCAL void igh_settings_get_defaults(void);
+LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings);
+LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
+#endif
+
+
+LOCAL void igh_settings_get_defaults(void) // Total bytes 
 {
     // System settings
     memcpy(igh_default_system_settings.serial_number, default_serial_number, 12);
@@ -60,7 +68,7 @@ void igh_settings_get_defaults(void) // Total bytes
     igh_default_thresholds.water_dispensed_period_high      = DEFAULT_WATER_DISPENSED_PERIOD_HIGH;
 } // test this function
 
-uint8_t igh_settings_parse_new_settings(uint8_t * settings)
+LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
 {
     // get the length
     uint8_t length = settings[PAYLOAD_LEN_INDEX]; // byte at position one should always be length
@@ -459,7 +467,7 @@ void igh_settings_reset_system_to_default(void)
 
 // payload build settings for sending
 
-uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index)
+LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index)
 {
     uint8_t buffer_index_tracker = start_index;
     uint8_t settings_request_tracker = FIRST_TUPLE_INDEX;
@@ -675,7 +683,7 @@ uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint
     return buffer_index_tracker;
 }
 
-uint8_t igh_settings_remote_valvle_control(uint8_t * settings)
+LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings)
 {
     if( ((valve_position)settings[FIRST_TUPLE_INDEX] == VALVE_CLOSE) ||
         ((valve_position)settings[FIRST_TUPLE_INDEX] == VALVE_OPEN) )
@@ -685,6 +693,35 @@ uint8_t igh_settings_remote_valvle_control(uint8_t * settings)
     }
 
     return 0;
+}
+
+/*******************************************************************************
+ * igh_settings_process_settings
+ *******************************************************************************/
+/**
+ * \brief Process valve control message or settings message
+ * \param settings the whole incoming message array
+ * \return true or false based on processing success
+ */
+uint8_t igh_settings_process_settings(uint8_t * settings)
+{
+    uint8_t ret = 0; 
+    igh_pkt_id settings_type = (igh_pkt_id)settings[PAYLOAD_INDEX];
+    switch(settings_type)
+    {
+        case VALVE_POSITION:
+            ret = igh_settings_remote_valvle_control(settings);
+            break;
+        case IGH_SEND_SETTINGS:
+            ret = igh_settings_parse_new_settings(settings);
+            break;
+        case IGH_READ_SETTINGS:
+            break;
+        default:
+            break;
+    }
+
+    return ret;
 }
 
 

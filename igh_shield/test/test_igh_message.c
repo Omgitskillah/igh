@@ -9,11 +9,15 @@ extern uint8_t igh_cmd_buffer_tracker;
 
 extern uint8_t igh_msg_buffer[MESSAGE_SIZE];
 extern uint8_t igh_msg_buffer_tracker;
-extern uint8_t igh_message_id;
-extern system_settings igh_current_system_settings;
+extern uint8_t upload_igh_message_id;
+extern uint8_t download_igh_message_id; 
+
+
+uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
 
 void setUp(void)
 {
+    memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
 }
 
 void tearDown(void)
@@ -48,8 +52,8 @@ void test_igh_message_add_length_appends_length_at_right_index_when_message_is_v
     igh_msg_buffer[139] = FRAME_END;
     uint8_t local_buffer_tracker = igh_message_add_length();
 
-    TEST_ASSERT(local_buffer_tracker == igh_msg_buffer_tracker);
-    TEST_ASSERT(igh_msg_buffer[1] == igh_msg_buffer_tracker);
+    TEST_ASSERT_EQUAL_UINT8(local_buffer_tracker,igh_msg_buffer_tracker);
+    TEST_ASSERT_EQUAL_UINT8( (igh_msg_buffer_tracker + 1) , igh_msg_buffer[1] );
 }
 
 void test_igh_message_add_length_resets_the_buffer_when_message_is_not_valid(void)
@@ -116,7 +120,7 @@ void test_igh_message_add_serial_number_adds_valid_serial_number_to_msg_buffer(v
 
 void test_igh_message_add_msg_id_adds_current_msg_id_and_increments_value(void)
 {
-    igh_message_id = 49;
+    upload_igh_message_id = 49;
 
     uint8_t next_msg_id = igh_message_add_msg_id();
 
@@ -271,44 +275,137 @@ void test_igh_message_process_incoming_msg_returns_zero_if_serial_is_wrong(void)
 
 void test_igh_message_process_incoming_msg_returns_ACK_if_message_is_ACK(void)
 {
-    uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
-    memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
-    uint8_t ack_msg[3] = {0x00,0x01,0x13}; // An Ack that says message number 0x13 was processed by cloud
-    uint8_t msg_type = MSG_ACK;  // ACK message 
-    uint8_t direction = 0x44;
-    uint8_t msg_id = 0x35;
+    upload_igh_message_id = 30;
+    download_igh_message_id = 45;
+    uint8_t last_sent_msg_id = upload_igh_message_id - 1;
+    
+    uint8_t ack_message[] =
+    {
+        0x3C, // start
+        0x00, // length
+        MSG_ACK,
+        IGH_UPLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        upload_igh_message_id, // message id
+        MSG_ACK_TUPLE, 0x01, last_sent_msg_id,
+        0x3E // end 
+    };
+    ack_message[1] = sizeof(ack_message); // update the length
 
-    igh_cmd_buffer[0] = 0x3C; // start of frame
-    igh_cmd_buffer[1] = 0x15; // length
-    igh_cmd_buffer[2] = msg_type; 
-    igh_cmd_buffer[3] = direction;
-    memcpy(&igh_cmd_buffer[4], test_shield_id, 12); 
-    igh_cmd_buffer[16] = msg_id; 
-    memcpy(&igh_cmd_buffer[17], ack_msg, 3); 
-    igh_cmd_buffer[20] = 0x3E; // end of frame  
-
-    uint8_t _ret = igh_message_process_incoming_msg(igh_cmd_buffer);
-    TEST_ASSERT(_ret == MSG_ACK);
+    uint8_t _ret = igh_message_process_incoming_msg(ack_message);
+    TEST_ASSERT_EQUAL_UINT8( MSG_ACK, _ret);
 }
 
 void test_igh_message_process_incoming_msg_returns_settings_if_message_is_settings(void)
 {
-    uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
-    memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
-    uint8_t settings_cmd[15] = {0x10,0x0D,0x01,0x01,0x02,0x04,0x02,0x23,0x45,0x19,0x04,0x37,0x52,0x67,0x90};
-    uint8_t msg_type = SETTINGS_MSG;  // Settings message 
-    uint8_t direction = 0x44;
-    uint8_t msg_id = 0x35;
+    uint8_t valve_position_change[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        VALVE_POSITION, 0x01, VALVE_CLOSE, // open the valve
+        0x3E // end 
+    };
+    valve_position_change[1] = sizeof(valve_position_change); // update the length
 
-    igh_cmd_buffer[0] = 0x3C; // start of frame
-    igh_cmd_buffer[1] = 0x21; // length
-    igh_cmd_buffer[2] = msg_type; 
-    igh_cmd_buffer[3] = direction;
-    memcpy(&igh_cmd_buffer[4], test_shield_id, 12); 
-    igh_cmd_buffer[16] = msg_id;
-    memcpy(&igh_cmd_buffer[17], settings_cmd, 15);
-    igh_cmd_buffer[32] = 0x3E; // end of frame  
+    uint8_t _ret = igh_message_process_incoming_msg(valve_position_change);
+    TEST_ASSERT_EQUAL_UINT8( SETTINGS_MSG, _ret);
+}
 
-    uint8_t _ret = igh_message_process_incoming_msg(igh_cmd_buffer);
-    TEST_ASSERT(_ret == SETTINGS_MSG);
+void test_igh_message_process_ACK_returns_false_if_ack_msg_size_is_not_ok(void)
+{
+    upload_igh_message_id = 39;
+    uint8_t previous_msg_id = upload_igh_message_id - 1;
+
+    uint8_t ack_message[] =
+    {
+        0x3C, // start
+        0x00, // length
+        MSG_ACK,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        MSG_ACK_TUPLE, 0x21, 38,
+        0x3E // end 
+    };
+    ack_message[1] = sizeof(ack_message); // update the length
+
+    uint8_t ret = igh_message_process_ACK(ack_message);
+
+    TEST_ASSERT_FALSE(ret);
+    TEST_ASSERT_EQUAL_UINT8( previous_msg_id, upload_igh_message_id);
+}
+
+void test_igh_message_process_ACK_returns_false_if_ack_msg_is_for_the_wrong_msg(void)
+{
+    upload_igh_message_id = 39;
+    uint8_t previous_msg_id = upload_igh_message_id - 1;
+
+    uint8_t ack_message[] =
+    {
+        0x3C, // start
+        0x00, // length
+        MSG_ACK,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        MSG_ACK_TUPLE, 0x01, 50,
+        0x3E // end 
+    };
+    ack_message[1] = sizeof(ack_message); // update the length
+
+    uint8_t ret = igh_message_process_ACK(ack_message);
+
+    TEST_ASSERT_FALSE(ret);
+    TEST_ASSERT(upload_igh_message_id == previous_msg_id);
+}
+
+void test_igh_message_process_ACK_returns_true_if_ack_is_appropriate(void)
+{
+    upload_igh_message_id = 39;
+
+    uint8_t ack_message[] =
+    {
+        0x3C, // start
+        0x00, // length
+        MSG_ACK,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        MSG_ACK_TUPLE, 0x01, 38,
+        0x3E // end 
+    };
+    ack_message[1] = sizeof(ack_message); // update the length
+
+    uint8_t ret = igh_message_process_ACK(ack_message);
+
+    TEST_ASSERT_TRUE(ret);
+    TEST_ASSERT(upload_igh_message_id == 39);
+}
+
+void test_igh_message_build_ACK_payload_adds_ack_msg_to_buffer(void)
+{
+    download_igh_message_id = 59; // last recevied message
+    upload_igh_message_id = 39; 
+
+    uint8_t expected_ack_message[] =
+    {
+        0x3C, // start
+        0x00, // length
+        MSG_ACK,
+        IGH_UPLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        upload_igh_message_id, // message id
+        MSG_ACK_TUPLE, 0x01, download_igh_message_id,
+        0x3E // end 
+    };
+    expected_ack_message[1] = sizeof(expected_ack_message); // update the length
+
+    uint8_t ret = igh_message_build_ACK_payload();
+
+    TEST_ASSERT_EQUAL_UINT8(sizeof(expected_ack_message) , ret);
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(expected_ack_message, igh_msg_buffer, sizeof(expected_ack_message));
 }

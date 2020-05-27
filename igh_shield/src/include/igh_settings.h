@@ -2,7 +2,7 @@
  * @file igh_air.h
  * @brief manage air sensor data
  * @auther Alucho C. Ayisi
- * Copyright (C), Illuminum Greenhouses Ltd. All rights reserved.
+ * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 
 #ifndef IGH_SETTINGS
@@ -135,11 +135,31 @@ enum igh_settings_subid
 #define LENGTH_SUBID_WATER_DISPENSED_PERIOD_HIGH    4
 
 // functions
-void igh_settings_get_defaults(void);
-uint8_t igh_settings_parse_new_settings(uint8_t * settings);
+#ifdef TEST
+#define LOCAL 
+#else
+#define LOCAL static
+#endif
+
+#ifdef TEST
+LOCAL void igh_settings_get_defaults(void);
+LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings);
+LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
+LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
+#endif
+
 void igh_settings_reset_system_to_default(void);
+uint8_t igh_settings_process_settings(uint8_t * settings);
 uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
-uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
+
+extern system_settings igh_default_system_settings;
+extern system_settings igh_current_system_settings;
+
+extern thresholds igh_default_thresholds;
+extern thresholds igh_current_threshold_settings;
+
+extern valve_position current_valve_position;
+extern uint8_t default_serial_number[];
 // Reporting interval
 // Data Collection interval
 

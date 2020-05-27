@@ -2,7 +2,7 @@
  * @file igh_air.h
  * @brief manage air sensor data
  * @auther Alucho C. Ayisi
- * Copyright (C), Illuminum Greenhouses Ltd. All rights reserved.
+ * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 
 #include <stdint.h>
@@ -12,29 +12,24 @@
 #include "include/igh_settings.h"
 
 // size of each message type in bytes
-uint8_t SIZE_OF_SPEAR_ID = 12;
-uint8_t SIZE_OF_STORE_TIMESTAMP = 4; 
-uint8_t SIZE_OF_SEND_TIMESTAMP = 4;
-uint8_t SIZE_OF_SOIL_MOISTURE = 2;
-uint8_t SIZE_OF_AIR_HUMIDITY = 2;
-uint8_t SIZE_OF_SOIL_HUMIDITY = 2;
-uint8_t SIZE_OF_WATER_DISPENSED = 4;
-uint8_t SIZE_OF_CARBON_DIOXIDE = 2;
-uint8_t SIZE_OF_AIR_TEMPERATURE = 2;
-uint8_t SIZE_OF_SOIL_TEMPERATURE = 2;
-uint8_t SIZE_OF_SOIL_NPK = 2;
-uint8_t SIZE_OF_LIGHT_INTENSITY = 2;
-uint8_t SIZE_OF_SHIELD_BATTERY_LEVEL = 2;
-uint8_t SIZE_OF_SPEAR_BATTERY_LEVEL = 2;
-uint8_t SIZE_OF_VALVE_POSITION = 1;
+#define SIZE_OF_MSG_ACK_TUPLE           1
+#define SIZE_OF_SPEAR_ID                12
+#define SIZE_OF_STORE_TIMESTAMP         4 
+#define SIZE_OF_SEND_TIMESTAMP          4
+#define SIZE_OF_SOIL_MOISTURE           2
+#define SIZE_OF_AIR_HUMIDITY            2
+#define SIZE_OF_SOIL_HUMIDITY           2
+#define SIZE_OF_WATER_DISPENSED         4
+#define SIZE_OF_CARBON_DIOXIDE          2
+#define SIZE_OF_AIR_TEMPERATURE         2
+#define SIZE_OF_SOIL_TEMPERATURE        2
+#define SIZE_OF_SOIL_NPK                2
+#define SIZE_OF_LIGHT_INTENSITY         2
+#define SIZE_OF_SHIELD_BATTERY_LEVEL    2
+#define SIZE_OF_SPEAR_BATTERY_LEVEL     2
+#define SIZE_OF_VALVE_POSITION          1
 
 #define MESSAGE_FITS(X,Y) ((MESSAGE_SIZE - X) >= Y)
-
-#ifdef TEST
-#define LOCAL 
-#else
-#define LOCAL static
-#endif
 
 LOCAL uint8_t igh_msg_buffer[MESSAGE_SIZE];  // global variable to be used to hold page for sending, maximum message size is 256 bytes
 LOCAL uint8_t igh_msg_buffer_tracker = 0; // track globally how full the message buffer is
@@ -43,14 +38,28 @@ LOCAL uint8_t igh_cmd_buffer[MESSAGE_SIZE];
 LOCAL uint8_t igh_cmd_buffer_tracker = 0; // track globally how full the message buffer is
 
 LOCAL uint8_t igh_device_serial[12];
-LOCAL uint8_t igh_message_id = 0; // always start as zero and overflow whenever we reach 256
+LOCAL uint8_t upload_igh_message_id = 0; // always start as zero and overflow whenever we reach 256
+LOCAL uint8_t download_igh_message_id = 0; // always start as zero and overflow whenever we reach 256
 
 extern thresholds igh_current_threshold_settings;
 extern system_settings igh_current_system_settings;
 
+#ifndef TEST
+LOCAL uint8_t igh_message_reset_buffer(void);
+LOCAL uint8_t igh_message_add_frame_end(void);
+LOCAL uint8_t igh_message_add_length(void);
+LOCAL igh_msg_type igh_message_add_msg_type(igh_msg_type msg_type);
+LOCAL igh_msg_dir igh_message_add_direction(igh_msg_dir msg_dir);
+LOCAL uint8_t igh_message_add_serial_number(uint8_t * serial_number);
+LOCAL uint8_t igh_message_add_msg_id(void);
+LOCAL uint8_t igh_message_check_tuple_fits(uint8_t length);
+LOCAL uint8_t igh_message_process_ACK(uint8_t * ack_msg);
+LOCAL uint8_t igh_message_build_ACK_payload(void);
+#endif
+
 
 // local functions
-uint8_t igh_message_reset_buffer(void)
+LOCAL uint8_t igh_message_reset_buffer(void)
 {
     memset(igh_msg_buffer,'\0',MESSAGE_SIZE);
 
@@ -60,14 +69,14 @@ uint8_t igh_message_reset_buffer(void)
     return igh_msg_buffer_tracker;
 }
 
-uint8_t igh_message_add_frame_end(void)
+LOCAL uint8_t igh_message_add_frame_end(void)
 {
     igh_msg_buffer[igh_msg_buffer_tracker] = FRAME_END;
 
     return igh_msg_buffer_tracker;
 }
 
-uint8_t igh_message_add_length(void)
+LOCAL uint8_t igh_message_add_length(void)
 {
     if(igh_msg_buffer[igh_msg_buffer_tracker] != FRAME_END)
     {
@@ -75,7 +84,7 @@ uint8_t igh_message_add_length(void)
     }
     else
     {
-        igh_msg_buffer[LEN_INDEX] = igh_msg_buffer_tracker;
+        igh_msg_buffer[LEN_INDEX] = igh_msg_buffer_tracker + 1;
         return igh_msg_buffer_tracker;
     }
 }
@@ -131,21 +140,21 @@ igh_msg_dir igh_message_add_direction(igh_msg_dir msg_dir)
     return (igh_msg_dir)igh_msg_buffer[MSG_DIRECTION_INDEX];
 }
 
-uint8_t igh_message_add_serial_number(uint8_t * serial_number)
+LOCAL uint8_t igh_message_add_serial_number(uint8_t * serial_number)
 {
     memcpy(&igh_msg_buffer[SN_INDEX], serial_number, 12);
     return igh_msg_buffer_tracker;
 }
 
-uint8_t igh_message_add_msg_id(void)
+LOCAL uint8_t igh_message_add_msg_id(void)
 {
-    igh_msg_buffer[MSG_ID_INDEX] = igh_message_id; // igh_message_id is a global variable
-    igh_message_id++;
+    igh_msg_buffer[MSG_ID_INDEX] = upload_igh_message_id; // upload_igh_message_id is a global variable
+    upload_igh_message_id++;
 
-    return igh_message_id;
+    return upload_igh_message_id;
 }
 
-uint8_t igh_message_check_tuple_fits(uint8_t length)
+LOCAL uint8_t igh_message_check_tuple_fits(uint8_t length)
 {
     uint8_t total_tuple_len = length + 2;
 
@@ -234,10 +243,19 @@ uint8_t igh_message_add_tuple(igh_pkt_id _pkt_id, uint8_t * data)
     return igh_msg_buffer_tracker;
 }
 
+
+/*******************************************************************************
+ * igh_message_process_incoming_msg
+ *******************************************************************************/
+/**
+ * \brief Process incoming messages and action them repsectively
+ * \param ack_msg incoimng message byte array
+ * \return true or false
+ */
 uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
 {
     igh_msg_type message_type = UNKNOWN_MSG;
-    uint8_t length = buffer[1]; // get the length
+    uint8_t length = buffer[LEN_INDEX]; // get the length
 
     if(length <= 0) // prevent any messages with zero length from being processed
     {
@@ -247,23 +265,28 @@ uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
     if( (buffer[0] == FRAME_START) && (buffer[length-1] == FRAME_END) )
     {
         // check the serial number
-        if( 0 != memcmp(igh_current_system_settings.serial_number, &buffer[SN_INDEX], 12))
+        if( 0 != memcmp(igh_current_system_settings.serial_number, &buffer[SN_INDEX], sizeof(igh_current_system_settings.serial_number)))
         {
-            // is the serial number does not match, do nothing as this message wasn't meant for this device,
-            // THis ideally should never happen
+            // if the serial number does not match, do nothing as this message wasn't meant for this device,
+            // This ideally should never happen
         }
         else
         {
-            // Message process message if all is well
-            message_type = (igh_msg_type)buffer[MSG_TYPE_INDEX];
-
-            if( MSG_ACK == message_type )
+            if( MSG_ACK == buffer[MSG_TYPE_INDEX] )
             {
-                // TODO: process ACK here
+                // process ACK here
+                if(igh_message_process_ACK(buffer))
+                {
+                    message_type = MSG_ACK;
+                }
             }
-            else if( SETTINGS_MSG == message_type )
+            else if( SETTINGS_MSG == buffer[MSG_TYPE_INDEX] )
             {
-                // TODO: process settings here
+                // process settings here
+                if(igh_settings_process_settings(buffer))
+                {
+                    message_type = SETTINGS_MSG;
+                }
             }
         }
     }
@@ -276,9 +299,67 @@ uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
     return message_type; // should return the extracted tuple id for processing later
 }
 
-igh_msg_type igh_message_process_ACK(uint8_t * settings)
+/*******************************************************************************
+ * igh_message_process_ACK
+ *******************************************************************************/
+/**
+ * \brief Check if ACK received is for the last message sent
+ * \param ack_msg the whole incoming message array
+ * \return true or false
+ */
+LOCAL uint8_t igh_message_process_ACK(uint8_t * ack_msg)
 {
-    // get the ACK
+    // get the ACK tuple id
+    igh_pkt_id _ack_id = (igh_pkt_id)ack_msg[PAYLOAD_INDEX];
+
+    if( (MSG_ACK_TUPLE != _ack_id) || (SIZE_OF_MSG_ACK_TUPLE != ack_msg[PAYLOAD_INDEX + 1]) )
+    {
+        upload_igh_message_id--;
+        return 0;
+    }
+
+    uint8_t acked_msd_id = ack_msg[PAYLOAD_INDEX + 2];
+    uint8_t sent_message_id = upload_igh_message_id - 1; // the message id will have been incremented after the last send
+    if (acked_msd_id != sent_message_id)
+    {
+        upload_igh_message_id--; // roll back to send the previous message
+        return 0;
+    }
+    else
+    {
+        // acked ok
+        return 1;
+    }
+}
+
+
+/*******************************************************************************
+ * igh_message_build_ACK_payload
+ *******************************************************************************/
+/**
+ * \brief Build an ACK message for last message received
+ * \param none
+ * \return number of bytes added to buffer
+ */
+LOCAL uint8_t igh_message_build_ACK_payload(void)
+{
+    // | Start | length | Msg type | direction | s/n      | msg id | payload  | end  |   
+    igh_message_reset_buffer();
+    igh_message_add_msg_type(MSG_ACK);
+    igh_message_add_direction(IGH_UPLOAD);
+    igh_message_add_serial_number(igh_current_system_settings.serial_number);
+    igh_message_add_msg_id();
+
+    igh_msg_buffer[igh_msg_buffer_tracker++] = MSG_ACK_TUPLE;
+    igh_msg_buffer[igh_msg_buffer_tracker++] = SIZE_OF_MSG_ACK_TUPLE;
+    igh_msg_buffer[igh_msg_buffer_tracker++] = download_igh_message_id;
+
+    igh_message_add_frame_end();
+    igh_message_add_length();
+
+    // number of bytes added
+    uint8_t bytes_added = igh_msg_buffer_tracker + 1 ;
+    return bytes_added;
 }
 
 

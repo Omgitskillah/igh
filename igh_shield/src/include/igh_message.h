@@ -2,7 +2,7 @@
  * @file igh_air.h
  * @brief manage air sensor data
  * @auther Alucho C. Ayisi
- * Copyright (C), Illuminum Greenhouses Ltd. All rights reserved.
+ * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 
 #ifndef IGH_MESSAGE
@@ -55,11 +55,9 @@ enum igh_pkt_id
     VALVE_POSITION          = 0x0F,
     IGH_SEND_SETTINGS       = 0x10,
     IGH_READ_SETTINGS       = 0x11,
-    SPEAR_DATA              = 0x12
+    SPEAR_DATA              = 0x12,
+    END_OF_PKT_ID           = 0xFF
 };
-
-
-
 typedef enum igh_pkt_id igh_pkt_id;
 
 enum igh_msg_type
@@ -79,16 +77,27 @@ enum igh_msg_dir
 };
 typedef enum igh_msg_dir igh_msg_dir;
 
+#ifdef TEST
+#define LOCAL 
+#else
+#define LOCAL static
+#endif
+
 
 // function APIs
-uint8_t igh_message_reset_buffer(void);
-uint8_t igh_message_add_frame_end(void);
-uint8_t igh_message_add_length(void);
-igh_msg_type igh_message_add_msg_type(igh_msg_type msg_type);
-igh_msg_dir igh_message_add_direction(igh_msg_dir msg_dir);
-uint8_t igh_message_add_serial_number(uint8_t * serial_number);
-uint8_t igh_message_add_msg_id(void);
-uint8_t igh_message_check_tuple_fits(uint8_t length);
+#ifdef TEST
+LOCAL uint8_t igh_message_reset_buffer(void);
+LOCAL uint8_t igh_message_add_frame_end(void);
+LOCAL uint8_t igh_message_add_length(void);
+LOCAL igh_msg_type igh_message_add_msg_type(igh_msg_type msg_type);
+LOCAL igh_msg_dir igh_message_add_direction(igh_msg_dir msg_dir);
+LOCAL uint8_t igh_message_add_serial_number(uint8_t * serial_number);
+LOCAL uint8_t igh_message_add_msg_id(void);
+LOCAL uint8_t igh_message_check_tuple_fits(uint8_t length);
+LOCAL uint8_t igh_message_process_ACK(uint8_t * ack_msg);
+LOCAL uint8_t igh_message_build_ACK_payload(void);
+#endif
+
 uint8_t igh_message_add_tuple(igh_pkt_id _pkt_id, uint8_t * data);
 uint8_t igh_message_process_incoming_msg(uint8_t * buffer);
 
