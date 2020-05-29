@@ -724,6 +724,56 @@ uint8_t igh_settings_process_settings(uint8_t * settings)
     return ret;
 }
 
+/*******************************************************************************
+ * igh_settings_calculate_system_settings_checksum
+ *******************************************************************************/
+/**
+ * \brief Calculate the checksum of system settings
+ * \param settings the settings buffer to populate
+ * \return the checksum
+ */
+uint8_t igh_settings_calculate_system_settings_checksum(struct system_settings settings)
+{
+    int sum = 0;
+    uint8_t checksum;
+    uint8_t * settings_bytes_p;
+    // get the location of the new settings
+    settings_bytes_p = (uint8_t *)&settings;
+    // add bytes in struct
+    for ( int i = 0; i < SIZE_OF_SYSTEM_SETTINGS; i++ ) 
+    {   
+        sum += (*settings_bytes_p++);
+    }
 
+    checksum = (uint8_t)(sum / 256);
+    return checksum;
+}
+
+/*******************************************************************************
+ * igh_settings_calculate_threshold_settings_checksum
+ *******************************************************************************/
+/**
+ * \brief Calculate the checksum of threshold settings
+ * \param settings the settings buffer to populate
+ * \return the checksum
+ */
+uint8_t igh_settings_calculate_threshold_settings_checksum(struct thresholds settings)
+{
+    int sum = 0;
+    uint8_t checksum;
+    uint8_t * settings_bytes_p;
+    // get the location of the new settings
+    settings_bytes_p = (uint8_t *)&settings;
+    // add bytes in struct
+    for ( int i = 0; i < SIZE_OF_THRESHOLDS; i++ ) 
+    {   
+        sum += (*settings_bytes_p++);
+    }
+
+    checksum = (uint8_t)(sum / 256);
+    return checksum;
+}
+
+/// TEST these
 
 

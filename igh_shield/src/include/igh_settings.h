@@ -57,8 +57,10 @@ struct thresholds
     uint16_t shield_battery_level_high;   
     uint16_t spear_battery_level_high;             
     uint32_t water_dispensed_period_high;
+    uint8_t checksum;
 };
 typedef struct thresholds thresholds;
+#define SIZE_OF_THRESHOLDS 49 // TODO: increment this whenever we expand the thresholds
 
 struct system_settings
 {
@@ -66,8 +68,10 @@ struct system_settings
     uint32_t reporting_interval; // frequency of data sending to cloud
     uint32_t data_resolution; // frequency of data collection
     uint8_t serial_number[12]; // The device serial number/ID
+    uint8_t checksum;
 };
 typedef struct system_settings system_settings;
+#define SIZE_OF_SYSTEM_SETTINGS 22 // TODO: increment this whenever we expand the system settings
 
 enum igh_settings_subid
 {
@@ -134,6 +138,16 @@ enum igh_settings_subid
 #define LENGTH_SUBID_SPEAR_BATTERY_LEVEL_HIGH       2             
 #define LENGTH_SUBID_WATER_DISPENSED_PERIOD_HIGH    4
 
+extern system_settings igh_default_system_settings;
+extern system_settings igh_current_system_settings;
+
+extern thresholds igh_default_thresholds;
+extern thresholds igh_current_threshold_settings;
+
+extern valve_position current_valve_position;
+extern uint8_t default_serial_number[];
+
+
 // functions
 #ifdef TEST
 #define LOCAL 
@@ -151,15 +165,9 @@ LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
 void igh_settings_reset_system_to_default(void);
 uint8_t igh_settings_process_settings(uint8_t * settings);
 uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
+uint8_t igh_settings_calculate_system_settings_checksum(struct system_settings settings);
+uint8_t igh_settings_calculate_threshold_settings_checksum(struct thresholds settings);
 
-extern system_settings igh_default_system_settings;
-extern system_settings igh_current_system_settings;
-
-extern thresholds igh_default_thresholds;
-extern thresholds igh_current_threshold_settings;
-
-extern valve_position current_valve_position;
-extern uint8_t default_serial_number[];
 // Reporting interval
 // Data Collection interval
 
