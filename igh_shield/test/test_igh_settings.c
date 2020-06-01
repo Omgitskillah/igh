@@ -2230,5 +2230,70 @@ void test_igh_settings_remote_valvle_control_does_nothing_if_valve_state_is_inva
     TEST_ASSERT_EQUAL_UINT8(VALVE_CLOSE, current_valve_position);
 }
 
+void test_igh_settings_calculate_checksum_returns_the_right_checksum_for_system_settings(void)
+{
+    //uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
+    system_settings test_system_settings;
+
+    memcpy(test_system_settings.serial_number, test_shield_id, 12);
+    test_system_settings.op_state = OP_PREMIUM;
+    test_system_settings.reporting_interval = 0x12345678;
+    test_system_settings.data_resolution = 0xABCDEF12;
+
+    uint8_t expected_checksum = 0;
+    uint8_t checksum = 0;
+
+    // e0+0f+ce+68+9a+75+47+05+e7+9a+0e+37+0+12+34+56+78+AB+CD+EF+12
+    int buffer = (((0xe0 + 0x0f + 0xce + 0x68 + 0x9a + 0x75 + 0x47 + 0x05 + 0xe7 + 0x9a + 0x0e + 0x37)
+                        + OP_PREMIUM
+                        + (0x12 + 0x34 + 0x56 + 0x78)
+                        + (0xAB + 0xCD + 0xEF + 0x12)) % 256);
+    // (1350 + 0 + 276 + 633) % 256 = 2259 % 256 = 211
+    expected_checksum = (uint8_t)buffer;
+
+    // checksum = igh_settings_calculate_system_settings_checksum(test_system_settings);
+    checksum = igh_settings_calculate_checksum(&test_system_settings, sizeof(test_system_settings));
+    TEST_ASSERT_EQUAL_UINT8(expected_checksum, checksum);
+}
+
+void test_igh_settings_calculate_checksum_returns_the_right_checksum_for_threshold_settings(void)
+{
+    thresholds test_thresholds_settings;
+
+    uint8_t expected_checksum = 0;
+    uint8_t checksum = 0;
+
+    test_thresholds_settings.soil_moisture_low = 0x1234;
+    test_thresholds_settings.soil_moisture_high = 0x1234;
+    test_thresholds_settings.air_humidity_low = 0x1234;
+    test_thresholds_settings.air_humidity_high = 0x1234;
+    test_thresholds_settings.soil_humidity_low = 0x1234;
+    test_thresholds_settings.soil_humidity_high = 0x1234;
+    test_thresholds_settings.carbon_dioxide_low = 0x1234;
+    test_thresholds_settings.carbon_dioxide_high = 0x1234;
+    test_thresholds_settings.air_temperature_low = 0x1234;
+    test_thresholds_settings.air_temperature_high = 0x1234;
+    test_thresholds_settings.soil_temperature_low = 0x1234;
+    test_thresholds_settings.soil_temperature_high = 0x1234;
+    test_thresholds_settings.soil_npk_low = 0x1234;
+    test_thresholds_settings.soil_npk_high = 0x1234;
+    test_thresholds_settings.light_intensity_high = 0x1234;
+    test_thresholds_settings.light_intensity_low = 0x1234;
+    test_thresholds_settings.shield_battery_level_low = 0x1234;
+    test_thresholds_settings.shield_battery_level_high = 0x1234;
+    test_thresholds_settings.spear_battery_level_low = 0x1234;
+    test_thresholds_settings.spear_battery_level_high = 0x1234;
+    test_thresholds_settings.water_dispensed_period_high = 0x12345678;
+    test_thresholds_settings.water_dispensed_period_low = 0x12345678;
+
+    int buffer = (((0x12 + 0x34 + 0x56 + 0x78) * 2)
+                 + ((0x12 + 0x34) * 20)) % 256;
+
+    // ((276 * 2) + (70 * 20)) % 256 = (552 + 1400) % 256 = 160
+    expected_checksum = (uint8_t)buffer;
+
+    checksum = igh_settings_calculate_checksum(&test_thresholds_settings, sizeof(test_thresholds_settings));
+    TEST_ASSERT_EQUAL_UINT32(buffer, checksum);
+}
 
 

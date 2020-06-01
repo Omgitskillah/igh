@@ -455,6 +455,11 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
         settings_byte_tracker += current_tuple_length + TUPLE_HEADER_LEN;
     }
 
+    // update the checksum of the system settings
+    igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
+    // update the checksum for the threshold settings
+    igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
+    
     return 1;
 }
 
@@ -463,6 +468,10 @@ void igh_settings_reset_system_to_default(void)
     igh_settings_get_defaults();
     igh_current_system_settings = igh_default_system_settings;
     igh_current_threshold_settings = igh_default_thresholds;
+    // update the checksum of the system settings
+    igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
+    // update the checksum for the threshold settings
+    igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
 }
 
 // payload build settings for sending
@@ -725,55 +734,30 @@ uint8_t igh_settings_process_settings(uint8_t * settings)
 }
 
 /*******************************************************************************
- * igh_settings_calculate_system_settings_checksum
+ * igh_settings_calculate_checksum
  *******************************************************************************/
 /**
- * \brief Calculate the checksum of system settings
- * \param settings the settings buffer to populate
+ * \brief Calculate the checksum of the igh memory structs, 
+ * struct must have a single byte at the end designated for the checksum for this to work
+ * \param p_struct: pointer to data struct, total_bytes: sizeof(data struct)
  * \return the checksum
  */
-uint8_t igh_settings_calculate_system_settings_checksum(struct system_settings settings)
+uint8_t igh_settings_calculate_checksum(void * p_struct, size_t total_bytes)
 {
+    uint8_t length = (uint8_t)total_bytes - 4; // remove the checksum plus padding
+    uint8_t * data;
     int sum = 0;
-    uint8_t checksum;
-    uint8_t * settings_bytes_p;
-    // get the location of the new settings
-    settings_bytes_p = (uint8_t *)&settings;
-    // add bytes in struct
-    for ( int i = 0; i < SIZE_OF_SYSTEM_SETTINGS; i++ ) 
-    {   
-        sum += (*settings_bytes_p++);
+    uint8_t checksum = 0;
+
+    data = (uint8_t *)p_struct;
+
+    for( int i = 0; i < length; i++)
+    {
+        sum += (0xFF & *data++);
     }
 
-    checksum = (uint8_t)(sum / 256);
+    checksum = (uint8_t)(sum % 256);
+
     return checksum;
 }
-
-/*******************************************************************************
- * igh_settings_calculate_threshold_settings_checksum
- *******************************************************************************/
-/**
- * \brief Calculate the checksum of threshold settings
- * \param settings the settings buffer to populate
- * \return the checksum
- */
-uint8_t igh_settings_calculate_threshold_settings_checksum(struct thresholds settings)
-{
-    int sum = 0;
-    uint8_t checksum;
-    uint8_t * settings_bytes_p;
-    // get the location of the new settings
-    settings_bytes_p = (uint8_t *)&settings;
-    // add bytes in struct
-    for ( int i = 0; i < SIZE_OF_THRESHOLDS; i++ ) 
-    {   
-        sum += (*settings_bytes_p++);
-    }
-
-    checksum = (uint8_t)(sum / 256);
-    return checksum;
-}
-
-/// TEST these
-
 
