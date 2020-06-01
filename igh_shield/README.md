@@ -135,3 +135,22 @@ The device will respond with the requested settings in the next payload in the f
 The **IGH_SETTINGS** tuple is used to send new settings down to the device in the following byte stream format using the SUBIDs listed above.  
 
 ```<IGH_SEND_SETTINGS><total_length><Settings_subid><length><data><Settings_subid><length><data>...``` 
+
+
+# MQTT Protocol
+Each IGH device shall connect to the MQTT broker ```broker.hivemq.com``` at port ```1883```.  
+The devices will use their serial number in hex string as their IDs and subscribe to a download topic but publish to a data topic.  
+The topics shall be the device serial number with either ```44``` for download or ```55``` for upload appended at the beginning of the string.  
+
+### **For example;**
+*Downlaod Topic*  
+```44e00fce689a754705e79a0e37```  
+
+*Upload Topic*  
+```55e00fce689a754705e79a0e37```  
+
+for device with serial number ```e00fce689a754705e79a0e37```.
+
+All messages sent to the device must be channeled throu the respective download topic and the device must send any payload through its respective  
+Upload topic.  
+The Messages published over MQTT must be in the format expressed above. 
