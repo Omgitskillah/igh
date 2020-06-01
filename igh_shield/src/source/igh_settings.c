@@ -22,6 +22,7 @@ device_op_state previous_op_state;
 thresholds igh_default_thresholds;
 system_settings igh_default_system_settings;
 uint8_t default_serial_number[] = DEFAULT_SERIAL_NUMBER;
+uint8_t default_broker_url[] = DEFAULT_MQTT_BROKER;
 
 thresholds igh_current_threshold_settings;
 system_settings igh_current_system_settings;
@@ -38,10 +39,15 @@ LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
 LOCAL void igh_settings_get_defaults(void) // Total bytes 
 {
     // System settings
-    memcpy(igh_default_system_settings.serial_number, default_serial_number, 12);
     igh_default_system_settings.op_state                    = DEFAULT_NEW_OPSTATE;
     igh_default_system_settings.reporting_interval          = DEFAULT_REPORTING_INTERVAL;
     igh_default_system_settings.data_resolution             = DEFAULT_DATA_RESOLUTION;
+    memcpy(igh_default_system_settings.serial_number, default_serial_number, LENGTH_SUBID_SET_SERIAL_NUMBER);
+    
+    memset(igh_default_system_settings.broker, '\0', sizeof(igh_default_system_settings.broker));
+    memcpy(igh_default_system_settings.broker, default_broker_url, sizeof(default_broker_url));
+    igh_default_system_settings.broker_port                 = DEFAULT_MQTT_BROKER_PORT;
+
     //High Threshold tirggers
     igh_default_thresholds.soil_moisture_low                = DEFAULT_SOIL_MOISTURE_LOW;                   
     igh_default_thresholds.air_humidity_low                 = DEFAULT_AIR_HUMIDITY_LOW;                     
@@ -159,6 +165,33 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                     return 0;
                 }
                 break;
+
+            case SUBID_MQTT_BROKER:
+                if( sizeof(igh_current_system_settings.broker) > current_tuple_length)
+                {
+                    memset(igh_current_system_settings.broker, '\0', sizeof(igh_current_system_settings.broker));
+                    memcpy(igh_current_system_settings.broker, &settings[current_data_index], current_tuple_length);
+                    igh_current_system_settings.broker[current_tuple_length] = '\0'; // terminate the string
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_MQTT_BROKER_PORT:
+                if(LENGTH_SUBID_MQTT_PORT == current_tuple_length)
+                {
+                    uint8_t new_mqtt_port[LENGTH_SUBID_MQTT_PORT]; 
+                    memcpy(new_mqtt_port, &settings[current_data_index], LENGTH_SUBID_MQTT_PORT);
+                    igh_current_system_settings.broker_port = GET16(new_mqtt_port);
+                }
+                else
+                {
+                    return 0;
+                }
+                break; 
 
             case SUBID_SOIL_MOISTURE_LOW:
                 if(LENGTH_SUBID_SOIL_MOISTURE_LOW == current_tuple_length)
@@ -524,6 +557,32 @@ LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req
                 memcpy(&buffer[buffer_index_tracker], igh_current_system_settings.serial_number, LENGTH_SUBID_SET_SERIAL_NUMBER);
                 buffer_index_tracker += LENGTH_SUBID_SET_SERIAL_NUMBER;
                 break;
+            
+            case SUBID_MQTT_BROKER:
+                buffer[buffer_index_tracker++] = SUBID_MQTT_BROKER;
+                uint8_t _len = 0;
+                for( _len; _len < sizeof(igh_current_system_settings.broker); _len++)
+                {
+                    if(igh_current_system_settings.broker[_len] == '\0')
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        // run through the buffer till you find the first null byte or wait till the end
+                    }  
+                } // new _len will be the length of valid string in buffer
+                buffer[buffer_index_tracker++] = _len;
+                memcpy(&buffer[buffer_index_tracker], igh_current_system_settings.broker, _len);
+                buffer_index_tracker += _len;
+                break;
+
+            case SUBID_MQTT_BROKER_PORT: 
+                buffer[buffer_index_tracker++] = SUBID_MQTT_BROKER_PORT;
+                buffer[buffer_index_tracker++] = LENGTH_SUBID_MQTT_PORT;
+                PUT16(igh_current_system_settings.broker_port, &buffer[buffer_index_tracker]);
+                buffer_index_tracker += LENGTH_SUBID_MQTT_PORT;
+                break;
 
             case SUBID_SOIL_MOISTURE_LOW: 
                 buffer[buffer_index_tracker++] = SUBID_SOIL_MOISTURE_LOW;
@@ -744,14 +803,19 @@ uint8_t igh_settings_process_settings(uint8_t * settings)
  */
 uint8_t igh_settings_calculate_checksum(void * p_struct, size_t total_bytes)
 {
-    uint8_t length = (uint8_t)total_bytes - 4; // remove the checksum plus padding
+    uint8_t length = (uint8_t)total_bytes; 
     uint8_t * data;
     int sum = 0;
     uint8_t checksum = 0;
 
     data = (uint8_t *)p_struct;
 
-    for( int i = 0; i < length; i++)
+    // uint8_t data_buffer[length];
+    // memcpy(data_buffer, data, length);
+
+    data += 4; // remove checksum byte
+    // start at 4 to remove the checksum plus padding
+    for( int i = 4; i < length; i++)
     {
         sum += (0xFF & *data++);
     }

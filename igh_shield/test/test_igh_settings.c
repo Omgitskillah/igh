@@ -6,15 +6,18 @@
 #include "igh_message.h"
 
 uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
+uint8_t test_broker[] = "test.broker.com";
 
 void setUp(void)
 {
     current_valve_position = VALVE_CLOSE;
 
     memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
+    memcpy(igh_current_system_settings.broker, test_broker, sizeof(test_broker));
     igh_current_system_settings.op_state = OP_INACTIVE;
     igh_current_system_settings.reporting_interval = 0x11111111;
     igh_current_system_settings.data_resolution = 0x11111111;
+    igh_current_system_settings.broker_port = 0x1111;
 
     igh_current_threshold_settings.soil_moisture_low = 0x1111;
     igh_current_threshold_settings.soil_moisture_high = 0x1111;
@@ -49,6 +52,8 @@ void test_igh_settings_get_defaults(void)
     igh_settings_get_defaults();
     // test that all settings are set to the defaults
     TEST_ASSERT_EQUAL_UINT8_ARRAY(igh_default_system_settings.serial_number, default_serial_number, 12);
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(igh_default_system_settings.broker, default_broker_url, 18);
+    TEST_ASSERT(igh_default_system_settings.broker_port                 == DEFAULT_MQTT_BROKER_PORT);
     TEST_ASSERT(igh_default_system_settings.op_state                    == DEFAULT_NEW_OPSTATE);
     TEST_ASSERT(igh_default_system_settings.reporting_interval          == DEFAULT_REPORTING_INTERVAL);
     TEST_ASSERT(igh_default_system_settings.data_resolution             == DEFAULT_DATA_RESOLUTION);
@@ -2233,25 +2238,36 @@ void test_igh_settings_remote_valvle_control_does_nothing_if_valve_state_is_inva
 void test_igh_settings_calculate_checksum_returns_the_right_checksum_for_system_settings(void)
 {
     //uint8_t test_shield_id[12] = {0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37};
+    //uint8_t test_broker[] = "test.broker.com";
     system_settings test_system_settings;
 
     memcpy(test_system_settings.serial_number, test_shield_id, 12);
+
+    memset(test_system_settings.broker, '\0', sizeof(test_system_settings.broker));
+    memcpy(test_system_settings.broker, test_broker, sizeof(test_broker));
+
     test_system_settings.op_state = OP_PREMIUM;
+    test_system_settings.broker_port = 0x1234;
     test_system_settings.reporting_interval = 0x12345678;
     test_system_settings.data_resolution = 0xABCDEF12;
+
+    test_system_settings.checksum = 77;
 
     uint8_t expected_checksum = 0;
     uint8_t checksum = 0;
 
     // e0+0f+ce+68+9a+75+47+05+e7+9a+0e+37+0+12+34+56+78+AB+CD+EF+12
-    int buffer = (((0xe0 + 0x0f + 0xce + 0x68 + 0x9a + 0x75 + 0x47 + 0x05 + 0xe7 + 0x9a + 0x0e + 0x37)
-                        + OP_PREMIUM
+    int buffer = (((0xe0 + 0x0f + 0xce + 0x68 + 0x9a + 0x75 + 0x47 + 0x05 + 0xe7 + 0x9a + 0x0e + 0x37) 
+                        + OP_PREMIUM + 0x00 + 0x00 + 0x00
                         + (0x12 + 0x34 + 0x56 + 0x78)
-                        + (0xAB + 0xCD + 0xEF + 0x12)) % 256);
-    // (1350 + 0 + 276 + 633) % 256 = 2259 % 256 = 211
+                        + (0xAB + 0xCD + 0xEF + 0x12)
+                        + (0x12 + 0x34)
+                        + ((uint8_t)'t' + (uint8_t)'e' + (uint8_t)'s' + (uint8_t)'t' + (uint8_t)'.'
+                          +(uint8_t)'b' + (uint8_t)'r' + (uint8_t)'o' + (uint8_t)'k' + (uint8_t)'e'
+                          +(uint8_t)'r' + (uint8_t)'.' + (uint8_t)'c' + (uint8_t)'o' + (uint8_t)'m')) % 256);
+    // 
     expected_checksum = (uint8_t)buffer;
-
-    // checksum = igh_settings_calculate_system_settings_checksum(test_system_settings);
+    
     checksum = igh_settings_calculate_checksum(&test_system_settings, sizeof(test_system_settings));
     TEST_ASSERT_EQUAL_UINT8(expected_checksum, checksum);
 }

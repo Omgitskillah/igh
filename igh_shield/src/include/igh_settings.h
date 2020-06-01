@@ -33,6 +33,7 @@ typedef enum valve_position valve_position;
 // Should be moved to system file
 struct thresholds
 {
+    uint8_t checksum;
     //High Threshold tirggers
     uint16_t soil_moisture_low;          
     uint16_t air_humidity_low;           
@@ -57,18 +58,19 @@ struct thresholds
     uint16_t shield_battery_level_high;   
     uint16_t spear_battery_level_high;             
     uint32_t water_dispensed_period_high;
-    uint8_t checksum;
 };
 typedef struct thresholds thresholds;
 #define SIZE_OF_THRESHOLDS 49 // TODO: increment this whenever we expand the thresholds
 
 struct system_settings
 {
+    uint8_t checksum; // should always start so that it is always buffered
     device_op_state op_state; // inactive, basic, standard, premium
     uint32_t reporting_interval; // frequency of data sending to cloud
     uint32_t data_resolution; // frequency of data collection
     uint8_t serial_number[12]; // The device serial number/ID
-    uint8_t checksum;
+    uint8_t broker[32]; // MQTT broker url
+    uint16_t broker_port; //MQTT broker connection port
 };
 typedef struct system_settings system_settings;
 #define SIZE_OF_SYSTEM_SETTINGS 22 // TODO: increment this whenever we expand the system settings
@@ -80,9 +82,11 @@ enum igh_settings_subid
     SUBID_REPORTING_INTERVAL,
     SUBID_DATA_RESOLUTION,
     SUBID_SET_SERIAL_NUMBER,
+    SUBID_MQTT_BROKER,
+    SUBID_MQTT_BROKER_PORT,
     
     //High Threshold tirggers
-    SUBID_SOIL_MOISTURE_LOW,          
+    SUBID_SOIL_MOISTURE_LOW = 0x10,          
     SUBID_AIR_HUMIDITY_LOW,           
     SUBID_SOIL_HUMIDITY_LOW,               
     SUBID_CARBON_DIOXIDE_LOW,
@@ -95,7 +99,7 @@ enum igh_settings_subid
     SUBID_WATER_DISPENSED_PERIOD_LOW,
 
     // Low Threshold Trigger
-    SUBID_SOIL_MOISTURE_HIGH,          
+    SUBID_SOIL_MOISTURE_HIGH = 0x30,          
     SUBID_AIR_HUMIDITY_HIGH,           
     SUBID_SOIL_HUMIDITY_HIGH,                
     SUBID_CARBON_DIOXIDE_HIGH,
@@ -105,14 +109,15 @@ enum igh_settings_subid
     SUBID_LIGHT_INTENSITY_HIGH,        
     SUBID_SHIELD_BATTERY_LEVEL_HIGH,   
     SUBID_SPEAR_BATTERY_LEVEL_HIGH,             
-    SUBID_WATER_DISPENSED_PERIOD_HIGH
+    SUBID_WATER_DISPENSED_PERIOD_HIGH,
 };
 
     // System settings
-#define LENGTH_SUBID_OPSTATE                    1
+#define LENGTH_SUBID_OPSTATE                        1
 #define LENGTH_SUBID_REPORTING_INTERVAL             4
 #define LENGTH_SUBID_DATA_RESOLUTION                4
 #define LENGTH_SUBID_SET_SERIAL_NUMBER              12
+#define LENGTH_SUBID_MQTT_PORT                      2
 //High Threshold tirggers
 #define LENGTH_SUBID_SOIL_MOISTURE_LOW              2          
 #define LENGTH_SUBID_AIR_HUMIDITY_LOW               2           
@@ -146,6 +151,7 @@ extern thresholds igh_current_threshold_settings;
 
 extern valve_position current_valve_position;
 extern uint8_t default_serial_number[];
+extern uint8_t default_broker_url[];
 
 
 // functions

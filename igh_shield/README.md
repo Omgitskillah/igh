@@ -102,7 +102,7 @@ The settings subid are listed in the table below.
 
 The device will respond with the requested settings in the next payload in the following format:  
 ```<IGH_READ_SETTINGS><total_length><Settings_subid><length><data><Settings_subid><length><data>...```  
-
+# **TODO: This section needs editing**
 | Subid Name                        | Tuple ID | Length     |
 | :---                              | :---     | :---       |
 |SUBID_OPSTATE                      |  0x01    | 1          |
