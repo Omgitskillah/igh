@@ -39,16 +39,17 @@ LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
 LOCAL void igh_settings_get_defaults(void) // Total bytes 
 {
     // System settings
+    memset(&igh_default_system_settings, 0, sizeof(igh_default_system_settings));
     igh_default_system_settings.op_state                    = DEFAULT_NEW_OPSTATE;
     igh_default_system_settings.reporting_interval          = DEFAULT_REPORTING_INTERVAL;
     igh_default_system_settings.data_resolution             = DEFAULT_DATA_RESOLUTION;
     memcpy(igh_default_system_settings.serial_number, default_serial_number, LENGTH_SUBID_SET_SERIAL_NUMBER);
-    
-    memset(igh_default_system_settings.broker, '\0', sizeof(igh_default_system_settings.broker));
     memcpy(igh_default_system_settings.broker, default_broker_url, sizeof(default_broker_url));
     igh_default_system_settings.broker_port                 = DEFAULT_MQTT_BROKER_PORT;
+    igh_default_system_settings.checksum = igh_settings_calculate_checksum(&igh_default_system_settings, sizeof(igh_default_system_settings));
 
     //High Threshold tirggers
+    memset(&igh_default_thresholds, 0, sizeof(igh_default_thresholds));
     igh_default_thresholds.soil_moisture_low                = DEFAULT_SOIL_MOISTURE_LOW;                   
     igh_default_thresholds.air_humidity_low                 = DEFAULT_AIR_HUMIDITY_LOW;                     
     igh_default_thresholds.soil_humidity_low                = DEFAULT_SOIL_HUMIDITY_LOW;                   
@@ -72,7 +73,9 @@ LOCAL void igh_settings_get_defaults(void) // Total bytes
     igh_default_thresholds.shield_battery_level_high        = DEFAULT_SHIELD_BATTERY_LEVEL_HIGH;   
     igh_default_thresholds.spear_battery_level_high         = DEFAULT_SPEAR_BATTERY_LEVEL_HIGH;     
     igh_default_thresholds.water_dispensed_period_high      = DEFAULT_WATER_DISPENSED_PERIOD_HIGH;
-} // test this function
+    igh_default_thresholds.checksum = igh_settings_calculate_checksum(&igh_default_thresholds, sizeof(igh_default_thresholds));
+
+} 
 
 LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
 {
@@ -813,9 +816,9 @@ uint8_t igh_settings_calculate_checksum(void * p_struct, size_t total_bytes)
     // uint8_t data_buffer[length];
     // memcpy(data_buffer, data, length);
 
-    data += 4; // remove checksum byte
-    // start at 4 to remove the checksum plus padding
-    for( int i = 4; i < length; i++)
+    data += 1; // ignore checksum byte
+    // start at 1 to ignore the checksum byte
+    for( int i = 1; i < length; i++)
     {
         sum += (0xFF & *data++);
     }

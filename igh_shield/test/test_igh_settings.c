@@ -12,6 +12,10 @@ void setUp(void)
 {
     current_valve_position = VALVE_CLOSE;
 
+    // clear the memory allocation before using it to avoid unexpected values stored in padding
+    memset(&igh_current_system_settings, 0, sizeof(igh_current_system_settings));
+    memset(&igh_current_threshold_settings, 0, sizeof(igh_current_threshold_settings));
+
     memcpy(igh_current_system_settings.serial_number, test_shield_id, 12);
     memcpy(igh_current_system_settings.broker, test_broker, sizeof(test_broker));
     igh_current_system_settings.op_state = OP_INACTIVE;
@@ -105,6 +109,112 @@ void test_igh_settings_parse_new_settings_does_nothing_if_total_settings_length_
     uint8_t ret = igh_settings_parse_new_settings(test_message);
 
     TEST_ASSERT_FALSE(ret);
+}
+
+void test_igh_settings_parse_new_settings_sets_the_broker_port_if_length_is_valid(void)
+{
+    // given a valid settings message
+    uint8_t test_message[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        IGH_SEND_SETTINGS,0x19, // length
+        SUBID_MQTT_BROKER, 16,
+        'b','i','t','e','.','s','h','a','k','e','r','.','o','r','g','\0',
+        SUBID_MQTT_BROKER_PORT, 2, 0x07, 0xC6,
+        0x3E // end 
+    };
+    test_message[1] = sizeof(test_message);
+
+    uint8_t ret = igh_settings_parse_new_settings(test_message);
+
+    TEST_ASSERT_TRUE(ret);
+
+    TEST_ASSERT_EQUAL_UINT16(1990 , igh_current_system_settings.broker_port);
+}
+
+void test_igh_settings_parse_new_settings_does_not_set_the_broker_port_if_length_is_invalid(void)
+{
+    // given a valid settings message
+    uint8_t test_message[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        IGH_SEND_SETTINGS,0x19, // length
+        SUBID_MQTT_BROKER, 16,
+        'b','i','t','e','.','s','h','a','k','e','r','.','o','r','g','\0',
+        SUBID_MQTT_BROKER_PORT, 20, 0x07, 0xC6,
+        0x3E // end 
+    };
+    test_message[1] = sizeof(test_message);
+
+    uint8_t ret = igh_settings_parse_new_settings(test_message);
+
+    TEST_ASSERT_FALSE(ret);
+
+    TEST_ASSERT_EQUAL_UINT16(0x1111 , igh_current_system_settings.broker_port);
+}
+
+void test_igh_settings_parse_new_settings_sets_the_broker_if_length_is_valid(void)
+{
+    // test_broker = "test.broker.com"
+    uint8_t local_broker[] = {'b','i','t','e','.','s','h','a','k','e','r','.','o','r','g','\0'};
+    // given a valid settings message
+    uint8_t test_message[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        IGH_SEND_SETTINGS,18, // length
+        SUBID_MQTT_BROKER, 16,
+        'b','i','t','e','.','s','h','a','k','e','r','.','o','r','g','\0',
+        0x3E // end 
+    };
+    test_message[1] = sizeof(test_message);
+
+    uint8_t ret = igh_settings_parse_new_settings(test_message);
+
+    TEST_ASSERT_TRUE(ret);
+
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(local_broker, igh_current_system_settings.broker, sizeof(local_broker));
+}
+
+void test_igh_settings_parse_new_settings_does_not_set_the_broker_if_length_is_invalid(void)
+{
+    // test_broker = "test.broker.com"
+
+    // given a valid settings message
+    uint8_t test_message[] =
+    {
+        0x3C, // start
+        0x00, // length
+        SETTINGS_MSG,
+        IGH_DOWNLOAD,
+        0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37,// serial nuber 
+        0x35, // message id
+        IGH_SEND_SETTINGS,0x19, // length
+        SUBID_MQTT_BROKER, 40,
+        'v','a','r','y','.','f','l','o','k','e','r','.','o','r','g','\0',
+        0x3E // end 
+    };
+    test_message[1] = sizeof(test_message);
+
+    uint8_t ret = igh_settings_parse_new_settings(test_message);
+
+    TEST_ASSERT_FALSE(ret);
+
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(test_broker, igh_current_system_settings.broker, sizeof(test_broker));
 }
 
 void test_igh_settings_parse_new_settings_sets_serial_number_if_serial_number_length_is_valid(void)
@@ -2241,9 +2351,9 @@ void test_igh_settings_calculate_checksum_returns_the_right_checksum_for_system_
     //uint8_t test_broker[] = "test.broker.com";
     system_settings test_system_settings;
 
-    memcpy(test_system_settings.serial_number, test_shield_id, 12);
+    memset(&test_system_settings, 0, sizeof(test_system_settings));
 
-    memset(test_system_settings.broker, '\0', sizeof(test_system_settings.broker));
+    memcpy(test_system_settings.serial_number, test_shield_id, 12);
     memcpy(test_system_settings.broker, test_broker, sizeof(test_broker));
 
     test_system_settings.op_state = OP_PREMIUM;
@@ -2275,6 +2385,9 @@ void test_igh_settings_calculate_checksum_returns_the_right_checksum_for_system_
 void test_igh_settings_calculate_checksum_returns_the_right_checksum_for_threshold_settings(void)
 {
     thresholds test_thresholds_settings;
+
+    memset(&test_thresholds_settings, 0, sizeof(test_thresholds_settings));
+
 
     uint8_t expected_checksum = 0;
     uint8_t checksum = 0;
