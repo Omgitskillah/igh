@@ -5,3 +5,5 @@
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 
+void igh_mqtt_setup_broker(void);
+uint8_t igh_mqtt_subscribe(void);
