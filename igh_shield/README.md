@@ -154,3 +154,13 @@ for device with serial number ```e00fce689a754705e79a0e37```.
 All messages sent to the device must be channeled throu the respective download topic and the device must send any payload through its respective  
 Upload topic.  
 The Messages published over MQTT must be in the format expressed above. 
+
+# ERRORS/EVENTS TO CONSIDER
+
+1. Not/connected to cloud
+2. Not/connected to Network
+3. Not/connected to MQTT broker
+4. Battery Low
+5. SD Card Fault
+6. Unreachable Spear
+7. 

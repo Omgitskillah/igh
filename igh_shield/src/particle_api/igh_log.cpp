@@ -6,17 +6,20 @@
  *******************************************************************************/
 #include "Particle.h"
 #include "igh_eeprom.h"
+#include "igh_boron.h"
 
 #define IGH_LOG_BAUD (long)19200
 
-const char test_success[] = "SUCCESS";
-const char test_fail[] = "FAIL";
+const char test_success[] = "OK";
+const char test_fail[] = "ERROR";
 const char test_padding[] = "**********\n";
 const char test_cmd_options[]   = "?. Options\n";
 const char test_flash_cmd[]     = "1. Test EEPROM\n";
+const char test_device_api[]    = "2. Test Device API\n";
 
-const char cmd_option = '?';
-const char test_flash = '1';
+const char cmd_option       = '?';
+const char test_flash       = '1';
+const char test_device      = '2';
 
 static uint8_t igh_log_read(char * _ch);
 static void print_cmd_options(void);
@@ -48,6 +51,8 @@ static void print_cmd_options(void)
     igh_log_print(test_padding);
     igh_log_print(test_cmd_options);
     igh_log_print(test_flash_cmd);
+    igh_log_print(test_device_api);
+    // Add more tests here
     igh_log_print(test_padding);
 }
 
@@ -83,6 +88,11 @@ uint8_t igh_process_serial_cmd(void)
             
             case cmd_option:
                 print_cmd_options();
+                ret = 1;
+                break;
+
+            case test_device:
+                igh_boron_test_device();
                 ret = 1;
                 break;
 
