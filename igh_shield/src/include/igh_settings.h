@@ -170,8 +170,8 @@ LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
 
 void igh_settings_reset_system_to_default(void);
 uint8_t igh_settings_process_settings(uint8_t * settings);
-uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
 uint8_t igh_settings_calculate_checksum(void * p_struct, size_t total_bytes);
+
 
 // Reporting interval
 // Data Collection interval

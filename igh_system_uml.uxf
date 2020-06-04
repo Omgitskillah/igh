@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>4</zoom_level>
+  <element>
+    <type>com.baselet.element.old.allinone.ActivityDiagramText</type>
+    <coordinates>
+      <x>0</x>
+      <y>0</y>
+      <w>1163</w>
+      <h>858</h>
+    </coordinates>
+    <panel_attributes>title:igh shield mqtt flow
+Start
+
+Get EEPROM\     Settings
+Validate \Checksum
+If
+	[Correct \Checksum]
+	Use EEPROM\Settings
+	
+	[Wrong \Checksum]
+	Reset To defaults
+	Set Udate\EEPROM Flag
+EndIf
+Fork
+	[MQTT Loop]
+	Setup MQTT
+	Clear Msg flag
+	While[System\loop]
+		Check \Connection
+		If
+			[Not Connected]
+			Try to connect
+			If
+				[Connection Failed]
+	
+				[Connected]
+				Connect to\MQTT broker
+			EndIf
+	
+			[Connected]
+			Check Outbound\Msg FLag
+			If
+				[Out Msg\Flag Set]
+				Send Message in\Outbound buffer
+				If
+					[Successful]
+					Clear Outbound\Msg Buffer
+					
+					[Not \Successfull]
+				EndIf
+				
+				[Out Msg\Flag Not Set]
+				Check Incoming\Msg Flag	
+				If
+					[Incoing Msg\Flag Set]
+					If
+						[Subscribed]
+						Unsubscribe
+			
+						[Not Subscribed]
+						Wait for\flag to be\cleared
+					EndIf
+					
+					[Incoming Msg\Flag Not Set]
+					Subscribe
+					If
+						[New Message]
+						Unsubscribe
+						Populate \Message Buffer
+						Set Msg flag
+		
+						[No New Msg]
+					EndIf
+				EndIf
+			EndIf
+		EndIf
+	[Device Fault]
+	
+	[Messaging\Loop]
+	While[System\Loop]
+		Clear Incoming\Msg Buffer
+		Check Incoming\Msg Flag
+		If
+			[Incoming Msg\Flag Set]
+			Process Message
+			If
+				[Msg Ack]
+				Delete Acked\Msg from queue
+				
+				[Settings]
+				Process Settings
+				If
+					[Successfully\Processed]
+					Set EEPROM\Update FLag
+					Build Ack\Msg to Out\Buffer
+					Set Outbound\Msg Flag
+				
+					[Settings\Not Valid]
+					Do nothing
+				EndIf
+			EndIf
+			Clear Incoming\Msg Flag
+				
+			[Incoming Msg\Flag Not Set]
+			Check Outbound\Msg Flag
+			If
+				[Messages\To Send]
+				Pull Nex Msg\From Memory\
+				Place msg in\Outbound Msg Buffer
+				Set Outbound\Msg Flag
+					
+				[Nothing To\Send]
+			EndIf
+		EndIf
+	[Device Fault]
+	
+	[EEPROM \Loop]
+	While[System\Loop]
+		If
+			[Update EEPROM \Flag Set]
+			Save Data\To EEPROM
+			Clear Update\EEPROM Flag
+
+			[Update EEPROM Flag\Not Set]
+		EndIf
+	[Device Fault]
+
+	[RF Loop]
+
+	[Valve Control]
+
+	[Next Loop]
+Sync
+	
+End
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

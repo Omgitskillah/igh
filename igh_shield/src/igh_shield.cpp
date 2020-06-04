@@ -6,22 +6,31 @@
  *******************************************************************************/
 
 #include "Particle.h"
-#include "include/igh_message.h"
+#include "particle_api/igh_eeprom.h"
 
-extern char igh_msg_buffer[MESSAGE_SIZE];
-extern uint8_t size_of_message_id;
-extern volatile uint8_t igh_msg_buffer_tracker;
+#define TEST_MODE
+
+#ifdef TEST_MODE
+#include "particle_api/igh_log.h"
+#endif
+
+
 
 SYSTEM_THREAD(ENABLED);
 
 void setup() 
 {
-  igh_message_init();
-
-  Serial.begin(115200);
+#ifdef TEST_MODE
+    // go into test mode
+    igh_log_begin();
+#endif
 }
 
 void loop() 
 {
+#ifdef TEST_MODE
+    // process test commands
+   igh_process_serial_cmd(); 
+#endif
 
 }
