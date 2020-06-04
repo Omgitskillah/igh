@@ -16,8 +16,8 @@
 uint8_t igh_eeprom_save_system_settings(system_settings * settings_to_save);
 uint8_t igh_eeprom_save_threshold_settings(thresholds * settings_to_save);
 void igh_eeprom_update_errors(uint32_t error_bit_field);
-uint8_t igh_eeprom_read_system_settings(struct system_settings running_system_settings_buffer);
-uint8_t igh_eeprom_read_threshold_settings(struct thresholds running_thresholds);
+uint8_t igh_eeprom_read_system_settings(system_settings * running_system_settings_buffer);
+uint8_t igh_eeprom_read_threshold_settings(thresholds * running_thresholds);
 void igh_eeprom_get_errors(uint32_t * error_bit_field);
 
 
@@ -35,8 +35,7 @@ uint8_t igh_eeprom_save_system_settings(system_settings * settings_to_save)
   // save the data
   EEPROM.put(SYSTEM_SETTINGS_ADDRESS, *settings_to_save);
   // check if data is saved
-  EEPROM.get(SYSTEM_SETTINGS_ADDRESS, local_buffer);
-  // TODO: Use the local read functoin for this
+  igh_eeprom_read_system_settings(&local_buffer);
 
   if( local_buffer.checksum != (settings_to_save->checksum))
   {
@@ -60,7 +59,7 @@ uint8_t igh_eeprom_save_threshold_settings(thresholds * settings_to_save)
     // save the data
     EEPROM.put(SYSTEM_THRESHOLDS_ADDRESS, *settings_to_save);
     // check if data is saved
-    EEPROM.get(SYSTEM_THRESHOLDS_ADDRESS, local_buffer);
+    igh_eeprom_read_threshold_settings(&local_buffer);
 
     if( local_buffer.checksum != (settings_to_save->checksum))
     {
@@ -93,23 +92,20 @@ void igh_eeprom_update_errors(uint32_t error_bit_field)
  * \param running_system_settings_buffer: buffer to store settings in
  * \return true or false based on success of read
  */
-uint8_t igh_eeprom_read_system_settings(struct system_settings running_system_settings_buffer)
+uint8_t igh_eeprom_read_system_settings(system_settings * running_system_settings_buffer)
 {
   system_settings local_buffer;
-
+  memset(&local_buffer, 0, sizeof(local_buffer));
   EEPROM.get(SYSTEM_SETTINGS_ADDRESS, local_buffer);
 
   uint8_t checksum = igh_settings_calculate_checksum(&local_buffer, sizeof(local_buffer));
-  
-  Serial.println(checksum);
-  Serial.println(checksum);
 
   if( checksum != local_buffer.checksum)
   {
     return 0;
   }
 
-  running_system_settings_buffer = local_buffer;
+  *running_system_settings_buffer = local_buffer;
   return 1;
 
 }
@@ -123,10 +119,10 @@ uint8_t igh_eeprom_read_system_settings(struct system_settings running_system_se
  * \param running_thresholds: buffer to store settings in
  * \return true or false based on success of read
  */
-uint8_t igh_eeprom_read_threshold_settings(struct thresholds running_thresholds)
+uint8_t igh_eeprom_read_threshold_settings(thresholds * running_thresholds)
 {
   thresholds local_buffer;
-
+  memset(&local_buffer, 0, sizeof(local_buffer));
   EEPROM.get(SYSTEM_THRESHOLDS_ADDRESS, local_buffer);
 
   uint8_t checksum = igh_settings_calculate_checksum(&local_buffer, sizeof(local_buffer));
@@ -136,7 +132,7 @@ uint8_t igh_eeprom_read_threshold_settings(struct thresholds running_thresholds)
     return 0;
   }
   
-  running_thresholds = local_buffer;
+  *running_thresholds = local_buffer;
   return 1;
 }
 
@@ -210,9 +206,8 @@ uint8_t igh_eeproom_test(void)
     uint32_t ret_test_error = 0;
     igh_eeprom_update_errors(test_error);
     igh_eeprom_get_errors(&ret_test_error);
-    
+
     return igh_eeprom_save_system_settings(&test_system_settings)
            && igh_eeprom_save_threshold_settings(&test_thresholds)
            && (ret_test_error == test_error);
-    
 }
