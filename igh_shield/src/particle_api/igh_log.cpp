@@ -10,16 +10,24 @@
 
 #define IGH_LOG_BAUD (long)19200
 
-const char test_success[] = "OK";
-const char test_fail[] = "ERROR";
-const char test_padding[] = "**********\n";
+const char test_success[] = " OK";
+const char test_fail[] = " ERROR";
+const char test_header[] = "IGH Shield Test";
+const char test_padding[] = "\n***************\n";
 const char test_cmd_options[]   = "?. Options\n";
 const char test_flash_cmd[]     = "1. Test EEPROM\n";
 const char test_device_api[]    = "2. Test Device API\n";
+const char test_button_press[]  = "3. Test Button Press\n";
+extern uint8_t igh_button_sec_counter;
+uint8_t button_test_duration;
+uint8_t test_button_flag = 0;
+unsigned long test_button_timeout = 0;
+unsigned long test_button_timeout_counter = 0;
 
 const char cmd_option       = '?';
 const char test_flash       = '1';
 const char test_device      = '2';
+const char test_button      = '3';
 
 static uint8_t igh_log_read(char * _ch);
 static void print_cmd_options(void);
@@ -49,9 +57,12 @@ void igh_log_begin(void)
 static void print_cmd_options(void)
 {
     igh_log_print(test_padding);
+    igh_log_print(test_header);
+    igh_log_print(test_padding);
     igh_log_print(test_cmd_options);
     igh_log_print(test_flash_cmd);
     igh_log_print(test_device_api);
+    igh_log_print(test_button_press);
     // Add more tests here
     igh_log_print(test_padding);
 }
@@ -75,7 +86,6 @@ uint8_t igh_process_serial_cmd(void)
     memset(resp, '\0', sizeof(resp));
 
     char serial_cmd = '\0';
-
     if( igh_log_read(&serial_cmd) )
     {
         switch(serial_cmd)
@@ -96,6 +106,15 @@ uint8_t igh_process_serial_cmd(void)
                 ret = 1;
                 break;
 
+            case test_button:
+                button_test_duration = random(5); // get a random number to test button press duration
+                igh_log_print(F("\nPress button for: ")); igh_log_print(String(button_test_duration)); igh_log_print(F(" Seconds"));
+                igh_log_print(F("\nTesting Button:"));
+                test_button_flag = 1;
+                test_button_timeout = (button_test_duration + 5) * 1000; // + 5 gives you at least 5 seconds to start pressing
+                test_button_timeout_counter = millis();
+                break;
+
             default:
                 // do nothing
                 break;
@@ -104,6 +123,24 @@ uint8_t igh_process_serial_cmd(void)
     else
     {
         // Do nothing;
+    }
+
+    // Test button routine
+    if(test_button_flag)
+    {
+        if(igh_button_sec_counter >= button_test_duration)
+        {
+            ret = 1;
+            igh_append_test_status(ret);
+            test_button_flag = false;
+        }
+
+        if( (millis() - test_button_timeout_counter) >= test_button_timeout )
+        {
+            ret = 0;
+            igh_append_test_status(ret);
+            test_button_flag = false;
+        }
     }
 
     return ret;

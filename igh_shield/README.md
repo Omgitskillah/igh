@@ -163,4 +163,4 @@ The Messages published over MQTT must be in the format expressed above.
 4. Battery Low
 5. SD Card Fault
 6. Unreachable Spear
-7. 
+7. Button Press
