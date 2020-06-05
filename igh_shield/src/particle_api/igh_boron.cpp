@@ -10,10 +10,6 @@
 
 // Local variable
 #define ONE_DAY_MILLIS (24 * 60 * 60 * 1000)
-#define ON        1
-#define OFF       0
-#define BORON_LED               D7
-#define IGH_IRRIGATION_BUTTON   D5
 
 unsigned long lastSync;
 bool connected_to_cloud;
@@ -23,9 +19,6 @@ float signal_quality, signal_strength;
 FuelGauge fuel;
 float battery_voltage, battery_SOC;
 unsigned long unix_time;
-
-uint8_t igh_button_sec_counter;
-Timer igh_button_timer(1000, igh_boron_button_press_duration);
 
 /* Functions */
 void igh_boron_sync_time(void)
@@ -79,11 +72,6 @@ uint8_t igh_boron_connected_to_cloud(void)
 
 void igh_boron_setup(void)
 {
-    pinMode(BORON_LED, OUTPUT);
-    pinMode(IGH_IRRIGATION_BUTTON, INPUT_PULLUP);
-    igh_boron_toggle_boron_led(OFF);
-    igh_button_timer.start();
-    igh_button_sec_counter = 0;
     lastSync = millis();
 }
 
@@ -102,27 +90,4 @@ void igh_boron_test_device(void)
     Serial.print("signal quality:   "); Serial.println(igh_boron_sq());
     Serial.print("Battery Voltage:  "); Serial.println(igh_boron_voltage());
     Serial.print("Battery SOC:      "); Serial.println(igh_boron_SoC());
-}
-
-void igh_boron_toggle_boron_led(uint8_t _state)
-{
-    digitalWrite(BORON_LED, _state);
-}
-
-uint8_t igh_boron_read_button(void)
-{
-    return digitalRead(IGH_IRRIGATION_BUTTON);
-}
-
-void igh_boron_button_press_duration(void)
-{
-    if(!igh_boron_read_button())
-    {
-        igh_button_sec_counter++;
-        // Serial.print("button timer: "); Serial.println(igh_button_sec_counter);
-    }
-    else
-    {
-        igh_button_sec_counter = 0;
-    } 
 }

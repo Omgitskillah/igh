@@ -33,8 +33,4 @@ void igh_boron_test_device(void);
 void igh_boron_service(void);
 void igh_boron_setup(void);
 
-void igh_boron_toggle_boron_led(uint8_t _state);
-void igh_boron_button_press_duration(void);
-uint8_t igh_boron_read_button(void);
-
 #endif

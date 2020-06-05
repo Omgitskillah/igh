@@ -7,6 +7,7 @@
 #include "Particle.h"
 #include "igh_eeprom.h"
 #include "igh_boron.h"
+#include "igh_hardware.h"
 
 #define IGH_LOG_BAUD (long)19200
 
@@ -18,7 +19,16 @@ const char test_cmd_options[]   = "?. Options\n";
 const char test_flash_cmd[]     = "1. Test EEPROM\n";
 const char test_device_api[]    = "2. Test Device API\n";
 const char test_button_press[]  = "3. Test Button Press\n";
-extern uint8_t igh_button_sec_counter;
+const char test_valve_state[]   = "4. Test Valve Control\n";
+
+// Valve Test variables
+uint8_t test_valve_flag = 0;
+unsigned long test_valve_counter = 0;
+bool open_close = false;
+uint8_t valva_open_pass, valve_closed_pass;
+#define valve_transit_time 6000 // set to six seconds, valve takes 5 seconds to change states 
+
+// Button test variables
 uint8_t button_test_duration;
 uint8_t test_button_flag = 0;
 unsigned long test_button_timeout = 0;
@@ -28,6 +38,7 @@ const char cmd_option       = '?';
 const char test_flash       = '1';
 const char test_device      = '2';
 const char test_button      = '3';
+const char test_valve       = '4';
 
 static uint8_t igh_log_read(char * _ch);
 static void print_cmd_options(void);
@@ -63,6 +74,7 @@ static void print_cmd_options(void)
     igh_log_print(test_flash_cmd);
     igh_log_print(test_device_api);
     igh_log_print(test_button_press);
+    igh_log_print(test_valve_state);
     // Add more tests here
     igh_log_print(test_padding);
 }
@@ -115,6 +127,11 @@ uint8_t igh_process_serial_cmd(void)
                 test_button_timeout_counter = millis();
                 break;
 
+            case test_valve:
+                igh_log_print(F("\nTesting Valve:"));
+                test_valve_flag = true;
+                test_valve_counter = millis();
+                open_close = true;
             default:
                 // do nothing
                 break;
@@ -140,6 +157,37 @@ uint8_t igh_process_serial_cmd(void)
             ret = 0;
             igh_append_test_status(ret);
             test_button_flag = false;
+        }
+    }
+
+    // valve test routine
+    if(test_valve_flag)
+    {
+        if(open_close)
+        {
+            current_valve_position = VALVE_OPEN;
+        }
+        else
+        {
+            current_valve_position = VALVE_CLOSE;
+        }
+        
+        if( (millis() - test_valve_counter) >= valve_transit_time )
+        {
+            if(open_close)
+            {
+                valva_open_pass = igh_hardware_test_valve_state();
+                open_close = false;
+                test_valve_counter = millis();
+            }
+            else
+            {
+                valve_closed_pass = !igh_hardware_test_valve_state();
+
+                ret = (valve_closed_pass && valva_open_pass);
+                igh_append_test_status(ret);
+                test_valve_flag = false;
+            }   
         }
     }
 

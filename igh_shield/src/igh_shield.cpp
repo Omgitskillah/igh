@@ -8,6 +8,7 @@
 #include "Particle.h"
 #include "particle_api/igh_eeprom.h"
 #include "particle_api/igh_boron.h"
+#include "particle_api/igh_hardware.h"
 
 #define TEST_MODE
 #ifdef TEST_MODE
@@ -18,6 +19,7 @@ SYSTEM_THREAD(ENABLED);
 
 void setup() 
 {
+    igh_hardware_setup();
 #ifdef TEST_MODE
     // go into test mode
     igh_log_begin();
@@ -32,4 +34,5 @@ void loop()
     igh_process_serial_cmd(); 
 #endif
     igh_boron_service();
+    igh_hardware_service();
 }
