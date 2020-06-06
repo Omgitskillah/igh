@@ -1,6 +1,6 @@
 /*******************************************************************************
- * @file igh_air.h
- * @brief manage air sensor data
+ * @file igh_shield.cpp
+ * @brief Main IGH application for the Shield board
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
@@ -9,6 +9,7 @@
 #include "particle_api/igh_eeprom.h"
 #include "particle_api/igh_boron.h"
 #include "particle_api/igh_hardware.h"
+#include "particle_api/igh_sd_log.h"
 
 #define TEST_MODE
 #ifdef TEST_MODE
@@ -25,6 +26,7 @@ void setup()
     igh_log_begin();
 #endif
     igh_boron_setup();
+    igh_sd_log_setup();
 }
 
 void loop() 

@@ -5,9 +5,12 @@
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 #include "Particle.h"
+#include "igh_log.h"
 #include "igh_eeprom.h"
 #include "igh_boron.h"
 #include "igh_hardware.h"
+#include "igh_sd_log.h"
+
 
 #define IGH_LOG_BAUD (long)19200
 
@@ -20,6 +23,7 @@ const char test_flash_cmd[]     = "1. Test EEPROM\n";
 const char test_device_api[]    = "2. Test Device API\n";
 const char test_button_press[]  = "3. Test Button Press\n";
 const char test_valve_state[]   = "4. Test Valve Control\n";
+const char test_sd_card[]       = "5. Test SD Card\n";
 
 // Valve Test variables
 uint8_t test_valve_flag = 0;
@@ -39,6 +43,7 @@ const char test_flash       = '1';
 const char test_device      = '2';
 const char test_button      = '3';
 const char test_valve       = '4';
+const char test_sd          = '5';
 
 static uint8_t igh_log_read(char * _ch);
 static void print_cmd_options(void);
@@ -75,6 +80,7 @@ static void print_cmd_options(void)
     igh_log_print(test_device_api);
     igh_log_print(test_button_press);
     igh_log_print(test_valve_state);
+    igh_log_print(test_sd_card);
     // Add more tests here
     igh_log_print(test_padding);
 }
@@ -101,16 +107,16 @@ uint8_t igh_process_serial_cmd(void)
     if( igh_log_read(&serial_cmd) )
     {
         switch(serial_cmd)
-        {
+        {   
+            case cmd_option:
+                print_cmd_options();
+                ret = 1;
+                break;
+
             case test_flash:
                 igh_log_print(F("\nTesting flash:"));
                 ret = igh_eeproom_test(); // this should be true based on actual test
                 igh_append_test_status(ret);  
-                break;
-            
-            case cmd_option:
-                print_cmd_options();
-                ret = 1;
                 break;
 
             case test_device:
@@ -132,6 +138,13 @@ uint8_t igh_process_serial_cmd(void)
                 test_valve_flag = true;
                 test_valve_counter = millis();
                 open_close = true;
+
+            case test_sd:
+                igh_log_print(F("\nTesting SD Card:"));
+                ret = igh_sd_log_test();
+                igh_append_test_status(ret);
+                break; 
+
             default:
                 // do nothing
                 break;
