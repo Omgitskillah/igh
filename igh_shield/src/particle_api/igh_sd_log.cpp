@@ -13,6 +13,10 @@ SdFat igh_sd;
 File igh_file;
 SdFile sd_root;
 SdFile next_file;
+
+#define FILE_NAME_SIZE  13
+#define MAX_FILE_SIZE   255
+
 /* File name format
  * Since we are limited to a 8.3 naming routine,
  * file names are the timestamp in hex to meet 8 characters
@@ -24,6 +28,7 @@ SdFile next_file;
 
 uint8_t igh_sd_log_setup(void)
 {
+    if(sd_root.isOpen()) sd_root.close();
     return igh_sd.begin(IGH_SD_CS);
 }
 
@@ -43,7 +48,7 @@ void igh_sd_log_get_file_name(unsigned long _unix_time, char * file_name)
 
 uint8_t igh_sd_log_save_data_point(unsigned long _unix_time, uint8_t * data, uint8_t size)
 {
-    char name[13]; // include the null terminator?
+    char name[FILE_NAME_SIZE]; // include the null terminator?
     igh_sd_log_get_file_name(_unix_time, name);
     igh_file = igh_sd.open((const char *)name, FILE_WRITE);
 
@@ -62,6 +67,33 @@ uint8_t igh_sd_log_save_data_point(unsigned long _unix_time, uint8_t * data, uin
 uint8_t igh_sd_log_remove_data_point(char * file_name)
 {
     return igh_sd.remove(file_name);
+}
+
+uint8_t igh_sd_log_clear_sd_data(void)
+{
+    if(!igh_sd_log_setup())
+    {
+        return 0;
+    }
+
+    if (!sd_root.open("/"))
+    {
+        return 0;
+    }
+    else
+    {
+        while ( next_file.openNext(&sd_root, O_RDONLY) )
+        {
+            char file_to_delete[FILE_NAME_SIZE];
+            memset(file_to_delete, '\0', FILE_NAME_SIZE);
+
+            next_file.getSFN(file_to_delete);
+            next_file.close();
+            igh_sd.remove(file_to_delete);
+        }
+        igh_file.rewindDirectory();
+        return 1;
+    }
 }
 
 uint8_t igh_sd_log_read_data_point(char * file_name, uint8_t * buffer, uint8_t data_length)
@@ -84,9 +116,13 @@ uint8_t igh_sd_log_read_data_point(char * file_name, uint8_t * buffer, uint8_t d
 
 uint8_t igh_sd_log_get_next_file_name(char * next_file_name)
 {
+    if(!igh_sd_log_setup())
+    {
+        return 0;
+    }
+
     if (!sd_root.open("/"))
     {
-        Serial.println("root open");
         return 0;
     }
     else
@@ -97,12 +133,10 @@ uint8_t igh_sd_log_get_next_file_name(char * next_file_name)
         {
             next_file.getSFN(next_file_name);
             next_file.close(); 
-            Serial.println("NEXT FILE: "); Serial.println(next_file_name);
             return 1;
         }
         else
         {
-            Serial.println("NEXT FILE: "); Serial.println("failed");
             return 0;
         }    
     }
@@ -110,55 +144,51 @@ uint8_t igh_sd_log_get_next_file_name(char * next_file_name)
 
 uint8_t igh_sd_log_test(void)
 {
-    igh_sd_log_setup();
+    if( !igh_sd_log_clear_sd_data() )
+    {
+        return 0;
+    }
 
     unsigned long test_timestamp = random(2015707648); 
-    Serial.println(test_timestamp);
 
-    uint8_t size = 255;
+    uint8_t size = MAX_FILE_SIZE;
     uint8_t data[size];
 
     memset(data, 't', size);
     if ( !igh_sd_log_save_data_point(test_timestamp, data, size) )
     {
-        Serial.println("save");
         return 0;
     }
 
-    char test_name[13];
+    char test_name[FILE_NAME_SIZE];
     uint8_t test_buffer[size];
     igh_sd_log_get_file_name(test_timestamp, test_name);
 
     if( !igh_sd_log_read_data_point(test_name, test_buffer, size) )
     {
-        Serial.println("read");
         return 0;
     }
 
     if ( 0 != memcmp( data, test_buffer, size) )
     {
-        Serial.println("date comp");
         return 0;
     }
 
-    char read_name[13];
+    char read_name[FILE_NAME_SIZE];
 
     if( !igh_sd_log_get_next_file_name(read_name) )
     {
-        Serial.println("next file");
         return 0;
     }
 
     
-    if( 0 != memcmp( test_name, read_name, 13) )
+    if( 0 != memcmp( test_name, read_name, FILE_NAME_SIZE) )
     {
-        Serial.println("name comp");
         return 0;
     }
 
     if( !igh_sd_log_remove_data_point(read_name) )
     {
-        Serial.println("rem");
         return 0;
     }
 

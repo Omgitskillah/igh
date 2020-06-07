@@ -18,5 +18,7 @@ uint8_t igh_sd_log_remove_data_point(char * file_name);
 uint8_t igh_sd_log_read_data_point(char * file_name, uint8_t * buffer, uint8_t data_length);
 uint8_t igh_sd_log_get_next_file_name(char * next_file_name);
 uint8_t igh_sd_log_test(void);
+void igh_sd_log_rewind_sd(void);
+uint8_t igh_sd_log_clear_sd_data(void);
 
 #endif
