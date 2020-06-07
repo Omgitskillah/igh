@@ -164,3 +164,18 @@ The Messages published over MQTT must be in the format expressed above.
 5. SD Card Fault
 6. Unreachable Spear
 7. Button Press
+
+# Add the encryption key to memory
+
+#define ENCRYPTKEY      "IGH-RFM69HCW-KEY" 
+
+***************
+IGH Shield Test
+***************
+?. Options
+1. Test EEPROM
+2. Test Device API
+3. Test Button Press
+4. Test Valve Control
+5. Test SD Card
+6. Test Radio

@@ -10,6 +10,7 @@
 #include "igh_boron.h"
 #include "igh_hardware.h"
 #include "igh_sd_log.h"
+#include "igh_rfm69.h"
 
 
 #define IGH_LOG_BAUD (long)19200
@@ -24,6 +25,7 @@ const char test_device_api[]    = "2. Test Device API\n";
 const char test_button_press[]  = "3. Test Button Press\n";
 const char test_valve_state[]   = "4. Test Valve Control\n";
 const char test_sd_card[]       = "5. Test SD Card\n";
+const char test_rfm69_radio[]   = "6. Test Radio\n";
 
 // Valve Test variables
 uint8_t test_valve_flag = 0;
@@ -44,10 +46,13 @@ const char test_device      = '2';
 const char test_button      = '3';
 const char test_valve       = '4';
 const char test_sd          = '5';
+const char test_rfm69       = '6';
 
 static uint8_t igh_log_read(char * _ch);
 static void print_cmd_options(void);
 static void igh_append_test_status(uint8_t _status);
+
+uint8_t test_rfm69_flag = 0;
 
 static uint8_t igh_log_read(char * _ch)
 {
@@ -81,6 +86,7 @@ static void print_cmd_options(void)
     igh_log_print(test_button_press);
     igh_log_print(test_valve_state);
     igh_log_print(test_sd_card);
+    igh_log_print(test_rfm69_radio);
     // Add more tests here
     igh_log_print(test_padding);
 }
@@ -145,6 +151,13 @@ uint8_t igh_process_serial_cmd(void)
                 igh_append_test_status(ret);
                 break; 
 
+            case test_rfm69:
+                igh_log_print(F("\nTesting Radio:"));
+                test_rfm69_flag = 1;
+                igh_rfm69_test();
+                ret = 1;
+            break;
+
             default:
                 // do nothing
                 break;
@@ -202,6 +215,13 @@ uint8_t igh_process_serial_cmd(void)
                 test_valve_flag = false;
             }   
         }
+    }
+
+    if(test_rfm69_flag)
+    {
+        ret = igh_rfm69_test_service(); // this function is blocking
+        igh_append_test_status(ret);
+        test_rfm69_flag = false;
     }
 
     return ret;

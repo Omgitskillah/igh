@@ -4,6 +4,10 @@
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
+#ifndef IGH_MQTT
+#define IGH_MQTT
 
 void igh_mqtt_setup_broker(void);
 uint8_t igh_mqtt_subscribe(void);
+
+#endif

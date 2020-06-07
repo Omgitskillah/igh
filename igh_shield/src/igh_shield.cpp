@@ -10,6 +10,7 @@
 #include "particle_api/igh_boron.h"
 #include "particle_api/igh_hardware.h"
 #include "particle_api/igh_sd_log.h"
+#include "particle_api/igh_rfm69.h"
 
 #define TEST_MODE
 #ifdef TEST_MODE
@@ -27,6 +28,7 @@ void setup()
 #endif
     igh_boron_setup();
     igh_sd_log_setup();
+    igh_rfm69_setup();
 }
 
 void loop() 
