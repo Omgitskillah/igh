@@ -120,7 +120,7 @@ uint8_t igh_process_serial_cmd(void)
                 break;
 
             case test_flash:
-                igh_log_print(F("\nTesting flash:"));
+                igh_log_print(F("\nTesting EEPROM:"));
                 ret = igh_eeproom_test(); // this should be true based on actual test
                 igh_append_test_status(ret);  
                 break;
@@ -144,6 +144,7 @@ uint8_t igh_process_serial_cmd(void)
                 test_valve_flag = true;
                 test_valve_counter = millis();
                 open_close = true;
+                break;
 
             case test_sd:
                 igh_log_print(F("\nTesting SD Card:"));
