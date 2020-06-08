@@ -14,8 +14,8 @@
 
 /// Pin mapping
 #define RFM69_CS      A2 
-#define RFM69_IRQ     D2
-#define RFM69_IRQN    D2 
+#define RFM69_IRQ     D8
+#define RFM69_IRQN    D8 
 #define RFM69_RST     D6 
 
 /* Functions */

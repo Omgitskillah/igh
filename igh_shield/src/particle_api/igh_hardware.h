@@ -12,7 +12,7 @@
 
 // Pin Mapping
 #define BORON_LED               D7
-#define IGH_IRRIGATION_BUTTON   D5
+#define IGH_IRRIGATION_BUTTON   A4
 #define IGH_IRRIGATION_VALVE    D7 //TODO replace with actual pin, route to on board LED in the mean time 
 
 enum valve_position

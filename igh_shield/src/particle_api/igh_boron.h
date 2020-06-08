@@ -32,5 +32,6 @@ void igh_boron_sync_time(void);
 void igh_boron_test_device(void);
 void igh_boron_service(void);
 void igh_boron_setup(void);
+String igh_boron_test_id(void);
 
 #endif

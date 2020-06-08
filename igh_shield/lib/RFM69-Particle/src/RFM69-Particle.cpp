@@ -92,7 +92,7 @@ bool RFM69::initialize(byte freqBand, byte nodeID, byte networkID)
   };
 
   pinMode(_slaveSelectPin, OUTPUT);
-  SPI.begin();
+  SPI1.begin();
  
   // Set time out to 50ms
   #define TIME_OUT 50
@@ -274,20 +274,20 @@ void RFM69::sendFrame(byte toAddress, const void* buffer, byte bufferSize, bool 
 
 	//write to FIFO
 	select();
-	SPI.transfer(REG_FIFO | 0x80);
-	SPI.transfer(bufferSize + 3);
-	SPI.transfer(toAddress);
-  SPI.transfer(_address);
+	SPI1.transfer(REG_FIFO | 0x80);
+	SPI1.transfer(bufferSize + 3);
+	SPI1.transfer(toAddress);
+  SPI1.transfer(_address);
 
   //control byte
   if (sendACK)
-    SPI.transfer(0x80);
+    SPI1.transfer(0x80);
   else if (requestACK)
-    SPI.transfer(0x40);
-  else SPI.transfer(0x00);
+    SPI1.transfer(0x40);
+  else SPI1.transfer(0x00);
 
 	for (byte i = 0; i < bufferSize; i++)
-    SPI.transfer(((byte*)buffer)[i]);
+    SPI1.transfer(((byte*)buffer)[i]);
 	unselect();
 
 	/* no need to wait for transmit mode to be ready since its handled by the radio */
@@ -306,10 +306,10 @@ void RFM69::interruptHandler() {
     //RSSI = readRSSI();
     setMode(RF69_MODE_STANDBY);
     select();
-    SPI.transfer(REG_FIFO & 0x7f);
-    PAYLOADLEN = SPI.transfer(0);
+    SPI1.transfer(REG_FIFO & 0x7f);
+    PAYLOADLEN = SPI1.transfer(0);
     PAYLOADLEN = PAYLOADLEN > 66 ? 66 : PAYLOADLEN; //precaution
-    TARGETID = SPI.transfer(0);
+    TARGETID = SPI1.transfer(0);
     if(!(_promiscuousMode || TARGETID==_address || TARGETID==RF69_BROADCAST_ADDR) //match this node's address, or broadcast address or anything in promiscuous mode
        || PAYLOADLEN < 3) //address situation could receive packets that are malformed and don't fit this libraries extra fields
     {
@@ -321,15 +321,15 @@ void RFM69::interruptHandler() {
     }
 
     DATALEN = PAYLOADLEN - 3;
-    SENDERID = SPI.transfer(0);
-    byte CTLbyte = SPI.transfer(0);
+    SENDERID = SPI1.transfer(0);
+    byte CTLbyte = SPI1.transfer(0);
 
     ACK_RECEIVED = CTLbyte & 0x80; //extract ACK-requested flag
     ACK_REQUESTED = CTLbyte & 0x40; //extract ACK-received flag
 
     for (byte i= 0; i < DATALEN; i++)
     {
-      DATA[i] = SPI.transfer(0);
+      DATA[i] = SPI1.transfer(0);
     }
     if (DATALEN<RF69_MAX_DATA_LEN) DATA[DATALEN]=0; //add null at end of string
     unselect();
@@ -382,9 +382,9 @@ void RFM69::encrypt(const char* key) {
   if (key!=0)
   {
     select();
-    SPI.transfer(REG_AESKEY1 | 0x80);
+    SPI1.transfer(REG_AESKEY1 | 0x80);
     for (byte i = 0; i<16; i++)
-      SPI.transfer(key[i]);
+      SPI1.transfer(key[i]);
     unselect();
   }
   writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFE) | (key ? 1 : 0));
@@ -406,8 +406,8 @@ int RFM69::readRSSI(bool forceTrigger) {
 byte RFM69::readReg(byte addr)
 {
   select();
-  SPI.transfer(addr & 0x7F);
-  byte regval = SPI.transfer(0);
+  SPI1.transfer(addr & 0x7F);
+  byte regval = SPI1.transfer(0);
   unselect();
   return regval;
 }
@@ -415,8 +415,8 @@ byte RFM69::readReg(byte addr)
 void RFM69::writeReg(byte addr, byte value)
 {
   select();
-  SPI.transfer(addr | 0x80);
-  SPI.transfer(value);
+  SPI1.transfer(addr | 0x80);
+  SPI1.transfer(value);
   unselect();
 }
 
@@ -429,10 +429,10 @@ void RFM69::select() {
   _SPSR = SPSR;
   #endif
   //set RFM69 SPI settings
-  SPI.setDataMode(SPI_MODE0);
-  SPI.setBitOrder(MSBFIRST);
+  SPI1.setDataMode(SPI_MODE0);
+  SPI1.setBitOrder(MSBFIRST);
   //SPI_CLOCK_DIV16; // 72MHz / 16 = 4.5MHz
-  SPI.setClockDivider(SPI_CLOCK_DIV16);
+  SPI1.setClockDivider(SPI_CLOCK_DIV16);
   digitalWrite(_slaveSelectPin, LOW);
 }
 
@@ -517,8 +517,8 @@ void RFM69::readAllRegs()
   for (byte regAddr = 1; regAddr <= 0x4F; regAddr++)
 	{
     select();
-    SPI.transfer(regAddr & 0x7f);	// send address + r/w bit
-    regVal = SPI.transfer(0);
+    SPI1.transfer(regAddr & 0x7f);	// send address + r/w bit
+    regVal = SPI1.transfer(0);
     unselect();
 
     Serial.print(regAddr, HEX);

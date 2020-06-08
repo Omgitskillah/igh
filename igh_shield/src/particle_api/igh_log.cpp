@@ -20,12 +20,13 @@ const char test_fail[] = " ERROR";
 const char test_header[] = "IGH Shield Test";
 const char test_padding[] = "\n***************\n";
 const char test_cmd_options[]   = "?. Options\n";
-const char test_flash_cmd[]     = "1. Test EEPROM\n";
+const char test_device_id[]     = "1. Get Device ID\n";
 const char test_device_api[]    = "2. Test Device API\n";
-const char test_button_press[]  = "3. Test Button Press\n";
-const char test_valve_state[]   = "4. Test Valve Control\n";
-const char test_sd_card[]       = "5. Test SD Card\n";
-const char test_rfm69_radio[]   = "6. Test Radio\n";
+const char test_flash_cmd[]     = "3. Test EEPROM\n";
+const char test_button_press[]  = "4. Test Irrigation Button\n";
+const char test_valve_state[]   = "5. Test Valve Control\n";
+const char test_sd_card[]       = "6. Test SD Card\n";
+const char test_rfm69_radio[]   = "7. Test Radio\n";
 
 // Valve Test variables
 uint8_t test_valve_flag = 0;
@@ -41,18 +42,21 @@ unsigned long test_button_timeout = 0;
 unsigned long test_button_timeout_counter = 0;
 
 const char cmd_option       = '?';
-const char test_flash       = '1';
+const char test_id          = '1';
 const char test_device      = '2';
-const char test_button      = '3';
-const char test_valve       = '4';
-const char test_sd          = '5';
-const char test_rfm69       = '6';
+const char test_flash       = '3';
+const char test_button      = '4';
+const char test_valve       = '5';
+const char test_sd          = '6';
+const char test_rfm69       = '7';
 
 static uint8_t igh_log_read(char * _ch);
 static void print_cmd_options(void);
 static void igh_append_test_status(uint8_t _status);
 
 uint8_t test_rfm69_flag = 0;
+
+String IGH_ID;
 
 static uint8_t igh_log_read(char * _ch)
 {
@@ -81,8 +85,9 @@ static void print_cmd_options(void)
     igh_log_print(test_header);
     igh_log_print(test_padding);
     igh_log_print(test_cmd_options);
-    igh_log_print(test_flash_cmd);
+    igh_log_print(test_device_id);
     igh_log_print(test_device_api);
+    igh_log_print(test_flash_cmd);
     igh_log_print(test_button_press);
     igh_log_print(test_valve_state);
     igh_log_print(test_sd_card);
@@ -119,19 +124,27 @@ uint8_t igh_process_serial_cmd(void)
                 ret = 1;
                 break;
 
+            case test_id:
+                // print out device ID
+                igh_log_print(F("\nDevice ID: "));
+                IGH_ID = igh_boron_test_id();
+                igh_log_print(IGH_ID); igh_log_print("\n"); 
+                ret = 1;
+                break;
+                
+            case test_device:
+                igh_boron_test_device();
+                ret = 1;
+                break;
+
             case test_flash:
                 igh_log_print(F("\nTesting EEPROM:"));
                 ret = igh_eeproom_test(); // this should be true based on actual test
                 igh_append_test_status(ret);  
                 break;
 
-            case test_device:
-                igh_boron_test_device();
-                ret = 1;
-                break;
-
             case test_button:
-                button_test_duration = random(5); // get a random number to test button press duration
+                button_test_duration = random(1, 5); // get a random number to test button press duration
                 igh_log_print(F("\nPress button for: ")); igh_log_print(String(button_test_duration)); igh_log_print(F(" Seconds"));
                 igh_log_print(F("\nTesting Button:"));
                 test_button_flag = 1;
@@ -160,7 +173,8 @@ uint8_t igh_process_serial_cmd(void)
             break;
 
             default:
-                // do nothing
+                igh_log_print(F("\nUnknown command"));
+                ret = 0;
                 break;
         }
     }

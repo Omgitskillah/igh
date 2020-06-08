@@ -83,11 +83,16 @@ void igh_boron_service(void)
 
 void igh_boron_test_device(void)
 {
-    Serial.print("\nUnix Time:      "); Serial.println(igh_boron_unix_time());
+    Serial.print("\nUnix Time:        "); Serial.println(igh_boron_unix_time());
     Serial.print("cloud status:     "); Serial.println(igh_boron_connected_to_cloud());
     Serial.print("network status:   "); Serial.println(igh_boron_connecetd_to_network());
     Serial.print("signal strength:  "); Serial.println(igh_boron_ss());
     Serial.print("signal quality:   "); Serial.println(igh_boron_sq());
     Serial.print("Battery Voltage:  "); Serial.println(igh_boron_voltage());
     Serial.print("Battery SOC:      "); Serial.println(igh_boron_SoC());
+}
+
+String igh_boron_test_id(void)
+{
+    return System.deviceID();
 }
