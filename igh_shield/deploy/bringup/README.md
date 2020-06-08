@@ -64,4 +64,5 @@ To test the Radio, you will need a second device with a radio running the ```igh
 
 ## _Notes_
 * Using more advanced terminals like DockLight in place of CoolTerm, it is possible to automate the test and generate test results for quality control purposes of the devices.  
-* A similar solution shall be presented for the Spear bringu
+* A similar solution shall be presented for the Spear bringup
+* The System will only successfully process one test at a time. Only send tests after the previous test is completed.
