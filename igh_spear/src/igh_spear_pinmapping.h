@@ -4,10 +4,6 @@
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef IGH_SPEAR_PINMAPPING
 #define IGH_SPEAR_PINMAPPING
 
@@ -23,9 +19,4 @@ extern "C" {
 /* VBAT Sense */
 #define VBAT_SENSE      A7 // or pin 9
 
-#endif
-
-
-#ifdef __cplusplus
-} // extern "C" {
 #endif

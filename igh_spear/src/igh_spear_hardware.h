@@ -4,10 +4,6 @@
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef IGH_SHIELD_HARDWARE
 #define IGH_SHIELD_HARDWARE
 
@@ -21,6 +17,3 @@ void igh_shield_hardware_setup(void);
 
 #endif
 
-#ifdef __cplusplus
-} // extern "C" {
-#endif
