@@ -14,7 +14,7 @@
 #define RFM69_RST       4
 
 /* On board led */
-#define IGH_SHIELD_LED  13
+#define IGH_SPEAR_LED  13
 
 /* VBAT Sense */
 #define VBAT_SENSE      A7 // or pin 9

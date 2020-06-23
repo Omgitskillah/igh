@@ -1,6 +1,6 @@
 /*******************************************************************************
  * @file igh_spear_hardware.c
- * @brief API for native Shield features
+ * @brief API for native Spear features
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
@@ -24,38 +24,38 @@ uint16_t battery_voltage = 0;
 unsigned long vbatt_refresh_timer  = 0;
 
 
-void igh_shield_hardware_setup(void)
+void igh_spear_hardware_setup(void)
 {
-    pinMode(IGH_SHIELD_LED, OUTPUT);
+    pinMode(IGH_SPEAR_LED, OUTPUT);
     pinMode(VBAT_SENSE, INPUT);
     heartbeat_state_time = HEART_ON_TIME;
 }
 
-uint16_t igh_shield_get_raw_battery_voltage(void)
+uint16_t igh_spear_get_raw_battery_voltage(void)
 {
     return (uint16_t)analogRead(VBAT_SENSE);
 }
 
-void igh_shield_hardware_heartbeat(void)
+void igh_spear_hardware_heartbeat(void)
 {
     if( (millis() - heartbeat_timer) > heartbeat_state_time)
     {
-        digitalWrite(IGH_SHIELD_LED, !digitalRead(IGH_SHIELD_LED));
-        heartbeat_state_time = ( digitalRead(IGH_SHIELD_LED) ? HEART_ON_TIME : HEART_OFF_TIME );
+        digitalWrite(IGH_SPEAR_LED, !digitalRead(IGH_SPEAR_LED));
+        heartbeat_state_time = ( digitalRead(IGH_SPEAR_LED) ? HEART_ON_TIME : HEART_OFF_TIME );
         heartbeat_timer = millis();
     }
 }
 
-void igh_shield_hardware_battery_service(void)
+void igh_spear_hardware_battery_service(void)
 {
     if( (millis() - vbatt_refresh_timer) > BATTERY_REFRESH_FREQUENCY )
     {
-        battery_voltage = igh_shield_get_raw_battery_voltage();
+        battery_voltage = igh_spear_get_raw_battery_voltage();
 #ifdef LOG_IGH_SPEAR_HARDWARE
         int buff = (battery_voltage * 6.4); // this has a heavy toll on RAM
         uint16_t voltage = (uint16_t)buff; // 6.4 is the scaling factor 
         sprintf(debug_buff, "Raw adc: %d, Batt Voltage: %dmV\n", battery_voltage, voltage );
-        igh_shield_log(debug_buff);
+        igh_spear_log(debug_buff);
 #endif
         vbatt_refresh_timer = millis();
     }
