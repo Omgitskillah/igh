@@ -9,7 +9,7 @@
 #define IGH_SPEAR_LOG
 
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR
+#define LOG_IGH_SPEAR
 
 #ifdef LOG_IGH_SPEAR
 #define DEBUG_BUFF_SIZE 255

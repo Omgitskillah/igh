@@ -22,7 +22,7 @@ void setup()
     // System init functions
     // igh_spear_hardware_setup();
     // igh_spear_log_setup();
-    radio_setup();
+    igh_spear_rfm69_setup();
 }
 
 
@@ -32,7 +32,7 @@ void loop()
     // main loop here
     // igh_spear_hardware_heartbeat();
     // igh_spear_hardware_battery_service();
-    radio_service();
+    igh_spear_rfm69_test_service();
 }
 
 

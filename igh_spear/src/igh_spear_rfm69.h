@@ -7,10 +7,12 @@
 #ifndef IGH_SPEAR_RFM69
 #define IGH_SPEAR_RFM69
 
-#include "SPI.h"
-#include "RadioHead/RH_RF69.h"
+#include "rfm69_hal/RFM69.h"
 
-void radio_setup(void);
-void radio_service(void);
+void igh_spear_rfm69_setup(void);
+void igh_spear_rfm69_test_service(void);
+
+void igh_spear_rfm69_send_2_shield( uint16_t dest_id, uint8_t * ptk, uint8_t pkt_len );
+uint16_t igh_spear_rfm69_process_incoming_msg( uint8_t * buffer );
 
 #endif
