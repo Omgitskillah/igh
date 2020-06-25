@@ -13,7 +13,7 @@ uint16_t igh_spear_get_raw_battery_voltage(void);
 void igh_spear_hardware_battery_service(void);
 void igh_spear_hardware_heartbeat(void);
 void igh_spear_hardware_setup(void);
-
+void igh_spear_hardware_battery_test_service(void);
 
 #endif
 

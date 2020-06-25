@@ -11,6 +11,7 @@
 
 void igh_spear_rfm69_setup(void);
 void igh_spear_rfm69_test_service(void);
+void igh_spear_rfm69_hw_test_service(void);
 
 void igh_spear_rfm69_send_2_shield( uint16_t dest_id, uint8_t * ptk, uint8_t pkt_len );
 uint16_t igh_spear_rfm69_process_incoming_msg( uint8_t * buffer );

@@ -27,8 +27,11 @@ int16_t NETWORKID = 100;  //the same on all nodes that talk to each other
 int16_t NODEID = 1;       //make sure NODEID differs between nodes  
 int16_t RECEIVER = 222;     //receiver's node ID
 
+bool rfm69_ok;
+
 void igh_spear_rfm69_setup(void)
 {
+    rfm69_ok = false;
     // Hard Reset the RFM module - Optional
     pinMode(RFM69_RST, OUTPUT);
     digitalWrite(RFM69_RST, HIGH);
@@ -39,7 +42,7 @@ void igh_spear_rfm69_setup(void)
     radio.setPowerLevel(14); //  power level
 
     // Initialize radio
-    radio.initialize(FREQUENCY,NODEID,NETWORKID);
+    rfm69_ok = radio.initialize(FREQUENCY,NODEID,NETWORKID);
     if (IS_RFM69HCW) {
         radio.setHighPower();    // Only for RFM69HCW & HW!
     }
@@ -48,6 +51,23 @@ void igh_spear_rfm69_setup(void)
     radio.writeReg(0x04,0x05);
 
     radio.encrypt(ENCRYPTKEY);
+}
+
+void igh_spear_rfm69_hw_test_service(void)
+{
+    if( true == rfm69_ok )
+    {
+#ifdef LOG_IGH_SPEAR_RFM69
+        igh_spear_log("RFM69..................OK\n");
+#endif 
+    }
+    else
+    {
+#ifdef LOG_IGH_SPEAR_RFM69
+        igh_spear_log("RFM69..................ERROR\n");
+#endif 
+    }
+    
 }
 
 void igh_spear_rfm69_test_service(void)

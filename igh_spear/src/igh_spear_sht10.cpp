@@ -10,7 +10,7 @@
 #include "igh_spear_log.h"
 
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_SHT10
+#define LOG_IGH_SPEAR_SHT10
 
 #define CMD_MEASURETEMPERATURE          sht1x.ShtCommand::MeasureTemperature
 #define CMD_MEASURERELATIVEHUMIDITY     sht1x.ShtCommand::MeasureRelativeHumidity
@@ -42,13 +42,13 @@ void igh_spear_sht10_test_service(void)
     if( (0xFF00 == sht_humidity) || (0xFF00 == sht_humidity) )
     {
 #ifdef LOG_IGH_SPEAR_SHT10
-        igh_spear_log("SHT10 ERROR\n");
+        igh_spear_log("SHT10..................ERROR\n");
 #endif      
     }
     else
     {
 #ifdef LOG_IGH_SPEAR_SHT10
-        igh_spear_log("SHT10 OK\n");
+        igh_spear_log("SHT10..................OK\n");
 #endif      
     }
 }

@@ -11,7 +11,7 @@
 #include "igh_spear_log.h"
 
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_LUX_METER
+#define LOG_IGH_SPEAR_LUX_METER
 
 BH1750 lux_meter;
 
@@ -60,13 +60,13 @@ void igh_spear_lux_meter_test_service( void )
     if ( 0 != lux )
     {
 #ifdef LOG_IGH_SPEAR_LUX_METER
-      igh_spear_log("LUX METER OK\n");
+      igh_spear_log("LUX METER..............OK\n");
 #endif      
     }
     else
     {
 #ifdef LOG_IGH_SPEAR_LUX_METER
-      igh_spear_log("LUX METER ERROR\n");
+      igh_spear_log("LUX METER..............ERROR\n");
 #endif      
     }
     

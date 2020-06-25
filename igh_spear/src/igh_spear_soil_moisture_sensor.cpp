@@ -11,7 +11,7 @@
 #include "igh_spear_log.h"
 
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_SOIL_MOISTURE_SENSOR
+#define LOG_IGH_SPEAR_SOIL_MOISTURE_SENSOR
 
 uint16_t soil_moisture;
 
@@ -36,13 +36,13 @@ void igh_spear_soil_mousture_test_service(void)
     if( 0 != soil_moisture )
     {
 #ifdef LOG_IGH_SPEAR_SOIL_MOISTURE_SENSOR
-        igh_spear_log("SOIL MOISTURE SENSOR OK\n");
+        igh_spear_log("SOIL MOISTURE SENSOR...OK\n");
 #endif      
     }
     else
     {
 #ifdef LOG_IGH_SPEAR_SOIL_MOISTURE_SENSOR
-        igh_spear_log("SOIL MOISTURE SENSOR ERROR\n");
+        igh_spear_log("SOIL MOISTURE SENSOR...ERROR\n");
 #endif      
     }
 }

@@ -37,7 +37,9 @@ void setup()
     igh_spear_mhz19_setup();
 
     // should be done only once
-    // igh_spear_settings_test_service(); // TODO: uncomment this last, using up flash writes
+    igh_spear_hardware_battery_test_service();
+    igh_spear_rfm69_hw_test_service();
+    igh_spear_settings_test_service(); // TODO: uncomment this last, using up flash writes
     igh_spear_lux_meter_test_service();
     igh_spear_soil_mousture_test_service();
     igh_spear_sht10_test_service();
@@ -50,14 +52,15 @@ void setup()
 void loop()
 {
     // main loop here
+    
     igh_spear_hardware_heartbeat();
-    igh_spear_hardware_battery_service();
-    igh_spear_rfm69_test_service();
-    igh_spear_lux_meter_service();
-    igh_spear_soil_mousture_service();
-    igh_spear_sht10_service();
-    igh_spear_dht22_service();
-    igh_spear_mhz19_service();
+    // igh_spear_hardware_battery_service();
+    // igh_spear_rfm69_test_service();
+    // igh_spear_lux_meter_service();
+    // igh_spear_soil_mousture_service();
+    // igh_spear_sht10_service();
+    // igh_spear_dht22_service();
+    // igh_spear_mhz19_service();
 }
 
 

@@ -11,7 +11,7 @@
 #include "igh_spear_log.h"
 
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_SETTINGS
+#define LOG_IGH_SPEAR_SETTINGS
 
 FlashStorage(settings_store, igh_spear_settings);
 
@@ -49,13 +49,13 @@ void igh_spear_settings_test_service(void)
     if( true == igh_spear_settings_save(current_settings) )
     {
 #ifdef LOG_IGH_SPEAR_SETTINGS
-        igh_spear_log("SETTINGS OK\n");
+        igh_spear_log("SETTINGS...............OK\n");
 #endif
     }
     else
     {
 #ifdef LOG_IGH_SPEAR_SETTINGS
-        igh_spear_log("SETTINGS ERROR\n");
+        igh_spear_log("SETTINGS...............ERROR\n");
 #endif
     }
     

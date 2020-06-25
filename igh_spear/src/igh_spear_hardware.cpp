@@ -9,7 +9,7 @@
 #include "igh_spear_hardware.h"
 #include "igh_spear_log.h"
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_HARDWARE
+#define LOG_IGH_SPEAR_HARDWARE
 
 /* Onboard led */
 #define HEART_PERIOD    1000 // ms
@@ -62,4 +62,15 @@ void igh_spear_hardware_battery_service(void)
 #endif
         vbatt_refresh_timer = millis();
     }
+}
+
+void igh_spear_hardware_battery_test_service(void)
+{
+    battery_voltage = igh_spear_get_raw_battery_voltage();
+#ifdef LOG_IGH_SPEAR_HARDWARE
+    int buff = (battery_voltage * 1.6117); // this has a heavy toll on RAM
+    uint16_t voltage = (uint16_t)buff; // 1.61 is the scaling factor 
+    sprintf(debug_buff, "BATTERY................%dmV\nSYSTEM.................OK\n", voltage );
+    igh_spear_log(debug_buff);
+#endif      
 }

@@ -41,13 +41,13 @@ void igh_spear_mhz19_test_service(void)
     if( 0 != mhz19_co2 )
     {
 #ifdef LOG_IGH_SPEAR_MHZ19
-        igh_spear_log("MHZ19 OK\n");
+        igh_spear_log("MHZ19..................OK\n");
 #endif      
     }
     else
     {
 #ifdef LOG_IGH_SPEAR_MHZ19
-        igh_spear_log("MHZ19 ERROR\n");
+        igh_spear_log("MHZ19..................ERROR\n");
 #endif      
     }
 }

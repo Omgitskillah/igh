@@ -10,7 +10,7 @@
 #include "igh_spear_dht22.h"
 #include "igh_spear_log.h"
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_DHT22
+#define LOG_IGH_SPEAR_DHT22
 
 #define DHTTYPE DHT22 
 
@@ -35,13 +35,13 @@ void igh_spear_dht22_test_service(void)
     if( dht.read(false) )
     {
 #ifdef LOG_IGH_SPEAR_DHT22
-        igh_spear_log("DHT22 OK\n");
+        igh_spear_log("DHT22..................OK\n");
 #endif      
     }
     else
     {
 #ifdef LOG_IGH_SPEAR_DHT22
-        igh_spear_log("DHT22 ERROR\n");
+        igh_spear_log("DHT22..................ERROR\n");
 #endif      
     }
 }
