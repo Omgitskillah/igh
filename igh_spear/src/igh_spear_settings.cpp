@@ -28,7 +28,6 @@ bool igh_spear_settings_save( igh_spear_settings settings )
     {
         ret = 1;
     }
-
     return ret;
 }
 

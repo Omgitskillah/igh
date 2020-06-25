@@ -26,5 +26,7 @@
 #define SHT10_DATA      10
 #define SHT10_CLOCK     12
 
+/* DHT22 Air Temperature and Humidity */
+#define DHT_DATA        5 
 
 #endif
