@@ -14,6 +14,7 @@
 #include "src/igh_spear_lux_meter.h"
 #include "src/igh_spear_sht10.h"
 #include "src/igh_spear_dht22.h"
+#include "src/igh_spear_mhz19.h"
 
 unsigned long log_timer = 0;
 #define LOG_PERIOD 1000
@@ -33,6 +34,7 @@ void setup()
     igh_spear_soil_moisture_sensor_setup();
     igh_spear_sht10_setup();
     igh_spear_dht22_setup();
+    igh_spear_mhz19_setup();
 
     // should be done only once
     // igh_spear_settings_test_service(); // TODO: uncomment this last, using up flash writes
@@ -40,6 +42,7 @@ void setup()
     igh_spear_soil_mousture_test_service();
     igh_spear_sht10_test_service();
     igh_spear_dht22_test_service();
+    igh_spear_mhz19_test_service();
 }
 
 
@@ -54,6 +57,7 @@ void loop()
     igh_spear_soil_mousture_service();
     igh_spear_sht10_service();
     igh_spear_dht22_service();
+    igh_spear_mhz19_service();
 }
 
 
