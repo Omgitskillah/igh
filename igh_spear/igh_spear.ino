@@ -10,6 +10,7 @@
 #include "src/igh_spear_log.h"
 #include "src/igh_spear_rfm69.h"
 #include "src/igh_spear_settings.h"
+#include "src/igh_spear_soil_moisture_sensor.h"
 #include "src/igh_spear_lux_meter.h"
 
 unsigned long log_timer = 0;
@@ -27,10 +28,12 @@ void setup()
     igh_spear_log_setup();
     igh_spear_rfm69_setup();
     igh_spear_lux_meter_setup();
+    igh_spear_soil_moisture_sensor_setup();
 
     // should be done only once
     igh_spear_settings_test_service();
     igh_spear_lux_meter_test_service();
+    igh_spear_soil_mousture_test_service();
 }
 
 
@@ -42,6 +45,7 @@ void loop()
     igh_spear_hardware_battery_service();
     igh_spear_rfm69_test_service();
     // igh_spear_lux_meter_service();
+    // igh_spear_soil_mousture_service();
 }
 
 

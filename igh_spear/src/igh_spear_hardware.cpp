@@ -27,6 +27,9 @@ unsigned long vbatt_refresh_timer  = 0;
 void igh_spear_hardware_setup(void)
 {
     pinMode(IGH_SPEAR_LED, OUTPUT);
+    
+    analogReadResolution(12); // read the full resolution of the ADC on the SAMD M0 MCU
+
     pinMode(VBAT_SENSE, INPUT);
     heartbeat_state_time = HEART_ON_TIME;
 }
@@ -52,8 +55,8 @@ void igh_spear_hardware_battery_service(void)
     {
         battery_voltage = igh_spear_get_raw_battery_voltage();
 #ifdef LOG_IGH_SPEAR_HARDWARE
-        int buff = (battery_voltage * 6.4); // this has a heavy toll on RAM
-        uint16_t voltage = (uint16_t)buff; // 6.4 is the scaling factor 
+        int buff = (battery_voltage * 1.6117); // this has a heavy toll on RAM
+        uint16_t voltage = (uint16_t)buff; // 1.61 is the scaling factor 
         sprintf(debug_buff, "Raw adc: %d, Batt Voltage: %dmV\n", battery_voltage, voltage );
         igh_spear_log(debug_buff);
 #endif

@@ -19,4 +19,8 @@
 /* VBAT Sense */
 #define VBAT_SENSE      A7 // or pin 9
 
+/* Analog Soil Moisture sensor */
+#define ANALOG_SOIL_MOISTURE_SENSOR     A2
+
+
 #endif
