@@ -11,7 +11,7 @@
 #include "igh_spear_log.h"
 
 /* uncomment to enable debug */
-#define LOG_IGH_SPEAR_SOIL_MOISTURE_SENSOR
+// #define LOG_IGH_SPEAR_SOIL_MOISTURE_SENSOR
 
 uint16_t soil_moisture;
 

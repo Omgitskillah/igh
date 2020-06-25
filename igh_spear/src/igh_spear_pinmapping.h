@@ -22,5 +22,9 @@
 /* Analog Soil Moisture sensor */
 #define ANALOG_SOIL_MOISTURE_SENSOR     A2
 
+/* SHT10 Soil temp/hum sensor */
+#define SHT10_DATA      10
+#define SHT10_CLOCK     12
+
 
 #endif
