@@ -9,6 +9,7 @@
 #include "src/igh_spear_hardware.h"
 #include "src/igh_spear_log.h"
 #include "src/igh_spear_rfm69.h"
+#include "src/igh_spear_settings.h"
 unsigned long log_timer = 0;
 #define LOG_PERIOD 1000
 
@@ -20,9 +21,12 @@ unsigned long log_timer = 0;
 void setup()
 {
     // System init functions
-    // igh_spear_hardware_setup();
-    // igh_spear_log_setup();
+    igh_spear_hardware_setup();
+    igh_spear_log_setup();
     igh_spear_rfm69_setup();
+
+    // should be done only once
+    igh_spear_settings_test_service();
 }
 
 
@@ -30,8 +34,8 @@ void setup()
 void loop()
 {
     // main loop here
-    // igh_spear_hardware_heartbeat();
-    // igh_spear_hardware_battery_service();
+    igh_spear_hardware_heartbeat();
+    igh_spear_hardware_battery_service();
     igh_spear_rfm69_test_service();
 }
 
