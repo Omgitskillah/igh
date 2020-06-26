@@ -20,6 +20,7 @@ unsigned long log_timer = 0;
 #define LOG_PERIOD 1000
 
 /* defines */
+// #define IGH_RADIO_TEST_MODE
 
 
 
@@ -30,32 +31,39 @@ void setup()
     igh_spear_hardware_setup();
     igh_spear_log_setup();
     igh_spear_rfm69_setup();
+#ifndef IGH_RADIO_TEST_MODE
     igh_spear_lux_meter_setup();
     igh_spear_soil_moisture_sensor_setup();
     igh_spear_sht10_setup();
     igh_spear_dht22_setup();
     igh_spear_mhz19_setup();
+#endif
 
-    // should be done only once
+    // Test Routines
     igh_spear_hardware_battery_test_service();
     igh_spear_rfm69_hw_test_service();
-    igh_spear_settings_test_service(); // TODO: uncomment this last, using up flash writes
+#ifndef IGH_RADIO_TEST_MODE
+    igh_spear_settings_test_service();
     igh_spear_lux_meter_test_service();
     igh_spear_soil_mousture_test_service();
     igh_spear_sht10_test_service();
     igh_spear_dht22_test_service();
     igh_spear_mhz19_test_service();
+#endif
 }
 
 
 /* loop */
 void loop()
 {
-    // main loop here
+    // main loop
     
     igh_spear_hardware_heartbeat();
+#ifdef IGH_RADIO_TEST_MODE
+    igh_spear_rfm69_test_service();
+#endif
+    // TODO: Service routine
     // igh_spear_hardware_battery_service();
-    // igh_spear_rfm69_test_service();
     // igh_spear_lux_meter_service();
     // igh_spear_soil_mousture_service();
     // igh_spear_sht10_service();
