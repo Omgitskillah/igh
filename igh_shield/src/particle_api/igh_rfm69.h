@@ -8,7 +8,7 @@
 #ifndef IGH_RFM69
 #define IGH_RFM69
 
-#define FREQUENCY       RF69_433MHZ
+#define FREQUENCY       RF69_915MHZ
 #define ENCRYPTKEY      "IGH-RFM69HCW-KEY" 
 #define IS_RFM69HCW     true
 

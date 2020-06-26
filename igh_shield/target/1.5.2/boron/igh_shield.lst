@@ -1,5 +1,5 @@
 
-c:/Users/Clarence.Alucho/Documents/git/igh/igh_shield/target/1.5.2/boron/igh_shield.elf:     file format elf32-littlearm
+d:/git/igh/igh_shield/target/1.5.2/boron/igh_shield.elf:     file format elf32-littlearm
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
@@ -31,11 +31,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  13 .debug_macro  0005a48b  00000000  00000000  00245cab  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_line   0006a1b4  00000000  00000000  002a0136  2**0
+ 14 .debug_line   000697d4  00000000  00000000  002a0136  2**0
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_str    00118148  00000000  00000000  0030a2ea  2**0
+ 15 .debug_str    00117de8  00000000  00000000  0030990a  2**0
                   CONTENTS, READONLY, DEBUGGING
- 16 .debug_frame  0000fe94  00000000  00000000  00422434  2**2
+ 16 .debug_frame  0000fe94  00000000  00000000  004216f4  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -3851,7 +3851,7 @@ void igh_rfm69_setup(void)
    d521a:	4a0e      	ldr	r2, [pc, #56]	; (d5254 <_Z15igh_rfm69_setupv+0x4c>)
    d521c:	781b      	ldrb	r3, [r3, #0]
    d521e:	7812      	ldrb	r2, [r2, #0]
-   d5220:	212b      	movs	r1, #43	; 0x2b
+   d5220:	215b      	movs	r1, #91	; 0x5b
    d5222:	4620      	mov	r0, r4
    d5224:	f002 f82c 	bl	d7280 <_ZN5RFM6910initializeEhhh>
 
