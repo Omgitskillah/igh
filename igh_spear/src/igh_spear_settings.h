@@ -15,6 +15,8 @@ typedef struct Settings
 {
   uint8_t checksum;
   uint8_t serial_number[12];
+  unsigned long data_collection_interval;
+  unsigned long data_tx_interval;
 } igh_spear_settings;
 
 
