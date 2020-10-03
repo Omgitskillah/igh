@@ -47,11 +47,29 @@ typedef enum igh_pkt_id
     END_OF_PKT_ID           = 0xFF
 } pkt_id;
 
-typedef struct sensor_type
+enum sensors
+{
+    SENSOR_SPEAR_BATTERY_LEVEL,
+    SENSOR_SOIL_MOISTURE,   
+    SENSOR_AIR_HUMIDITY,    
+    SENSOR_SOIL_HUMIDITY,   
+    SENSOR_WATER_DISPENSED, 
+    SENSOR_CARBON_DIOXIDE,  
+    SENSOR_AIR_TEMPERATURE, 
+    SENSOR_SOIL_TEMPERATURE,
+    SENSOR_SOIL_NPK,        
+    SENSOR_LIGHT_INTENSITY,
+    // number of sensors
+    NUM_OF_SENSORS
+};
+
+typedef struct sensor_data
 {
     pkt_id id;
-    uint16_t reading;
-    uint8_t bytes[2];
-} igh_spear_sensor;
+    uint8_t new_data;
+    uint8_t bytes[2]; // bytes in little endian
+} igh_spear_sensor_data; 
+
+extern igh_spear_sensor_data  payload_data_store[NUM_OF_SENSORS];
 
 #endif

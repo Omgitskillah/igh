@@ -24,4 +24,6 @@ void igh_spear_settings_test_service(void);
 void igh_spear_settings_read( igh_spear_settings * settings_buffer );
 bool igh_spear_settings_save( igh_spear_settings settings );
 
+extern igh_spear_settings active_system_setting;
+
 #endif

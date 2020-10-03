@@ -15,6 +15,8 @@
 
 FlashStorage(settings_store, igh_spear_settings);
 
+igh_spear_settings active_system_setting;
+
 bool igh_spear_settings_save( igh_spear_settings settings )
 {
     uint8_t ret = 0;
