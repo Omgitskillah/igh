@@ -55,8 +55,7 @@ Maximum length of data is 256 bytes over MQTT protocol
 if message is of type **Message ACK** , **payload** section will not be available  
   
 Example serial number (**s/n**) in hex  
-```e00fce689a754705e79a0e37``` split into bytes like so  
-```0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37```  
+```e00fce689a754705e79a0e37``` split into bytes like so ```0xe0,0x0f,0xce,0x68,0x9a,0x75,0x47,0x05,0xe7,0x9a,0x0e,0x37```  
 
 **msg id** increments and overflows to start over from zero to prevent multiple processing of the same message
 
@@ -73,27 +72,27 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 
 ### *Currently supported tuple ids and their length*  
 
-| Tuple Name              | Tuple ID| Length     |
-| :---                    | :---    | :---       |
-| MSG_ACK                 | 0x00    | 1          |
-| SPEAR_ID                | 0x01    | 12         |
-| STORE_TIMESTAMP         | 0x02    | 4          |  
-| SEND_TIMESTAMP          | 0x03    | 4          |  
-| SOIL_MOISTURE           | 0x04    | 2          |  
-| AIR_HUMIDITY            | 0x05    | 2          |  
-| SOIL_HUMIDITY           | 0x06    | 2          |  
-| WATER_DISPENSED         | 0x07    | 4          |  
-| CARBON_DIOXIDE          | 0x08    | 2          |  
-| AIR_TEMPERATURE         | 0x09    | 2          |  
-| SOIL_TEMPERATURE        | 0x0A    | 2          |  
-| SOIL_NPK                | 0x0B    | 2          |  
-| LIGHT_INTENSITY         | 0x0C    | 2          |  
-| SHIELD_BATTERY_LEVEL    | 0x0D    | 2          |  
-| SPEAR_BATTERY_LEVEL     | 0x0E    | 2          |  
-| VALVE_POSITION          | 0x0F    | 1          |  
-| IGH_SEND_SETTINGS       | 0x10    | Variable   |  
-| IGH_READ_SETTINGS       | 0x11    | Variable   | 
-| SPEAR_DATA              | 0x12    | Variable   | 
+| Tuple Name                 | Tuple ID| Length     |
+| :---                       | :---    | :---       |
+|    MSG_ACK                 | 0x00    | 1          |
+|    SPEAR_ID                | 0x01    | 12         |
+|    STORE_TIMESTAMP         | 0x02    | 4          |  
+|    SEND_TIMESTAMP          | 0x03    | 4          |  
+|    SOIL_MOISTURE           | 0x04    | 2          |  
+|    AIR_HUMIDITY            | 0x05    | 2          |  
+|    SOIL_HUMIDITY           | 0x06    | 2          |  
+|    WATER_DISPENSED         | 0x07    | 4          |  
+|    CARBON_DIOXIDE          | 0x08    | 2          |  
+|    AIR_TEMPERATURE         | 0x09    | 2          |  
+|    SOIL_TEMPERATURE        | 0x0A    | 2          |  
+|    SOIL_NPK                | 0x0B    | 2          |  
+|    LIGHT_INTENSITY         | 0x0C    | 2          |  
+|    SHIELD_BATTERY_LEVEL    | 0x0D    | 2          |  
+|    SPEAR_BATTERY_LEVEL     | 0x0E    | 2          |  
+|    VALVE_POSITION          | 0x0F    | 1          |  
+|    IGH_SEND_SETTINGS       | 0x10    | Variable   |  
+|    IGH_READ_SETTINGS       | 0x11    | Variable   | 
+|    SPEAR_DATA              | 0x12    | Variable   | 
 
 ### **IGH_READ_SETTINGS**
 In order to get the current settings in a device, the cloud platform must send a message with and **IGH_READ_SETTINGS** tuple in the payload.  
@@ -103,7 +102,7 @@ The settings subid are listed in the table below.
 
 The device will respond with the requested settings in the next payload in the following format:  
 ```<IGH_READ_SETTINGS><total_length><Settings_subid><length><data><Settings_subid><length><data>...```  
-
+# **TODO: This section needs editing**
 | Subid Name                        | Tuple ID | Length     |
 | :---                              | :---     | :---       |
 |SUBID_OPSTATE                      |  0x01    | 1          |
@@ -135,8 +134,7 @@ The device will respond with the requested settings in the next payload in the f
 ### **IGH_SETTINGS**
 The **IGH_SETTINGS** tuple is used to send new settings down to the device in the following byte stream format using the SUBIDs listed above.  
 
-```<IGH_SEND_SETTINGS><total_length><Settings_subid><length><data>  
-<Settings_subid><length><data>...``` 
+```<IGH_SEND_SETTINGS><total_length><Settings_subid><length><data><Settings_subid><length><data>...``` 
 
 
 # MQTT Protocol
@@ -169,15 +167,15 @@ The Messages published over MQTT must be in the format expressed above.
 
 # Add the encryption key to memory
 
-#define ENCRYPTKEY      "IGH-RFM69HCW-KEY"   
+#define ENCRYPTKEY      "IGH-RFM69HCW-KEY" 
 
-***************  
-IGH Shield Test  
-***************  
-?. Options  
-1. Test EEPROM  
-2. Test Device API  
-3. Test Button Press  
-4. Test Valve Control  
-5. Test SD Card  
-6. Test Radio  
+***************
+IGH Shield Test
+***************
+?. Options
+1. Test EEPROM
+2. Test Device API
+3. Test Button Press
+4. Test Valve Control
+5. Test SD Card
+6. Test Radio

@@ -17,7 +17,7 @@
 #define SHT_PINS                        SHT10_DATA, SHT10_CLOCK
 
 uint16_t sht10_temperature;
-uint16_t sht10_humidity;
+uint16_t sht_humidity;
 
 unsigned long sht10_read_timer;
 // TODO: Should come from settings
@@ -34,12 +34,12 @@ void igh_spear_sht10_setup(void)
 void igh_spear_sht10_test_service(void)
 {
     delay(sht10_read_interval); // wait a while
-    sht10_humidity = 0;
+    sht_humidity = 0;
     sht10_temperature = 0;
-    sht10_humidity = sht1x.readRawData( CMD_MEASURERELATIVEHUMIDITY, SHT_PINS );
+    sht_humidity = sht1x.readRawData( CMD_MEASURERELATIVEHUMIDITY, SHT_PINS );
     sht10_temperature = sht1x.readRawData( CMD_MEASURETEMPERATURE, SHT_PINS );
 
-    if( (0xFF00 == sht10_humidity) || (0xFF00 == sht10_humidity) )
+    if( (0xFF00 == sht_humidity) || (0xFF00 == sht_humidity) )
     {
 #ifdef LOG_IGH_SPEAR_SHT10
         igh_spear_log("SHT10..................ERROR\n");
@@ -57,14 +57,14 @@ void igh_spear_sht10_service(void)
 {
     if( (millis() - sht10_read_timer) > sht10_read_interval )
     {
-        sht10_humidity = 0;
+        sht_humidity = 0;
         sht10_temperature = 0;
 
-        sht10_humidity = sht1x.readRawData( CMD_MEASURERELATIVEHUMIDITY, SHT_PINS );
+        sht_humidity = sht1x.readRawData( CMD_MEASURERELATIVEHUMIDITY, SHT_PINS );
         sht10_temperature = sht1x.readRawData( CMD_MEASURETEMPERATURE, SHT_PINS );
 
 #ifdef LOG_IGH_SPEAR_SHT10
-        sprintf(debug_buff, "SHT10 --> temp: %d, hum: %d\n", sht10_temperature, sht10_humidity);
+        sprintf(debug_buff, "SHT10 --> temp: %d, hum: %d\n", sht10_temperature, sht_humidity);
         igh_spear_log(debug_buff);
 #endif
         sht10_read_timer = millis();
