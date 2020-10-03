@@ -11,11 +11,21 @@
 #include "igh_spear_log.h"
 
 /* uncomment to enable debug */
-#define LOG_IGH_SPEAR_SETTINGS
+// #define LOG_IGH_SPEAR_SETTINGS
 
 FlashStorage(settings_store, igh_spear_settings);
 
 igh_spear_settings active_system_setting;
+
+void igh_spear_settings_init( void )
+{
+    // TODO: function must consider stored settings 
+    uint8_t sn[] = {0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7};
+    memcpy( active_system_setting.serial_number, sn, sizeof(sn));
+    active_system_setting.parent_shield_rf_id = 0;
+    active_system_setting.spear_rf_id = 1;
+    active_system_setting.data_collection_interval = 5;
+}
 
 bool igh_spear_settings_save( igh_spear_settings settings )
 {

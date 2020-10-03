@@ -22,7 +22,7 @@
 #define MAX_PAYLOAD_LENGTH 60 
 #define ONE_SECOND         1000
 
-unsigned long payload_tick = 0;;
+unsigned long payload_tick = 0;
 unsigned long payload_millis_counter = 0;
 
 //global variables
@@ -51,7 +51,7 @@ uint8_t igh_spear_payload_build_pkt( void )
     uint8_t sensor_count = 0;
     for( sensor_count; sensor_count < NUM_OF_SENSORS; sensor_count++ )
     {
-        if( payload_data_store[sensor_count].new_data )
+        if( true == payload_data_store[sensor_count].new_data )
         {
             payload_scratchpad[i++] = payload_data_store[sensor_count].id;
             payload_scratchpad[i++] = sizeof(payload_data_store[sensor_count].bytes);
@@ -60,6 +60,9 @@ uint8_t igh_spear_payload_build_pkt( void )
                     sizeof(payload_data_store[sensor_count].bytes));
 
             i += sizeof(payload_data_store[sensor_count].bytes);
+
+            // don't send old data
+            payload_data_store[sensor_count].new_data = false;
         }
     }
 
@@ -74,19 +77,24 @@ void igh_spear_payload_tick( void )
     if( (millis() - payload_millis_counter) >= ONE_SECOND )
     {
         payload_tick++;
+#ifdef LOG_IGH_SPEAR_PAYLOAD
+        igh_spear_log(".");
+#endif
+        payload_millis_counter = millis();
     }
 
     if( payload_tick >= active_system_setting.data_collection_interval )
     {
+        payload_tick = 0;
         uint16_t parent_shield = 0; // by default. 
         uint8_t num_bytes_to_send = 0;
         num_bytes_to_send = igh_spear_payload_build_pkt();
         // if it is time, send it into the ether, don't store data on the spear
 #ifdef LOG_IGH_SPEAR_PAYLOAD
-        igh_spear_log("PAYLOAD --> ");
+        igh_spear_log("\nPAYLOAD --> ");
         for( int i = 0; i < num_bytes_to_send; i++ )
         {
-            sprintf(debug_buff, "%02X", dht22_temperature, dht22_humidity);
+            sprintf(debug_buff, "%02X", payload_scratchpad[i]);
             igh_spear_log(debug_buff);
         }
         igh_spear_log("\n");

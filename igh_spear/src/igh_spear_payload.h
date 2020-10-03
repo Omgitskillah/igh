@@ -50,15 +50,16 @@ typedef enum igh_pkt_id
 enum sensors
 {
     SENSOR_SPEAR_BATTERY_LEVEL,
-    SENSOR_SOIL_MOISTURE,   
-    SENSOR_AIR_HUMIDITY,    
-    SENSOR_SOIL_HUMIDITY,   
-    SENSOR_WATER_DISPENSED, 
-    SENSOR_CARBON_DIOXIDE,  
-    SENSOR_AIR_TEMPERATURE, 
-    SENSOR_SOIL_TEMPERATURE,
-    SENSOR_SOIL_NPK,        
     SENSOR_LIGHT_INTENSITY,
+    SENSOR_SOIL_MOISTURE,
+    SENSOR_SOIL_HUMIDITY,
+    SENSOR_SOIL_TEMPERATURE,
+    SENSOR_AIR_HUMIDITY,
+    SENSOR_AIR_TEMPERATURE,
+    SENSOR_CARBON_DIOXIDE,
+
+    SENSOR_WATER_DISPENSED,
+    SENSOR_SOIL_NPK,
     // number of sensors
     NUM_OF_SENSORS
 };
@@ -71,5 +72,8 @@ typedef struct sensor_data
 } igh_spear_sensor_data; 
 
 extern igh_spear_sensor_data  payload_data_store[NUM_OF_SENSORS];
+
+
+void igh_spear_payload_tick( void );
 
 #endif

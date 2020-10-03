@@ -15,11 +15,13 @@ typedef struct Settings
 {
   uint8_t checksum;
   uint8_t serial_number[12];
+  uint16_t parent_shield_rf_id;
+  uint16_t spear_rf_id;
+  // data collection interval in seconds
   unsigned long data_collection_interval;
-  unsigned long data_tx_interval;
 } igh_spear_settings;
 
-
+void igh_spear_settings_init( void );
 void igh_spear_settings_test_service(void);
 void igh_spear_settings_read( igh_spear_settings * settings_buffer );
 bool igh_spear_settings_save( igh_spear_settings settings );

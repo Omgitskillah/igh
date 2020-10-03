@@ -12,7 +12,7 @@
 #include <SPI.h>
 
 /* uncomment to enable debug */
-#define LOG_IGH_SPEAR_RFM69
+// #define LOG_IGH_SPEAR_RFM69
    
 #define FREQUENCY      RF69_915MHZ  // RF69_868MHZ, RF69_433MHZ
 #define ENCRYPTKEY     "IGH-RFM69HCW-KEY" //exactly the same 16 characters/bytes on all nodes!
