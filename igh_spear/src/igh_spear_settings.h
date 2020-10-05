@@ -21,11 +21,13 @@ typedef struct Settings
   unsigned long data_collection_interval;
 } igh_spear_settings;
 
+extern igh_spear_settings active_system_setting;
+extern igh_spear_settings new_system_settings; 
+
 void igh_spear_settings_init( void );
 void igh_spear_settings_test_service(void);
 void igh_spear_settings_read( igh_spear_settings * settings_buffer );
 bool igh_spear_settings_save( igh_spear_settings settings );
-
-extern igh_spear_settings active_system_setting;
+uint8_t igh_spear_settings_calculate_checksum(void * p_struct, size_t total_bytes); 
 
 #endif

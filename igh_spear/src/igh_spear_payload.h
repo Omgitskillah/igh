@@ -44,6 +44,9 @@ typedef enum igh_pkt_id
     IGH_SEND_SETTINGS       = 0x10,
     IGH_READ_SETTINGS       = 0x11,
     SPEAR_DATA              = 0x12,
+    SPEAR_RF_ID             = 0x13,
+    SHIELD_RF_ID            = 0x14,
+    SEND_INTERVAL           = 0x15,
     END_OF_PKT_ID           = 0xFF
 } pkt_id;
 
