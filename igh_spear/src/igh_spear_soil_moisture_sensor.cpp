@@ -12,7 +12,7 @@
 #include "igh_spear_payload.h"
 
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_SOIL_MOISTURE_SENSOR
+#define LOG_IGH_SPEAR_SOIL_MOISTURE_SENSOR
 
 uint16_t soil_moisture;
 
@@ -53,19 +53,13 @@ void igh_spear_soil_mousture_test_service(void)
 
 void igh_spear_soil_mousture_service(void)
 {
-    if ( (millis() - soil_moisture_sensor_timer) > soil_moisture_sensor_inverval )
-    {
-        soil_moisture = 0;
-        soil_moisture = analogRead(ANALOG_SOIL_MOISTURE_SENSOR);
-
-        payload_data_store[SENSOR_SOIL_MOISTURE].bytes[0] = soil_moisture & 0xFF;
-        payload_data_store[SENSOR_SOIL_MOISTURE].bytes[1] = (soil_moisture >> 8);
-        payload_data_store[SENSOR_SOIL_MOISTURE].new_data = true;
-
+    soil_moisture = 0;
+    soil_moisture = analogRead(ANALOG_SOIL_MOISTURE_SENSOR);
+    payload_data_store[SENSOR_SOIL_MOISTURE].bytes[0] = soil_moisture & 0xFF;
+    payload_data_store[SENSOR_SOIL_MOISTURE].bytes[1] = (soil_moisture >> 8);
+    payload_data_store[SENSOR_SOIL_MOISTURE].new_data = true;
 #ifdef LOG_IGH_SPEAR_SOIL_MOISTURE_SENSOR
-        sprintf(debug_buff, "Soil Moisture: %d\n", soil_moisture);
-        igh_spear_log(debug_buff);
+    sprintf(debug_buff, "Soil Moisture: %d\n", soil_moisture);
+    igh_spear_log(debug_buff);
 #endif
-        soil_moisture_sensor_timer = millis();
-    }
 }

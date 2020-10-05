@@ -11,7 +11,7 @@
 #include "igh_spear_log.h"
 #include "igh_spear_payload.h"
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_MHZ19
+#define LOG_IGH_SPEAR_MHZ19
 
 // hardware baud rate, should not change
 #define MHZ19_BAUD      9600 
@@ -58,19 +58,16 @@ void igh_spear_mhz19_test_service(void)
 
 void igh_spear_mhz19_service(void)
 {
-    if( (millis() - mhz19_timer) > mhz19_read_interval )
-    {
-        mhz19_co2 = 0;
-        mhz19_co2 = (uint16_t)myMHZ19.getCO2Raw();
+    mhz19_co2 = 0;
+    mhz19_co2 = (uint16_t)myMHZ19.getCO2Raw();
 
-        payload_data_store[SENSOR_CARBON_DIOXIDE].bytes[0] = mhz19_co2 & 0xFF;
-        payload_data_store[SENSOR_CARBON_DIOXIDE].bytes[1] = (mhz19_co2 >> 8);
-        payload_data_store[SENSOR_CARBON_DIOXIDE].new_data = true;
+    payload_data_store[SENSOR_CARBON_DIOXIDE].bytes[0] = mhz19_co2 & 0xFF;
+    payload_data_store[SENSOR_CARBON_DIOXIDE].bytes[1] = (mhz19_co2 >> 8);
+    payload_data_store[SENSOR_CARBON_DIOXIDE].new_data = true;
 
 #ifdef LOG_IGH_SPEAR_MHZ19
-        sprintf(debug_buff, "mhz19 raw co2: %d\n", mhz19_co2);
-        igh_spear_log(debug_buff);
+    sprintf(debug_buff, "mhz19 raw co2: %d\n", mhz19_co2);
+    igh_spear_log(debug_buff);
 #endif
-        mhz19_timer = millis();
-    }
+    mhz19_timer = millis();
 }

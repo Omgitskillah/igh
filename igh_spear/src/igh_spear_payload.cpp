@@ -6,9 +6,19 @@
  *******************************************************************************/
 #include "igh_spear_payload.h"
 #include "igh_spear_log.h"
+
 #include "igh_spear_hardware.h"
 #include "igh_spear_settings.h"
 #include "igh_spear_rfm69.h"
+
+#include "igh_spear_soil_moisture_sensor.h"
+#include "igh_spear_lux_meter.h"
+#include "igh_spear_sht10.h"
+#include "igh_spear_dht22.h"
+#include "igh_spear_mhz19.h"
+#include "igh_spear_payload.h"
+
+
 
 /* uncomment to enable debug */
 #define LOG_IGH_SPEAR_PAYLOAD
@@ -29,6 +39,8 @@ unsigned long payload_millis_counter = 0;
 uint8_t payload_scratchpad[MAX_PAYLOAD_LENGTH];
 
 igh_spear_sensor_data  payload_data_store[NUM_OF_SENSORS];
+
+void igh_spear_payload_collect_sensor_data( void );
 
 uint8_t igh_spear_payload_build_pkt( void )
 {
@@ -88,7 +100,13 @@ void igh_spear_payload_tick( void )
         payload_tick = 0;
         uint16_t parent_shield = 0; // by default. 
         uint8_t num_bytes_to_send = 0;
+
+        // collect data
+        igh_spear_payload_collect_sensor_data();
+
+        // build the data
         num_bytes_to_send = igh_spear_payload_build_pkt();
+        
         // if it is time, send it into the ether, don't store data on the spear
 #ifdef LOG_IGH_SPEAR_PAYLOAD
         igh_spear_log("\nPAYLOAD --> ");
@@ -101,4 +119,15 @@ void igh_spear_payload_tick( void )
 #endif
         igh_spear_rfm69_send_2_shield( parent_shield, payload_scratchpad, num_bytes_to_send );
     }
+}
+
+/* data collection routines */
+void igh_spear_payload_collect_sensor_data( void )
+{
+    igh_spear_hardware_battery_service();
+    igh_spear_lux_meter_service();
+    igh_spear_soil_mousture_service();
+    igh_spear_sht10_service();
+    igh_spear_dht22_service();
+    igh_spear_mhz19_service();
 }

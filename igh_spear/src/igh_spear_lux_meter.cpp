@@ -12,7 +12,7 @@
 #include "igh_spear_payload.h"
 
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_LUX_METER
+#define LOG_IGH_SPEAR_LUX_METER
 
 BH1750 lux_meter;
 
@@ -42,22 +42,15 @@ uint16_t igh_spear_lux_meter_read(void)
 
 void igh_spear_lux_meter_service(void)
 {
-  if( (millis() - lux_meter_timer) > lux_meter_read_interval )
-  {
-    // time to get lux data
-    lux = igh_spear_lux_meter_read();
-
-    payload_data_store[SENSOR_LIGHT_INTENSITY].bytes[0] = lux & 0xFF;
-    payload_data_store[SENSOR_LIGHT_INTENSITY].bytes[1] = (lux >> 8);
-    payload_data_store[SENSOR_LIGHT_INTENSITY].new_data = true;
-
+  // time to get lux data
+  lux = igh_spear_lux_meter_read();
+  payload_data_store[SENSOR_LIGHT_INTENSITY].bytes[0] = lux & 0xFF;
+  payload_data_store[SENSOR_LIGHT_INTENSITY].bytes[1] = (lux >> 8);
+  payload_data_store[SENSOR_LIGHT_INTENSITY].new_data = true;
 #ifdef LOG_IGH_SPEAR_LUX_METER
-    sprintf(debug_buff, "Light: %d\n", lux);
-    igh_spear_log(debug_buff);
+  sprintf(debug_buff, "Light: %d\n", lux);
+  igh_spear_log(debug_buff);
 #endif
-    // reset timer
-    lux_meter_timer = millis();
-  }
 }
 
 void igh_spear_lux_meter_test_service( void )

@@ -57,7 +57,6 @@ void igh_spear_settings_test_service(void)
     current_settings.checksum = 99;
     uint8_t sn[] = {0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7};
     memcpy(current_settings.serial_number, sn, sizeof(sn));
-
     if( true == igh_spear_settings_save(current_settings) )
     {
 #ifdef LOG_IGH_SPEAR_SETTINGS

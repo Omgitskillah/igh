@@ -11,7 +11,7 @@
 #include "igh_spear_payload.h"
 
 /* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_SHT10
+#define LOG_IGH_SPEAR_SHT10
 
 #define CMD_MEASURETEMPERATURE          sht1x.ShtCommand::MeasureTemperature
 #define CMD_MEASURERELATIVEHUMIDITY     sht1x.ShtCommand::MeasureRelativeHumidity
@@ -62,26 +62,20 @@ void igh_spear_sht10_test_service(void)
 
 void igh_spear_sht10_service(void)
 {
-    if( (millis() - sht10_read_timer) > sht10_read_interval )
-    {
-        sht10_humidity = 0;
-        sht10_temperature = 0;
+    sht10_humidity = 0;
+    sht10_temperature = 0;
+    sht10_humidity = sht1x.readRawData( CMD_MEASURERELATIVEHUMIDITY, SHT_PINS );
+    sht10_temperature = sht1x.readRawData( CMD_MEASURETEMPERATURE, SHT_PINS );
 
-        sht10_humidity = sht1x.readRawData( CMD_MEASURERELATIVEHUMIDITY, SHT_PINS );
-        sht10_temperature = sht1x.readRawData( CMD_MEASURETEMPERATURE, SHT_PINS );
+    payload_data_store[SENSOR_SOIL_HUMIDITY].bytes[0] = sht10_humidity & 0xFF;
+    payload_data_store[SENSOR_SOIL_HUMIDITY].bytes[1] = (sht10_humidity >> 8);
+    payload_data_store[SENSOR_SOIL_HUMIDITY].new_data = true;
 
-        payload_data_store[SENSOR_SOIL_HUMIDITY].bytes[0] = sht10_humidity & 0xFF;
-        payload_data_store[SENSOR_SOIL_HUMIDITY].bytes[1] = (sht10_humidity >> 8);
-        payload_data_store[SENSOR_SOIL_HUMIDITY].new_data = true;
-
-        payload_data_store[SENSOR_SOIL_TEMPERATURE].bytes[0] = sht10_temperature & 0xFF;
-        payload_data_store[SENSOR_SOIL_TEMPERATURE].bytes[1] = (sht10_temperature >> 8);
-        payload_data_store[SENSOR_SOIL_TEMPERATURE].new_data = true;
-
+    payload_data_store[SENSOR_SOIL_TEMPERATURE].bytes[0] = sht10_temperature & 0xFF;
+    payload_data_store[SENSOR_SOIL_TEMPERATURE].bytes[1] = (sht10_temperature >> 8);
+    payload_data_store[SENSOR_SOIL_TEMPERATURE].new_data = true;
 #ifdef LOG_IGH_SPEAR_SHT10
-        sprintf(debug_buff, "SHT10 --> temp: %d, hum: %d\n", sht10_temperature, sht10_humidity);
-        igh_spear_log(debug_buff);
+    sprintf(debug_buff, "SHT10 --> temp: %d, hum: %d\n", sht10_temperature, sht10_humidity);
+    igh_spear_log(debug_buff);
 #endif
-        sht10_read_timer = millis();
-    }
 }

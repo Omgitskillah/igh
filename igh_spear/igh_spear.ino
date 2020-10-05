@@ -58,12 +58,6 @@ void loop()
 #ifdef SPEAR_TEST
     igh_spear_rfm69_test_service();
 #endif
-    igh_spear_hardware_battery_service();
-    igh_spear_lux_meter_service();
-    igh_spear_soil_mousture_service();
-    igh_spear_sht10_service();
-    igh_spear_dht22_service();
-    igh_spear_mhz19_service();
     igh_spear_payload_tick();
 }
 
