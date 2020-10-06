@@ -11,9 +11,15 @@
 
 #include "flash/FlashStorage.h"
 
+typedef enum operation_state
+{
+  STATE_SHIPPING = 0x00,
+  STATE_LIVE =     0x42
+};
 typedef struct Settings
 {
   uint8_t checksum;
+  uint8_t op_state;
   uint8_t serial_number[12];
   uint16_t parent_shield_rf_id;
   uint16_t spear_rf_id;

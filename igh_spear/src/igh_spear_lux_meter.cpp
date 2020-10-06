@@ -11,9 +11,6 @@
 #include "igh_spear_log.h"
 #include "igh_spear_payload.h"
 
-/* uncomment to enable debug */
-#define LOG_IGH_SPEAR_LUX_METER
-
 BH1750 lux_meter;
 
 uint16_t lux;

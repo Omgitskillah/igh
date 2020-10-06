@@ -22,15 +22,18 @@ unsigned long log_timer = 0;
 
 /* defines */
 // #define SPEAR_TEST
+// #define TEST_RF_COMMS
 
 void setup()
 {
     /* System init functions */
-    // Always get settings first
-    igh_spear_settings_init();
     // then everything else
     igh_spear_hardware_setup();
+    // Always get settings first
     igh_spear_log_setup();
+
+    igh_spear_settings_init();
+
     igh_spear_rfm69_setup();
     igh_spear_lux_meter_setup();
     igh_spear_soil_moisture_sensor_setup();
@@ -55,10 +58,12 @@ void loop()
 {
     /* Main Loop */
     igh_spear_hardware_heartbeat();
-#ifdef SPEAR_TEST
+#ifdef TEST_RF_COMMS
     igh_spear_rfm69_test_service();
-#endif
+#else
     igh_spear_payload_tick();
+#endif
+
 }
 
 

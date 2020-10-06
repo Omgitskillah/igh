@@ -10,8 +10,7 @@
 #include "igh_spear_mhz19.h"
 #include "igh_spear_log.h"
 #include "igh_spear_payload.h"
-/* uncomment to enable debug */
-#define LOG_IGH_SPEAR_MHZ19
+
 
 // hardware baud rate, should not change
 #define MHZ19_BAUD      9600 

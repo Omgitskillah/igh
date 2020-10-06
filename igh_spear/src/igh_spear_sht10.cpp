@@ -10,9 +10,6 @@
 #include "igh_spear_log.h"
 #include "igh_spear_payload.h"
 
-/* uncomment to enable debug */
-#define LOG_IGH_SPEAR_SHT10
-
 #define CMD_MEASURETEMPERATURE          sht1x.ShtCommand::MeasureTemperature
 #define CMD_MEASURERELATIVEHUMIDITY     sht1x.ShtCommand::MeasureRelativeHumidity
 #define SHT_PINS                        SHT10_DATA, SHT10_CLOCK

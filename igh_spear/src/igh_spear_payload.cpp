@@ -18,12 +18,6 @@
 #include "igh_spear_mhz19.h"
 #include "igh_spear_payload.h"
 
-
-
-/* uncomment to enable debug */
-#define LOG_IGH_SPEAR_PAYLOAD
-//igh_spear_log("SETTINGS...............OK\n");
-
 /**
  *  this is limited by the maximum 
  * bytes the RFM module can transmit 
@@ -31,6 +25,7 @@
  * */
 #define SIZE_OF_MSG_HEADER    2
 #define SIZE_OF_RF_ID         2
+#define SIZE_OF_OP_STATE      1
 #define SIZE_OF_SEND_INTERVAL 4
 #define MAX_PAYLOAD_LENGTH    60 
 #define ONE_SECOND            1000
@@ -94,38 +89,41 @@ uint8_t igh_spear_payload_build_pkt( void )
 
 void igh_spear_payload_tick( void )
 {
-    if( (millis() - payload_millis_counter) >= ONE_SECOND )
+    if( STATE_LIVE == active_system_setting.op_state )
     {
-        payload_tick++;
-#ifdef LOG_IGH_SPEAR_PAYLOAD
-        igh_spear_log(".");
-#endif
-        payload_millis_counter = millis();
-    }
-
-    if( payload_tick >= active_system_setting.data_collection_interval )
-    {
-        payload_tick = 0;
-        uint16_t parent_shield = 0; // by default. 
-        uint8_t num_bytes_to_send = 0;
-
-        // collect data
-        igh_spear_payload_collect_sensor_data();
-
-        // build the data
-        num_bytes_to_send = igh_spear_payload_build_pkt();
-        
-        // if it is time, send it into the ether, don't store data on the spear
-#ifdef LOG_IGH_SPEAR_PAYLOAD
-        igh_spear_log("\nPAYLOAD --> ");
-        for( int i = 0; i < num_bytes_to_send; i++ )
+        if( (millis() - payload_millis_counter) >= ONE_SECOND )
         {
-            sprintf(debug_buff, "%02X", payload_scratchpad[i]);
-            igh_spear_log(debug_buff);
-        }
-        igh_spear_log("\n");
+            payload_tick++;
+#ifdef LOG_IGH_SPEAR_PAYLOAD
+            igh_spear_log(".");
 #endif
-        igh_spear_rfm69_send_2_shield( parent_shield, payload_scratchpad, num_bytes_to_send );
+            payload_millis_counter = millis();
+        }
+
+        if( payload_tick >= active_system_setting.data_collection_interval )
+        {
+            payload_tick = 0;
+            uint16_t parent_shield = 0; // by default. 
+            uint8_t num_bytes_to_send = 0;
+
+            // collect data
+            igh_spear_payload_collect_sensor_data();
+
+            // build the data
+            num_bytes_to_send = igh_spear_payload_build_pkt();
+            
+            // if it is time, send it into the ether, don't store data on the spear
+#ifdef LOG_IGH_SPEAR_PAYLOAD
+            igh_spear_log("\nPAYLOAD --> ");
+            for( int i = 0; i < num_bytes_to_send; i++ )
+            {
+                sprintf(debug_buff, "%02X", payload_scratchpad[i]);
+                igh_spear_log(debug_buff);
+            }
+            igh_spear_log("\n");
+#endif
+            igh_spear_rfm69_send_2_shield( parent_shield, payload_scratchpad, num_bytes_to_send );
+        }
     }
 
     // process any new settings messages
@@ -135,10 +133,12 @@ void igh_spear_payload_tick( void )
 void igh_spear_payload_get_new_settings( void )
 {
     uint8_t _buffer[MAX_PAYLOAD_LENGTH];
-    if ( SETTINGS_CLIENT == igh_spear_rfm69_process_incoming_msg( _buffer ) )
+    memset( _buffer, 0, sizeof(_buffer) );
+
+    if ( true == igh_spear_get_serial_hex_data(_buffer, sizeof(_buffer)) ) // via Serial
     {
         // only process seetings from specific rf device
-        if( _buffe[0] != IGH_SEND_SETTINGS ) return;  // do nothing if first byte is not a rx settings command
+        if( _buffer[0] != IGH_SEND_SETTINGS ) return;  // do nothing if first byte is not a rx settings command
 
         uint8_t len = _buffer[1];
 
@@ -146,7 +146,7 @@ void igh_spear_payload_get_new_settings( void )
 
         while( i < len )
         {
-            uint8_t processed_len = igh_spear_payload_parse_new_settings( &buffer[i]);
+            uint8_t processed_len = igh_spear_payload_parse_new_settings( &_buffer[i]);
 
             if( 0 == processed_len )
             {
@@ -165,16 +165,17 @@ void igh_spear_payload_get_new_settings( void )
             igh_spear_settings_read( &active_system_setting );
 
 #ifdef LOG_IGH_SPEAR_PAYLOAD
-            igh_spear_log("SETTINGS USED\nSN:");
+            igh_spear_log("\nSETTINGS USED\nSN:");
             for( int i = 0; i < sizeof(active_system_setting.serial_number); i++)
             {
-                sprintf(debug_buff, "%02X", active_system_setting.serial_number[i]);
+                sprintf(&debug_buff[i*2], "%02X", active_system_setting.serial_number[i]);
             }
             igh_spear_log(debug_buff);
-            sprintf(debug_buff, "SHIELD ID: %d\nSPEAR ID: %d\nDATA INTERVAL: %d\n", 
+            sprintf(debug_buff, "\nSHIELD ID: %d\nSPEAR ID: %d\nDATA INTERVAL: %d\nOP STATE: %d\n", 
                     active_system_setting.parent_shield_rf_id,
                     active_system_setting.spear_rf_id,
-                    active_system_setting.data_collection_interval);
+                    active_system_setting.data_collection_interval,
+                    active_system_setting.op_state);
             igh_spear_log(debug_buff);
 #endif
         }
@@ -194,11 +195,18 @@ uint8_t igh_spear_payload_parse_new_settings( uint8_t * data )
                 pkt_len = sizeof(new_system_settings.serial_number) + SIZE_OF_MSG_HEADER;
             }
             break;
+        case OP_STATE:
+            if( len == SIZE_OF_OP_STATE )
+            {
+                new_system_settings.op_state = data[2];
+                pkt_len = SIZE_OF_OP_STATE + SIZE_OF_MSG_HEADER;
+            }
+            break;
         case SPEAR_RF_ID:
             if( len == SIZE_OF_RF_ID )
             {
                 uint16_t new_id = 0;
-                new_id = data[2] | ( 8 << data[3] );
+                new_id = data[2] | ( data[3] << 8 );
                 new_system_settings.spear_rf_id = new_id;
                 pkt_len = SIZE_OF_RF_ID + SIZE_OF_MSG_HEADER;
             }
@@ -207,7 +215,7 @@ uint8_t igh_spear_payload_parse_new_settings( uint8_t * data )
             if( len == SIZE_OF_RF_ID )
             {
                 uint16_t new_id = 0;
-                new_id = data[2] | ( 8 << data[3] );
+                new_id = data[2] | ( data[3] << 8 );
                 new_system_settings.parent_shield_rf_id = new_id;
                 pkt_len = SIZE_OF_RF_ID + SIZE_OF_MSG_HEADER;
             }
@@ -216,8 +224,8 @@ uint8_t igh_spear_payload_parse_new_settings( uint8_t * data )
             if( len == SIZE_OF_SEND_INTERVAL )
             {
                 uint16_t new_id = 0;
-                new_id = data[2] | ( 8 << data[3] ) | ( 16 << data[4] ) | ( 24 << data[5] );
-                new_system_settings.parent_shield_rf_id = new_id;
+                new_id = data[2] | ( data[3] << 8 ) | ( data[4] << 16 ) | ( data[5] << 24 );
+                new_system_settings.data_collection_interval = new_id;
                 pkt_len = SIZE_OF_SEND_INTERVAL + SIZE_OF_MSG_HEADER;
             }
             break;

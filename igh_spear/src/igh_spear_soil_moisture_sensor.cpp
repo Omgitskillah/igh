@@ -11,9 +11,6 @@
 #include "igh_spear_log.h"
 #include "igh_spear_payload.h"
 
-/* uncomment to enable debug */
-#define LOG_IGH_SPEAR_SOIL_MOISTURE_SENSOR
-
 uint16_t soil_moisture;
 
 unsigned long soil_moisture_sensor_timer = 0;

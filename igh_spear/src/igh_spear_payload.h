@@ -47,6 +47,7 @@ typedef enum igh_pkt_id
     SPEAR_RF_ID             = 0x13,
     SHIELD_RF_ID            = 0x14,
     SEND_INTERVAL           = 0x15,
+    OP_STATE                = 0x16,
     END_OF_PKT_ID           = 0xFF
 } pkt_id;
 

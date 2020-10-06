@@ -8,11 +8,9 @@
 #include "Arduino.h"
 #include "igh_spear_pinmapping.h"
 #include "igh_spear_log.h"
-#include "igh_spear_rfm69.h"   
+#include "igh_spear_rfm69.h"
+#include "igh_spear_settings.h"
 #include <SPI.h>
-
-/* uncomment to enable debug */
-// #define LOG_IGH_SPEAR_RFM69
    
 #define FREQUENCY      RF69_915MHZ  // RF69_868MHZ, RF69_433MHZ
 #define ENCRYPTKEY     "IGH-RFM69HCW-KEY" //exactly the same 16 characters/bytes on all nodes!
@@ -42,7 +40,7 @@ void igh_spear_rfm69_setup(void)
     radio.setPowerLevel(14); //  power level
 
     // Initialize radio
-    rfm69_ok = radio.initialize(FREQUENCY,NODEID,NETWORKID);
+    rfm69_ok = radio.initialize( FREQUENCY, active_system_setting.spear_rf_id, NETWORKID );
     if (IS_RFM69HCW) {
         radio.setHighPower();    // Only for RFM69HCW & HW!
     }

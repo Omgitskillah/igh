@@ -10,8 +10,6 @@
 #include "igh_spear_dht22.h"
 #include "igh_spear_log.h"
 #include "igh_spear_payload.h"
-/* uncomment to enable debug */
-#define LOG_IGH_SPEAR_DHT22
 
 #define DHTTYPE DHT22 
 

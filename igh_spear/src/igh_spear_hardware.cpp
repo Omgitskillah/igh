@@ -9,8 +9,6 @@
 #include "igh_spear_hardware.h"
 #include "igh_spear_log.h"
 #include "igh_spear_payload.h"
-/* uncomment to enable debug */
-#define LOG_IGH_SPEAR_HARDWARE
 
 /* Onboard led */
 #define HEART_PERIOD    1000 // ms
