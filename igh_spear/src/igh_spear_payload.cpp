@@ -103,7 +103,6 @@ void igh_spear_payload_tick( void )
         if( payload_tick >= active_system_setting.data_collection_interval )
         {
             payload_tick = 0;
-            uint16_t parent_shield = 0; // by default. 
             uint8_t num_bytes_to_send = 0;
 
             // collect data
@@ -122,7 +121,7 @@ void igh_spear_payload_tick( void )
             }
             igh_spear_log("\n");
 #endif
-            igh_spear_rfm69_send_2_shield( parent_shield, payload_scratchpad, num_bytes_to_send );
+            igh_spear_rfm69_send_2_shield( active_system_setting.parent_shield_rf_id, payload_scratchpad, num_bytes_to_send );
         }
     }
 

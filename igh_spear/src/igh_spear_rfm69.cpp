@@ -23,7 +23,7 @@ RFM69 radio = RFM69(RFM69_CS, RFM69_IRQ, IS_RFM69HCW);
 uint16_t shield_id = 222;
 int16_t NETWORKID = 100;  //the same on all nodes that talk to each other
 int16_t NODEID = 1;       //make sure NODEID differs between nodes  
-int16_t RECEIVER = 222;     //receiver's node ID
+int16_t RECEIVER = 4;     //receiver's node ID
 
 bool rfm69_ok;
 
@@ -40,7 +40,12 @@ void igh_spear_rfm69_setup(void)
     radio.setPowerLevel(14); //  power level
 
     // Initialize radio
+#ifdef TEST_RF_COMMS
+    rfm69_ok = radio.initialize( FREQUENCY, RECEIVER, NETWORKID );
+#else
     rfm69_ok = radio.initialize( FREQUENCY, active_system_setting.spear_rf_id, NETWORKID );
+#endif
+
     if (IS_RFM69HCW) {
         radio.setHighPower();    // Only for RFM69HCW & HW!
     }
@@ -103,6 +108,14 @@ uint16_t igh_spear_rfm69_process_incoming_msg( uint8_t * buffer )
     {
         memcpy( buffer, radio.DATA, radio.DATALEN );
         src_id = radio.SENDERID;
+#ifdef LOG_IGH_SPEAR_RFM69
+        igh_spear_log("\nRECEIVED: ");
+        for( uint8_t i = 0; i < radio.DATALEN; i++ )
+        {
+            sprintf(&debug_buff[i*2], "%02X", radio.DATA[i]);
+        }
+        igh_spear_log(debug_buff);
+#endif
     }
     radio.receiveDone();
 

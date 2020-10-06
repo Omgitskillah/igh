@@ -21,27 +21,55 @@ unsigned long log_timer = 0;
 #define LOG_PERIOD 1000
 
 /* defines */
-// #define SPEAR_TEST
-// #define TEST_RF_COMMS
+
+void igh_spear_service( void );
+void igh_spear_peripheral_test( void );
+void init_igh_spear( void );
 
 void setup()
 {
     /* System init functions */
-    // then everything else
-    igh_spear_hardware_setup();
-    // Always get settings first
     igh_spear_log_setup();
 
-    igh_spear_settings_init();
-
+#if defined(IGH_SPEAR)
+    init_igh_spear();
+#endif
+    /* All states require the RF */
     igh_spear_rfm69_setup();
+
+#if defined(IGH_SPEAR_PERIPHERAL_TEST)
+    /* One shot test of all peripherals */
+    igh_spear_peripheral_test();
+#endif
+
+}
+
+void loop()
+{
+    /* Main Loop */
+    igh_spear_hardware_heartbeat();
+
+#if defined(IGH_SPEAR)
+    igh_spear_service();
+#elif defined(TEST_RF_COMMS)
+    igh_spear_rfm69_test_service();
+#endif
+
+}
+
+void init_igh_spear( void )
+{
+    igh_spear_settings_init();
     igh_spear_lux_meter_setup();
     igh_spear_soil_moisture_sensor_setup();
     igh_spear_sht10_setup();
     igh_spear_dht22_setup();
     igh_spear_mhz19_setup();
+    igh_spear_rfm69_setup();
+}
 
-#ifdef SPEAR_TEST
+void igh_spear_peripheral_test( void )
+{
     /* Test Routines */
     igh_spear_hardware_battery_test_service();
     igh_spear_rfm69_hw_test_service();
@@ -51,19 +79,11 @@ void setup()
     igh_spear_sht10_test_service();
     igh_spear_dht22_test_service();
     igh_spear_mhz19_test_service();
-#endif
 }
 
-void loop()
+void igh_spear_service( void )
 {
-    /* Main Loop */
-    igh_spear_hardware_heartbeat();
-#ifdef TEST_RF_COMMS
-    igh_spear_rfm69_test_service();
-#else
     igh_spear_payload_tick();
-#endif
-
 }
 
 

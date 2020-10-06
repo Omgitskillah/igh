@@ -132,7 +132,6 @@ void igh_spear_settings_test_service(void)
 {
     // create settings insatnce
     igh_spear_settings current_settings;
-    
     // populate settings
     current_settings.checksum = 99;
     uint8_t sn[] = {0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7,0xa7};
