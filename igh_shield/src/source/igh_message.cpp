@@ -4,12 +4,14 @@
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
-
+#include "Particle.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include "include/igh_message.h"
 #include "include/igh_settings.h"
+#include "particle_api/igh_rfm69.h"
+#include "particle_api/igh_boron.h"
 
 // size of each message type in bytes
 #define SIZE_OF_MSG_ACK_TUPLE           1
@@ -25,7 +27,7 @@
 #define SIZE_OF_SOIL_TEMPERATURE        2
 #define SIZE_OF_SOIL_NPK                2
 #define SIZE_OF_LIGHT_INTENSITY         2
-#define SIZE_OF_SHIELD_BATTERY_LEVEL    2
+#define SIZE_OF_SHIELD_BATTERY_LEVEL    4
 #define SIZE_OF_SPEAR_BATTERY_LEVEL     2
 #define SIZE_OF_VALVE_POSITION          1
 
@@ -362,6 +364,73 @@ LOCAL uint8_t igh_message_build_ACK_payload(void)
     return bytes_added;
 }
 
+void igh_message_receive_and_stage_sensor_data( void )
+{
+    uint8_t rx_buffer[61];
+    uint8_t store_data_pkt[255];
+    uint8_t data_rx_len = 0;
+
+    data_rx_len = igh_rfm69_receive_raw_bytes( rx_buffer, sizeof(rx_buffer) );
+
+    if( 0 != data_rx_len )
+    {
+        uint32_t timestamp_to_store = (uint32_t)igh_boron_unix_time();
+        float battery_soc_float = igh_boron_SoC();
+        uint32_t battery_soc;
+        memcpy(&battery_soc, &battery_soc_float, sizeof battery_soc);
+        uint32_t total_water_dispensed = 12364897; // replace with actual reading
+
+        uint8_t i = 0; // keep track of pkt data
+
+        // Add DATA PKT PID
+        store_data_pkt[i++] = DATA_PKT;
+        i++; // leave room for length
+
+        // Add Timestamp
+        store_data_pkt[i++] = STORE_TIMESTAMP;
+        store_data_pkt[i++] = SIZE_OF_STORE_TIMESTAMP;
+        store_data_pkt[i++] = (uint8_t)timestamp_to_store;
+        store_data_pkt[i++] = (uint8_t)( timestamp_to_store >> 8);
+        store_data_pkt[i++] = (uint8_t)( timestamp_to_store >> 16);
+        store_data_pkt[i++] = (uint8_t)( timestamp_to_store >> 24);
+
+        // Add Shield battery level
+        store_data_pkt[i++] = SHIELD_BATTERY_LEVEL;
+        store_data_pkt[i++] = SIZE_OF_SHIELD_BATTERY_LEVEL;
+        store_data_pkt[i++] = (uint8_t)battery_soc;
+        store_data_pkt[i++] = (uint8_t)( battery_soc >> 8);
+        store_data_pkt[i++] = (uint8_t)( battery_soc >> 16);
+        store_data_pkt[i++] = (uint8_t)( battery_soc >> 24);
+
+        // Add Valve position
+        store_data_pkt[i++] = VALVE_POSITION;
+        store_data_pkt[i++] = SIZE_OF_VALVE_POSITION;
+        store_data_pkt[i++] = current_valve_position;
+
+        // Add water dispensed 
+        store_data_pkt[i++] = WATER_DISPENSED;
+        store_data_pkt[i++] = SIZE_OF_WATER_DISPENSED;
+        store_data_pkt[i++] = (uint8_t)total_water_dispensed;
+        store_data_pkt[i++] = (uint8_t)( total_water_dispensed >> 8);
+        store_data_pkt[i++] = (uint8_t)( total_water_dispensed >> 16);
+        store_data_pkt[i++] = (uint8_t)( total_water_dispensed >> 24);
+
+        // Add received data
+        memcpy( &store_data_pkt[i], rx_buffer, data_rx_len );
+        i += data_rx_len;
+
+        store_data_pkt[1] = i; // add length
+
+        Serial.print("DATA TO STORE: ");
+        for( uint8_t k = 0; k < i; k++ )
+        {
+            if( store_data_pkt[k] <= 0x0F ) Serial.print("0");
+            Serial.print(store_data_pkt[k], HEX);
+        }
+        Serial.print("\n");
+
+    }
+}
 
 
 

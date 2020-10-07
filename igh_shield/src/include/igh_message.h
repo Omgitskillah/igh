@@ -35,7 +35,7 @@ extern "C" {
 #define PUT32(val, buf)     {(buf)[3]=((val)&0xff);(buf)[2]=(((val)>>8)&0xff);(buf)[1]=(((val)>>16)&0xff);(buf)[0]=(((val)>>24)&0xff);}
 
 // all possible message identifiers
-enum igh_pkt_id
+typedef enum igh_pkt_id
 {
     MSG_ACK_TUPLE           = 0x00,
     SPEAR_ID                = 0x01,
@@ -56,8 +56,14 @@ enum igh_pkt_id
     IGH_SEND_SETTINGS       = 0x10,
     IGH_READ_SETTINGS       = 0x11,
     SPEAR_DATA              = 0x12,
+    SPEAR_RF_ID             = 0x13,
+    SHIELD_RF_ID            = 0x14,
+    SEND_INTERVAL           = 0x15,
+    OP_STATE                = 0x16,
+    DATA_PKT                = 0xFE,
     END_OF_PKT_ID           = 0xFF
-};
+} pkt_id;
+
 typedef enum igh_pkt_id igh_pkt_id;
 
 enum igh_msg_type
@@ -100,6 +106,7 @@ LOCAL uint8_t igh_message_build_ACK_payload(void);
 
 uint8_t igh_message_add_tuple(igh_pkt_id _pkt_id, uint8_t * data);
 uint8_t igh_message_process_incoming_msg(uint8_t * buffer);
+void igh_message_receive_and_stage_sensor_data( void );
 
 #ifdef __cplusplus
 }

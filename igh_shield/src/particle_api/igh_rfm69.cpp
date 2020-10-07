@@ -10,8 +10,8 @@
 #include "igh_rfm69.h"
 
 int16_t NETWORKID   = 100;
-int16_t NODEID      = 222;   
-int16_t TEST_NODE   = 1;
+int16_t NODEID      = 7;   
+int16_t TEST_NODE   = 4;
 
 #define START_BYTE  0x3C
 #define END_BYTE    0x3E
@@ -132,4 +132,18 @@ uint8_t igh_rfm69_test_service(void)
         return 0;
     }
     
+}
+
+uint8_t igh_rfm69_receive_raw_bytes( uint8_t *buffer, uint8_t len )
+{
+    uint8_t rx_len = 0;
+    if ( igh_radio.receiveDone() )
+    {
+        if( igh_radio.DATALEN <= len )
+        {
+            memcpy( buffer, (uint8_t *)igh_radio.DATA, igh_radio.DATALEN);
+            rx_len = igh_radio.DATALEN;
+        }
+    }
+    return rx_len;
 }
