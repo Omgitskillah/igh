@@ -30,7 +30,7 @@ void setup()
 {
     /* System init functions */
     igh_spear_log_setup();
-
+    igh_spear_hardware_setup();
 #if defined(IGH_SPEAR)
     init_igh_spear();
 #endif

@@ -31,7 +31,6 @@ valve_position current_valve_position;
 // functions
 #ifndef TEST
 LOCAL void igh_settings_get_defaults(void);
-LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings);
 LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
 LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
 #endif
@@ -78,31 +77,21 @@ LOCAL void igh_settings_get_defaults(void) // Total bytes
 
 } 
 
-LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
+uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_tracker, uint8_t end_index )
 {
-    // get the length
-    uint8_t length = settings[PAYLOAD_LEN_INDEX]; // byte at position one should always be length
-    // guard the process
-    if(0 >= length)
-    {
-        return 0; // do not allow settings with zero payload to be processed
-    }
-    // get index of last byte to process
-    uint8_t settings_end_index = FIRST_TUPLE_INDEX + length;
-    // get the location of first tuple
-    uint8_t settings_byte_tracker = FIRST_TUPLE_INDEX;
     //cycle through tuples to get the settings data
     uint8_t current_tuple_id;
     uint8_t current_tuple_length;
     uint8_t current_data_index;
-    while(settings_byte_tracker < settings_end_index)
+
+    while(byte_tracker < end_index)
     {
         // extract tuples
-        current_tuple_id = settings[settings_byte_tracker];
+        current_tuple_id = settings[byte_tracker];
         // extract the length
-        current_tuple_length = settings[settings_byte_tracker + 1]; // should always follow
+        current_tuple_length = settings[byte_tracker + 1]; // should always follow
         // extract the tuple data based on tuple id
-        current_data_index = settings_byte_tracker+2;
+        current_data_index = byte_tracker + 2;
 
         switch(current_tuple_id)
         {
@@ -489,14 +478,34 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 break;
         }
         // move index to next tuple id
-        settings_byte_tracker += current_tuple_length + TUPLE_HEADER_LEN;
+        byte_tracker += current_tuple_length + TUPLE_HEADER_LEN;
     }
+    return 1;
+}
+
+uint8_t igh_settings_parse_new_settings(uint8_t * settings)
+{
+    // get the length
+    uint8_t length = settings[PAYLOAD_LEN_INDEX]; // byte at position one should always be length
+    // guard the process
+    if(0 >= length)
+    {
+        return 0; // do not allow settings with zero payload to be processed
+    }
+    // get index of last byte to process
+    uint8_t settings_end_index = FIRST_TUPLE_INDEX + length;
+    // get the location of first tuple
+    uint8_t settings_byte_tracker = FIRST_TUPLE_INDEX;
+    
+    if( 0 == igh_settings_process_settings_tuples( settings, settings_byte_tracker, settings_end_index ) ) return 0;
 
     // update the checksum of the system settings
     igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
     // update the checksum for the threshold settings
     igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
     
+    // commit settings here 
+    ///////
     return 1;
 }
 

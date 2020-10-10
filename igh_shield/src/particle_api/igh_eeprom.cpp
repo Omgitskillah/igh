@@ -7,6 +7,7 @@
 
 #include "Particle.h"
 #include "include/igh_settings.h"
+#include "igh_eeprom.h"
 // We only have 4KB for the Boron
 #define SYSTEM_SETTINGS_ADDRESS     (int)0x0000
 #define SYSTEM_THRESHOLDS_ADDRESS   (int)0x0200
@@ -19,6 +20,28 @@ void igh_eeprom_update_errors(uint32_t error_bit_field);
 uint8_t igh_eeprom_read_system_settings(system_settings * running_system_settings_buffer);
 uint8_t igh_eeprom_read_threshold_settings(thresholds * running_thresholds);
 void igh_eeprom_get_errors(uint32_t * error_bit_field);
+
+void igh_eeprom_init( void )
+{
+  system_settings settings_in_memory;
+  bool settings_read_successfully = igh_eeprom_read_system_settings(&settings_in_memory);
+  uint8_t valid_checksum = igh_settings_calculate_checksum( &settings_in_memory, sizeof(settings_in_memory) );
+
+  if( false == settings_read_successfully ||
+      (settings_in_memory.checksum != valid_checksum) ||
+      ( 0 == settings_in_memory.checksum) )
+  {
+    // if we can't get valid settings from memory at all, use default settings
+    Serial.println("USING DEFAULT SETTINGS");
+    igh_settings_reset_system_to_default();
+  }
+  else
+  {
+    Serial.println("USING SETTINGS FROM MEMORY");
+    igh_current_system_settings = settings_in_memory;
+  }
+}
+
 
 
 /*******************************************************************************

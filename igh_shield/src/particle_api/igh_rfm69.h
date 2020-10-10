@@ -8,6 +8,10 @@
 #ifndef IGH_RFM69
 #define IGH_RFM69
 
+#include "RFM69-Particle.h"
+#include "RFM69_ATC.h"
+#include "RFM69registers.h"
+
 #define FREQUENCY       RF69_915MHZ
 #define ENCRYPTKEY      "IGH-RFM69HCW-KEY" 
 #define IS_RFM69HCW     true

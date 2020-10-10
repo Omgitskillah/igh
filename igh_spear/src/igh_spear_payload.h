@@ -23,6 +23,7 @@
  * Lux meter
  * Soil Moisture
  * */
+
 typedef enum igh_pkt_id
 {
     MSG_ACK_TUPLE           = 0x00,
@@ -48,6 +49,9 @@ typedef enum igh_pkt_id
     SHIELD_RF_ID            = 0x14,
     SEND_INTERVAL           = 0x15,
     OP_STATE                = 0x16,
+    BORON_SN                = 0x17,
+    RESTART                 = 0xFD,
+    DATA_PKT                = 0xFE,
     END_OF_PKT_ID           = 0xFF
 } pkt_id;
 

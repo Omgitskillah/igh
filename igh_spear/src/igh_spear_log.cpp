@@ -17,7 +17,7 @@ void igh_spear_log_setup(void)
 {
 #ifdef LOG_IGH_SPEAR
     Serial.begin(IGH_SPEAR_BAUD);
-    while (!SERIAL_PORT_MONITOR) { }
+    // while (!SERIAL_PORT_MONITOR) { }
     delay(1000);
     memset(debug_buff, '\0', sizeof(debug_buff));
     igh_spear_log(test_header);

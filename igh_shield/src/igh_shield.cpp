@@ -6,20 +6,24 @@
  *******************************************************************************/
 
 #include "Particle.h"
+
+
+// #define TEST_MODE
+
+#ifdef TEST_MODE
 #include "particle_api/igh_eeprom.h"
 #include "particle_api/igh_boron.h"
 #include "particle_api/igh_hardware.h"
 #include "particle_api/igh_sd_log.h"
 #include "particle_api/igh_rfm69.h"
+#include "particle_api/igh_mqtt.h"
 #include "include/igh_message.h"
-
-// #define TEST_MODE
-
-#ifdef TEST_MODE
 #include "particle_api/igh_log.h"
 #endif
 
-SYSTEM_THREAD(ENABLED);
+#include "include/igh_app.h"
+
+// SYSTEM_THREAD(ENABLED);
 
 #ifdef TEST_MODE
 void igh_shield_test_loop(void);
@@ -55,22 +59,19 @@ void loop()
 }
 
 #else
+
 /* Run Application routine */
 void setup() 
 {
     Serial.begin(19200);
-
-    // setup the Boron
-    igh_boron_setup();
-    // starte the radio
-    igh_rfm69_setup();
+    // setup application
+    igh_app_setup();
 }
 
 void loop() 
 {
-    igh_boron_service();
-    igh_message_receive_and_stage_sensor_data();
+    // run main app
+    igh_main_application();
 }
-
 
 #endif

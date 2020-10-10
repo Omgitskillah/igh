@@ -9,4 +9,6 @@
 
 uint8_t igh_eeproom_test(void);
 
+void igh_eeprom_init( void );
+
 #endif

@@ -168,15 +168,16 @@ LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req
 LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
 #endif
 
+uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_tracker, uint8_t end_index );
 void igh_settings_reset_system_to_default(void);
 uint8_t igh_settings_process_settings(uint8_t * settings);
 uint8_t igh_settings_calculate_checksum(void * p_struct, size_t total_bytes);
 
-
 // Reporting interval
 // Data Collection interval
-
-
+extern thresholds igh_current_threshold_settings;
+extern system_settings igh_current_system_settings;
+extern valve_position current_valve_position;
 
 #ifdef __cplusplus
 }

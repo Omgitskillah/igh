@@ -4,9 +4,6 @@
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
-#include "RFM69-Particle.h"
-#include "RFM69_ATC.h"
-#include "RFM69registers.h"
 #include "igh_rfm69.h"
 
 int16_t NETWORKID   = 100;
@@ -27,7 +24,8 @@ void igh_rfm69_setup(void)
 
     igh_rfm69_reset();
     
-    igh_radio.initialize(FREQUENCY,NODEID,NETWORKID);
+    if( false == igh_radio.initialize(FREQUENCY,NODEID,NETWORKID) )
+    Serial.println("RFM69 INIT ERROR");
 
     igh_radio.setHighPower(); // This should only be called for RFM69HCW & HW
 

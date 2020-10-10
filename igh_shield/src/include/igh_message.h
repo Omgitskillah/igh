@@ -60,9 +60,30 @@ typedef enum igh_pkt_id
     SHIELD_RF_ID            = 0x14,
     SEND_INTERVAL           = 0x15,
     OP_STATE                = 0x16,
+    BORON_SN                = 0x17,
+    RESTART                 = 0xFD,
     DATA_PKT                = 0xFE,
     END_OF_PKT_ID           = 0xFF
 } pkt_id;
+
+// size of each message type in bytes
+#define SIZE_OF_MSG_ACK_TUPLE           1
+#define SIZE_OF_SPEAR_ID                12
+#define SIZE_OF_STORE_TIMESTAMP         4 
+#define SIZE_OF_SEND_TIMESTAMP          4
+#define SIZE_OF_SOIL_MOISTURE           2
+#define SIZE_OF_AIR_HUMIDITY            2
+#define SIZE_OF_SOIL_HUMIDITY           2
+#define SIZE_OF_WATER_DISPENSED         4
+#define SIZE_OF_CARBON_DIOXIDE          2
+#define SIZE_OF_AIR_TEMPERATURE         2
+#define SIZE_OF_SOIL_TEMPERATURE        2
+#define SIZE_OF_SOIL_NPK                2
+#define SIZE_OF_LIGHT_INTENSITY         2
+#define SIZE_OF_SHIELD_BATTERY_LEVEL    4
+#define SIZE_OF_SPEAR_BATTERY_LEVEL     2
+#define SIZE_OF_RESTART                 1
+#define SIZE_OF_VALVE_POSITION          1
 
 typedef enum igh_pkt_id igh_pkt_id;
 

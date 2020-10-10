@@ -78,7 +78,9 @@ void igh_boron_setup(void)
 void igh_boron_service(void)
 {
     igh_boron_sync_time();
+#ifdef TEST_MODE
     igh_boron_get_celular_data();
+#endif
 }
 
 void igh_boron_test_device(void)

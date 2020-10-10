@@ -1,94 +1,70 @@
-// /*******************************************************************************
-//  * @file igh_mqtt.cpp
-//  * @brief Manages the MQTT protocol for the IGH project
-//  * @auther Alucho C. Ayisi
-//  * Copyright (C), Synnefa Green Ltd. All rights reserved.
-//  *******************************************************************************/
-// #include "Particle.h"
-// #include "MQTT.h"
-// #include "igh_mqtt.h"
-// #include "include/igh_message.h"
-// #include "include/igh_settings.h"
-// #include "include/igh_default_settings.h"
+/*******************************************************************************
+ * @file igh_mqtt.cpp
+ * @brief Manages the MQTT protocol for the IGH project
+ * @auther Alucho C. Ayisi
+ * Copyright (C), Synnefa Green Ltd. All rights reserved.
+ *******************************************************************************/
+#include "Particle.h"
+#include "MQTT.h"
+#include "igh_mqtt.h"
+#include "igh_boron.h"
 
-// // These must be stored in system settings in eeprom
-// const char id[]= "test_device"; // * this may be built from device id
-// char broker[] = "broker.hivemq.com"; // THis should be read straght from storage/ settings struct
-// uint16_t broker_port = 1883; // SHould be read straight from settings struct
-
-// // callback function whenever there is a new message to process
-// // create downstream message buffer to store multiple messages to process when more than one payloads are present?
-// void igh_mqtt_callback(char* topic, byte* payload, unsigned int length);
-// // char p[length + 1];
-// // memcpy(p, payload, length);
+/* MQTT variables */
+char domain[] = "broker.hivemq.com";
+byte ip_address[] = {138,197,6,61};
+uint16_t port = 1883;
+uint8_t device_name[] = "home_test_device";
+uint8_t inbound_topic[] = "Synnefa_Green_MQTT_SETTINGS_LOCAL";
+uint8_t outbound_topic[] = "Synnefa_Green_MQTT_DATA_LOCAT";
 
 
-// // connect to broker, return true on success
-// uint8_t igh_mqtt_connect(void); // client.connect("id");
+unsigned long upload_timer = 0;
 
-// // mqtt publish data, return true on success, unsubscribe, send, then subscribe?
-// uint8_t igh_mqtt_publish_data(uint8_t * paylaod);
+/* mqtt functions */
+void mqtt_callback(char* topic, byte* payload, unsigned int length);
+MQTT client(domain, port, mqtt_callback);
 
+void mqtt_callback(char* topic, byte* payload, unsigned int length) {
+    char p[length + 1];
+    memcpy(p, payload, length);
+    p[length] = NULL;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // setup client, use default broke and ort during setup
-// MQTT client(DEFAULT_MQTT_BROKER, (uint16_t)DEFAULT_MQTT_BROKER_PORT, igh_mqtt_callback);
-
-// /*******************************************************************************
-//  * igh_mqtt_setup_broker
-//  *******************************************************************************/
-// /**
-//  * \brief setup igh broker from the prevailing system settings
-//  * \param void
-//  * \return void
-//  */
-// void igh_mqtt_setup_broker(void)
-// {
-//     client.setBroker(
-//         igh_current_system_settings.broker, 
-//         igh_current_system_settings.broker_port); 
-//         // can only be called after stored settings are updated from eeprom
-// }
-
-// /*******************************************************************************
-//  * igh_mqtt_subscribe
-//  *******************************************************************************/
-// /**
-//  * \brief subscribe to the download topic using the serial number and the download byte in the string
-//  * \param void
-//  * \return true or false
-//  */
-// uint8_t igh_mqtt_subscribe(void)
-// {
-//     // multiply by two, should still be within a uint8
-//     uint8_t sub_topic_len = ((1 + sizeof(igh_current_system_settings.serial_number)) << 1) + 1; // + 1 for the null terminator 
-//     uint8_t sub_topic[sub_topic_len];
+void igh_mqtt_setup( void )
+{
+    // connect to the server
+    client.connect( (const char *)device_name );
     
-//     sprintf(&sub_topic[0], "%02X", IGH_DOWNLOAD);
+}
 
-//     // start from 2 to avoid the first two character
-//     for( uint8_t i = 2; i < sizeof(igh_current_system_settings.serial_number); i++ )
-//     {
-//         sprintf(&sub_topic[2*i], "%02X", igh_current_system_settings.serial_number[i]);
-//     }
+void igh_mqtt_service( void )
+{
+    if (client.isConnected())
+    {
+        client.loop();
+    }
+    else
+    {
+        /* try to connect */
+        Serial.println("Reconnecting");
+        client.connect( (const char *)device_name );
+    }
+}
 
-//     return client.subscribe((const char*)sub_topic);
-// }
+bool igh_mqtt_publish_data( uint8_t *payload, unsigned int len )
+{
+    bool ret = false;
+    if (client.isConnected()) {
+        client.publish( (const char *)outbound_topic, 
+                        (const uint8_t*) payload, len);
+        client.subscribe( (const char *)inbound_topic );
+        ret = true;
+    }
+    else
+    {
+        Serial.println("PUBLISH FAILED");
+    }
+    return ret;
+}
+
+

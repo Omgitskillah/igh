@@ -24,13 +24,13 @@
 /* device type */
 
 /* enable this for device to run as spear */
-// #define IGH_SPEAR 
+#define IGH_SPEAR 
 
 /* enable this for device to run system tests */
 // #define IGH_SPEAR_PERIPHERAL_TEST
 
 /* enable this for feather M0 to receive RF comms data and print over USB serial */
-#define TEST_RF_COMMS
+// #define TEST_RF_COMMS
 
 /* end of device types */
 
