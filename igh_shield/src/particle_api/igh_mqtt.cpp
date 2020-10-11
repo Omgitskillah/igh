@@ -8,6 +8,7 @@
 #include "MQTT.h"
 #include "igh_mqtt.h"
 #include "igh_boron.h"
+#include "include/igh_settings.h"
 
 /* MQTT variables */
 char domain[] = "broker.hivemq.com";
@@ -19,6 +20,7 @@ uint8_t outbound_topic[] = "Synnefa_Green_MQTT_DATA_LOCAT";
 
 
 unsigned long upload_timer = 0;
+unsigned long reconnect_interval = 0;
 
 /* mqtt functions */
 void mqtt_callback(char* topic, byte* payload, unsigned int length);
@@ -39,6 +41,26 @@ void igh_mqtt_setup( void )
 
 void igh_mqtt_service( void )
 {
+    if( true == mqtt_set_broker )
+    {
+        igh_current_system_settings.broker;
+        uint8_t broker_len = 0;
+        while( igh_current_system_settings.broker[broker_len] )
+        {
+            if( '\0' == igh_current_system_settings.broker[broker_len] ) break;
+            broker_len++;
+        }
+        
+        char new_broker[broker_len + 1];
+        memcpy( new_broker, igh_current_system_settings.broker, sizeof(new_broker) );
+
+        Serial.print("NEW MQTT BROKER SET: "); Serial.println(new_broker);
+        
+        client.setBroker(new_broker, igh_current_system_settings.broker_port);
+
+        mqtt_set_broker = false;
+    }
+
     if (client.isConnected())
     {
         client.loop();
@@ -46,8 +68,13 @@ void igh_mqtt_service( void )
     else
     {
         /* try to connect */
-        Serial.println("Reconnecting");
-        client.connect( (const char *)device_name );
+        if( (millis() - reconnect_interval) > 10000 )
+        {
+            // try to reconnect only once every 10 seconds
+            Serial.println("Reconnecting to Broker");
+            client.connect( (const char *)device_name );
+            reconnect_interval = millis();
+        }
     }
 }
 

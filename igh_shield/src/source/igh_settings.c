@@ -11,7 +11,6 @@
 #include "include/igh_message.h"
 #include "include/igh_settings.h"
 #include "include/igh_default_settings.h"
-// #include "include/igh_message.h"
 
 #define PAYLOAD_LEN_INDEX (PAYLOAD_INDEX + 1)
 #define FIRST_TUPLE_INDEX (PAYLOAD_LEN_INDEX + 1)
@@ -27,6 +26,11 @@ uint8_t default_broker_url[] = DEFAULT_MQTT_BROKER;
 thresholds igh_current_threshold_settings;
 system_settings igh_current_system_settings;
 valve_position current_valve_position;
+
+// flags to re-initialize various modules in case of settings change
+uint8_t initialize_rfm69 = 0;
+uint8_t mqtt_set_broker = 1; // make sure we set the broker on init
+
 
 // functions
 #ifndef TEST
@@ -124,6 +128,7 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                 if(LENGTH_SUBID_SET_SERIAL_NUMBER == current_tuple_length)
                 {
                     memcpy(igh_current_system_settings.serial_number, &settings[current_data_index], LENGTH_SUBID_SET_SERIAL_NUMBER);
+                    initialize_rfm69 = 1;
                 }
                 else
                 {
@@ -165,6 +170,7 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                     memset(igh_current_system_settings.broker, '\0', sizeof(igh_current_system_settings.broker));
                     memcpy(igh_current_system_settings.broker, &settings[current_data_index], current_tuple_length);
                     igh_current_system_settings.broker[current_tuple_length] = '\0'; // terminate the string
+                    mqtt_set_broker = 1;
                 }
                 else
                 {
@@ -179,6 +185,7 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                     uint8_t new_mqtt_port[LENGTH_SUBID_MQTT_PORT]; 
                     memcpy(new_mqtt_port, &settings[current_data_index], LENGTH_SUBID_MQTT_PORT);
                     igh_current_system_settings.broker_port = GET16(new_mqtt_port);
+                    mqtt_set_broker = 1;
                 }
                 else
                 {

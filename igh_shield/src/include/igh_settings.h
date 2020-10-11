@@ -73,7 +73,13 @@ struct system_settings
     uint16_t broker_port; //MQTT broker connection port
 };
 typedef struct system_settings system_settings;
+
 #define SIZE_OF_SYSTEM_SETTINGS 22 // TODO: increment this whenever we expand the system settings
+
+#define INDEX_RFM69_NETWORK_ID  10 // 10th byte of the serial number is the Network ID
+#define INDEX_RFM69_NODE_ID     11 // 11th byte of the Serial number is the Node ID
+extern uint8_t initialize_rfm69;
+extern uint8_t mqtt_set_broker;
 
 enum igh_settings_subid
 {

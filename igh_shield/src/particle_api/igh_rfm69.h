@@ -34,5 +34,6 @@ void igh_rfm69_reset(void);
 void igh_rfm69_set_power_level(uint8_t pwrlvl);
 void igh_rfm69_set_bitrate(uint8_t msb, uint8_t lsb);
 void igh_rfm69_setup(void);
+void igh_rfm69_service( void );
 
 #endif

@@ -7,13 +7,11 @@
 
 #include "Particle.h"
 #include "igh_hardware.h"
+#include "include/igh_settings.h"
 
 // button global variables
 uint8_t igh_button_sec_counter;
 Timer igh_button_timer(1000, igh_boron_button_press_duration);
-
-// valve variables
-volatile valve_position current_valve_position;
 
 // local functions
 static void igh_hardware_irrigiation_button_setup(void);

@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-#define MESSAGE_SIZE 256
+#define MESSAGE_SIZE 255
 #define SIZE_OF_HEADER 2
 
 #define FRAME_START 0x3C

@@ -16,8 +16,8 @@ extern "C" {
 
 // System settings
 #define DEFAULT_NEW_OPSTATE                     OP_INACTIVE
-#define DEFAULT_REPORTING_INTERVAL              255   
-#define DEFAULT_DATA_RESOLUTION                 255
+#define DEFAULT_REPORTING_INTERVAL              1800 // 30 mins   
+#define DEFAULT_DATA_RESOLUTION                 600  // 10 mins
 //High Threshold tirggers       
 #define DEFAULT_SOIL_MOISTURE_LOW               0            
 #define DEFAULT_AIR_HUMIDITY_LOW                0            

@@ -23,15 +23,21 @@ uint8_t igh_app_add_message_header( uint8_t *_buffer, uint8_t start, igh_msg_typ
 void igh_app_send_device_restart( void );
 void igh_app_receive_and_stage_sensor_data( void );
 uint8_t igh_eeprom_get_serial_hex_data( uint8_t * buffer, uint8_t len );
-void igh_spear_payload_get_new_settings( void );
+void igh_app_get_new_settings( void );
 
 void igh_app_setup( void )
 {
+    Serial.begin(19200);
+    Serial.println("START");
+    
     igh_boron_setup();
+    
     // get settings from eeprom
     igh_eeprom_init();
+    
     // starte the radio
     igh_rfm69_setup();
+    
     // setup MQTT
     igh_mqtt_setup();
 }
@@ -39,14 +45,22 @@ void igh_app_setup( void )
 void igh_main_application( void )
 {
     // check if there are any settings to read
-    igh_spear_payload_get_new_settings();
+    igh_app_get_new_settings();
+
     // process boron service
     igh_boron_service();
+    
     // Send or store device restart message
     igh_app_send_device_restart();
+    
     // Send or Store Spear data
     igh_app_receive_and_stage_sensor_data();
+
+    // Run MQTT service in background
     igh_mqtt_service();
+
+    // rfm69 service in the background
+    igh_rfm69_service();
 }
 
 void igh_app_receive_and_stage_sensor_data( void )
@@ -211,7 +225,7 @@ uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload
     return i;
 }
 
-void igh_spear_payload_get_new_settings( void )
+void igh_app_get_new_settings( void )
 {
     memset( igh_msg_buffer, 0, sizeof(igh_msg_buffer) );
     uint8_t rx_bytes = igh_eeprom_get_serial_hex_data(igh_msg_buffer, sizeof(igh_msg_buffer));
@@ -226,39 +240,70 @@ void igh_spear_payload_get_new_settings( void )
         }
         Serial.print("}\n");
 
-        igh_message_process_incoming_msg( igh_msg_buffer );
-        igh_settings_process_settings_tuples( igh_msg_buffer, 2, rx_bytes);
+        if( IGH_SEND_SETTINGS == igh_msg_buffer[0] )
+        {
+            if( true == igh_settings_process_settings_tuples( igh_msg_buffer, 2, rx_bytes) )
+            {
+                // update the checksum of the system settings
+                igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
+                
+                Serial.print("OP STATE:"); Serial.println(igh_current_system_settings.op_state);
+                Serial.print("REPORTING INTERVAL: "); Serial.println(igh_current_system_settings.reporting_interval);
+                Serial.print("DATA RESOLUTION: "); Serial.println(igh_current_system_settings.data_resolution);
+                Serial.print("SERIAL NUMBER: ");
+                for( uint8_t i = 0; i < sizeof(igh_default_system_settings.serial_number); i++ )
+                {
+                    if( igh_current_system_settings.serial_number[i] <= 0x0F ) Serial.print("0");
+                    Serial.print(igh_current_system_settings.serial_number[i], HEX);
+                }
+                Serial.print("\n");
+                Serial.print("MQTT BROKER: "); Serial.println((char *)igh_current_system_settings.broker);
+                Serial.print("MQTT BROKER PORT: "); Serial.println(igh_current_system_settings.broker_port);
+                Serial.print("CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
+
+                if ( true == igh_eeprom_save_system_settings( &igh_current_system_settings) )
+                {
+                    Serial.println("Settings Saved successfully");
+                }
+
+
+                // update the checksum for the threshold settings
+                // igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
+            }
+            else
+            {
+                Serial.println("SETTINGS FAILED");
+            }
+            
+        }
     }
 }
 
 uint8_t igh_eeprom_get_serial_hex_data( uint8_t * buffer, uint8_t len )
 {
     uint8_t ret = 0;
+
     uint8_t bytes_available = Serial.available();
-
-    if( bytes_available > 0 && 
-        bytes_available <= len )
+    if( bytes_available > 0 )
     {
-        Serial.readBytes( (char *)buffer, len );
-
-        Serial.print("SERIAL DATA SETTINGS --> {");
-        for( uint8_t k = 0; k < bytes_available; k++ )
+        if( bytes_available <= len )
         {
-            if( buffer[k] <= 0x0F ) Serial.print("0");
-            Serial.print(buffer[k], HEX);
+            for( uint8_t i = 0; i < bytes_available; i++ )
+            {
+                // read all available bytes
+                buffer[i] = Serial.read();
+            }
+            ret = bytes_available;
         }
-        Serial.print("}\n");
-
-        ret = bytes_available;
-    }
-    else if( bytes_available > len )
-    {
-        while( bytes_available )
+        else
         {
-            Serial.read(); // clear out the buffer but still return false
+            for( uint8_t i = 0; i < bytes_available; i++ )
+            {
+                // dump the data
+                Serial.read();
+            }
         }
     }
-
     return ret;
 }
 

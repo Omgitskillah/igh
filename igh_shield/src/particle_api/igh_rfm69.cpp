@@ -5,10 +5,15 @@
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 #include "igh_rfm69.h"
+#include "include/igh_settings.h"
 
 int16_t NETWORKID   = 100;
 int16_t NODEID      = 7;   
 int16_t TEST_NODE   = 4;
+
+// derived settings
+#define RFM69_NETWORK_ID igh_current_system_settings.serial_number[INDEX_RFM69_NETWORK_ID]
+#define RFM69_NODE_ID    igh_current_system_settings.serial_number[INDEX_RFM69_NODE_ID]
 
 #define START_BYTE  0x3C
 #define END_BYTE    0x3E
@@ -24,8 +29,11 @@ void igh_rfm69_setup(void)
 
     igh_rfm69_reset();
     
-    if( false == igh_radio.initialize(FREQUENCY,NODEID,NETWORKID) )
+    if( false == igh_radio.initialize( FREQUENCY, RFM69_NODE_ID, RFM69_NETWORK_ID) )
     Serial.println("RFM69 INIT ERROR");
+
+    Serial.print( "NEW NODE ID: " ); Serial.println( RFM69_NODE_ID);
+    Serial.print( "NEW NETWORK ID: " ); Serial.println( RFM69_NETWORK_ID);
 
     igh_radio.setHighPower(); // This should only be called for RFM69HCW & HW
 
@@ -144,4 +152,14 @@ uint8_t igh_rfm69_receive_raw_bytes( uint8_t *buffer, uint8_t len )
         }
     }
     return rx_len;
+}
+
+void igh_rfm69_service( void )
+{
+    // if new settings have been sent, re initialize the module
+    if( true == initialize_rfm69 )
+    {
+        igh_rfm69_setup();
+        initialize_rfm69 = false;
+    }
 }

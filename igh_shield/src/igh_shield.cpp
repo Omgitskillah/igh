@@ -23,7 +23,7 @@
 
 #include "include/igh_app.h"
 
-// SYSTEM_THREAD(ENABLED);
+SYSTEM_THREAD(ENABLED);
 
 #ifdef TEST_MODE
 void igh_shield_test_loop(void);
@@ -63,7 +63,6 @@ void loop()
 /* Run Application routine */
 void setup() 
 {
-    Serial.begin(19200);
     // setup application
     igh_app_setup();
 }

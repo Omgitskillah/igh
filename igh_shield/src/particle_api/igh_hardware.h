@@ -15,16 +15,8 @@
 #define IGH_IRRIGATION_BUTTON   A4
 #define IGH_IRRIGATION_VALVE    D7 //TODO replace with actual pin, route to on board LED in the mean time 
 
-enum valve_position
-{
-    VALVE_CLOSE,
-    VALVE_OPEN
-};
-typedef enum valve_position valve_position;
-
 // extern variables
 extern uint8_t igh_button_sec_counter;
-extern volatile valve_position current_valve_position;
  
 void igh_hardware_setup(void);
 void igh_hardware_service(void);
