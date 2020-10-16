@@ -9,6 +9,7 @@
 #include "igh_mqtt.h"
 #include "igh_boron.h"
 #include "include/igh_settings.h"
+#include "include/igh_message.h"
 
 /* MQTT variables */
 char domain[] = "broker.hivemq.com";
@@ -22,28 +23,41 @@ uint8_t outbound_topic[] = "Synnefa_Green_MQTT_DATA_LOCAT";
 unsigned long upload_timer = 0;
 unsigned long reconnect_interval = 0;
 
+bool mqtt_subscribed = false;
+
 /* mqtt functions */
 void mqtt_callback(char* topic, byte* payload, unsigned int length);
 MQTT client(domain, port, mqtt_callback);
 
 void mqtt_callback(char* topic, byte* payload, unsigned int length) {
-    char p[length + 1];
+    igh_msg_type msg_type = UNKNOWN_MSG;
+    uint8_t p[length];
     memcpy(p, payload, length);
-    p[length] = NULL;
+
+    Serial.print("RECEIVED MSG: ");
+    for( uint8_t i = 0; i < length; i++ )
+    {
+        if( p[i] <= 0x0F ) Serial.print("0");
+        Serial.print(p[i], HEX);
+    }
+
+    msg_type = (igh_msg_type)igh_message_process_incoming_msg( p );
+
+    Serial.print("\nMESSAGE TYPE: ");
+    Serial.println((int)msg_type);
 }
 
 void igh_mqtt_setup( void )
 {
     // connect to the server
     client.connect( (const char *)device_name );
-    
+
 }
 
 void igh_mqtt_service( void )
 {
     if( true == mqtt_set_broker )
     {
-        igh_current_system_settings.broker;
         uint8_t broker_len = 0;
         while( igh_current_system_settings.broker[broker_len] )
         {
@@ -64,6 +78,12 @@ void igh_mqtt_service( void )
     if (client.isConnected())
     {
         client.loop();
+        
+        if( false == mqtt_subscribed )
+        {
+            client.subscribe( (const char *)inbound_topic );
+            mqtt_subscribed = true;
+        }
     }
     else
     {

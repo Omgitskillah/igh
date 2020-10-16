@@ -22,8 +22,9 @@ uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload
 uint8_t igh_app_add_message_header( uint8_t *_buffer, uint8_t start, igh_msg_type msg_type, igh_msg_dir dir );
 void igh_app_send_device_restart( void );
 void igh_app_receive_and_stage_sensor_data( void );
-uint8_t igh_eeprom_get_serial_hex_data( uint8_t * buffer, uint8_t len );
+uint8_t igh_app_get_serial_hex_data( uint8_t * buffer, uint8_t len );
 void igh_app_get_new_settings( void );
+void igh_app_commit_new_settings( void );
 
 void igh_app_setup( void )
 {
@@ -46,6 +47,9 @@ void igh_main_application( void )
 {
     // check if there are any settings to read
     igh_app_get_new_settings();
+
+    // commit new settings if available
+    igh_app_commit_new_settings();
 
     // process boron service
     igh_boron_service();
@@ -228,7 +232,7 @@ uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload
 void igh_app_get_new_settings( void )
 {
     memset( igh_msg_buffer, 0, sizeof(igh_msg_buffer) );
-    uint8_t rx_bytes = igh_eeprom_get_serial_hex_data(igh_msg_buffer, sizeof(igh_msg_buffer));
+    uint8_t rx_bytes = igh_app_get_serial_hex_data(igh_msg_buffer, sizeof(igh_msg_buffer));
     if ( 0 < rx_bytes ) // via Serial
     {
 
@@ -244,31 +248,11 @@ void igh_app_get_new_settings( void )
         {
             if( true == igh_settings_process_settings_tuples( igh_msg_buffer, 2, rx_bytes) )
             {
+                new_settings_available = 1;
                 // update the checksum of the system settings
                 igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
-                
-                Serial.print("OP STATE:"); Serial.println(igh_current_system_settings.op_state);
-                Serial.print("REPORTING INTERVAL: "); Serial.println(igh_current_system_settings.reporting_interval);
-                Serial.print("DATA RESOLUTION: "); Serial.println(igh_current_system_settings.data_resolution);
-                Serial.print("SERIAL NUMBER: ");
-                for( uint8_t i = 0; i < sizeof(igh_default_system_settings.serial_number); i++ )
-                {
-                    if( igh_current_system_settings.serial_number[i] <= 0x0F ) Serial.print("0");
-                    Serial.print(igh_current_system_settings.serial_number[i], HEX);
-                }
-                Serial.print("\n");
-                Serial.print("MQTT BROKER: "); Serial.println((char *)igh_current_system_settings.broker);
-                Serial.print("MQTT BROKER PORT: "); Serial.println(igh_current_system_settings.broker_port);
-                Serial.print("CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
-
-                if ( true == igh_eeprom_save_system_settings( &igh_current_system_settings) )
-                {
-                    Serial.println("Settings Saved successfully");
-                }
-
-
                 // update the checksum for the threshold settings
-                // igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
+                igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
             }
             else
             {
@@ -279,7 +263,34 @@ void igh_app_get_new_settings( void )
     }
 }
 
-uint8_t igh_eeprom_get_serial_hex_data( uint8_t * buffer, uint8_t len )
+void igh_app_commit_new_settings( void )
+{
+    if( 1 == new_settings_available )
+    {
+        Serial.print("OP STATE:"); Serial.println(igh_current_system_settings.op_state);
+        Serial.print("REPORTING INTERVAL: "); Serial.println(igh_current_system_settings.reporting_interval);
+        Serial.print("DATA RESOLUTION: "); Serial.println(igh_current_system_settings.data_resolution);
+        Serial.print("SERIAL NUMBER: ");
+        for( uint8_t i = 0; i < sizeof(igh_default_system_settings.serial_number); i++ )
+        {
+            if( igh_current_system_settings.serial_number[i] <= 0x0F ) Serial.print("0");
+            Serial.print(igh_current_system_settings.serial_number[i], HEX);
+        }
+        Serial.print("\n");
+        Serial.print("MQTT BROKER: "); Serial.println((char *)igh_current_system_settings.broker);
+        Serial.print("MQTT BROKER PORT: "); Serial.println(igh_current_system_settings.broker_port);
+        Serial.print("CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
+
+        if ( true == igh_eeprom_save_system_settings( &igh_current_system_settings) )
+        {
+            Serial.println("Settings Saved successfully");
+        }
+
+        new_settings_available = 0;
+    }
+}
+
+uint8_t igh_app_get_serial_hex_data( uint8_t * buffer, uint8_t len )
 {
     uint8_t ret = 0;
 

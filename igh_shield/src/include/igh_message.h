@@ -125,6 +125,7 @@ LOCAL uint8_t igh_message_process_ACK(uint8_t * ack_msg);
 LOCAL uint8_t igh_message_build_ACK_payload(void);
 #endif
 
+uint8_t igh_message_process_incoming_msg(uint8_t * buffer);
 uint8_t igh_message_add_tuple(igh_pkt_id _pkt_id, uint8_t * data);
 uint8_t igh_message_process_incoming_msg(uint8_t * buffer);
 void igh_message_receive_and_stage_sensor_data( void );

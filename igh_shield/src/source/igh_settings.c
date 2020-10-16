@@ -30,6 +30,7 @@ valve_position current_valve_position;
 // flags to re-initialize various modules in case of settings change
 uint8_t initialize_rfm69 = 0;
 uint8_t mqtt_set_broker = 1; // make sure we set the broker on init
+uint8_t new_settings_available = 0;
 
 
 // functions
@@ -504,15 +505,20 @@ uint8_t igh_settings_parse_new_settings(uint8_t * settings)
     // get the location of first tuple
     uint8_t settings_byte_tracker = FIRST_TUPLE_INDEX;
     
-    if( 0 == igh_settings_process_settings_tuples( settings, settings_byte_tracker, settings_end_index ) ) return 0;
-
-    // update the checksum of the system settings
-    igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
-    // update the checksum for the threshold settings
-    igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
+    if( 0 == igh_settings_process_settings_tuples( settings, settings_byte_tracker, settings_end_index ) ) 
+    {
+        return 0;
+    }
+    else
+    {
+        // update the checksum of the system settings
+        igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
+        // update the checksum for the threshold settings
+        igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
+        
+        new_settings_available = 1;
+    }
     
-    // commit settings here 
-    ///////
     return 1;
 }
 
