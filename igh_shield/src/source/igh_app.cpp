@@ -161,10 +161,10 @@ uint8_t igh_app_add_message_header( uint8_t *_buffer, uint8_t start, igh_msg_typ
 
     // Add shield serial number
     memcpy( &_buffer[i], 
-            igh_current_system_settings.serial_number, 
-            sizeof(igh_current_system_settings.serial_number) );
+            boron_serial_number, 
+            sizeof(boron_serial_number) );
 
-    i += sizeof(igh_current_system_settings.serial_number);
+    i += sizeof(boron_serial_number);
 
     // Add incremental message ID
     static uint8_t message_id = 0;
@@ -186,6 +186,12 @@ uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload
     // Add DATA PKT PID
     _buffer[i++] = DATA_PKT;
     i++; // leave room for payload length
+
+    // Add Boron ID
+    _buffer[i++] = BORON_SN;
+    _buffer[i++] = sizeof(boron_serial_number);
+    memcpy(&_buffer[i], boron_serial_number, sizeof(boron_serial_number) );
+    i += sizeof(boron_serial_number);
 
     // Add Timestamp
     _buffer[i++] = STORE_TIMESTAMP;

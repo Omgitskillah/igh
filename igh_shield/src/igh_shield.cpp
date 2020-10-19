@@ -23,7 +23,7 @@
 
 #include "include/igh_app.h"
 
-SYSTEM_THREAD(ENABLED);
+// SYSTEM_THREAD(ENABLED);
 
 #ifdef TEST_MODE
 void igh_shield_test_loop(void);

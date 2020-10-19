@@ -127,7 +127,7 @@ uint8_t igh_process_serial_cmd(void)
             case test_id:
                 // print out device ID
                 igh_log_print(F("\nDevice ID: "));
-                IGH_ID = igh_boron_test_id();
+                IGH_ID = System.deviceID();
                 igh_log_print(IGH_ID); igh_log_print("\n"); 
                 ret = 1;
                 break;

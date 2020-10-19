@@ -246,7 +246,7 @@ uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
     if( (buffer[0] == FRAME_START) && (buffer[length-1] == FRAME_END) )
     {
         // check the serial number
-        if( 0 != memcmp(igh_current_system_settings.serial_number, &buffer[SN_INDEX], sizeof(igh_current_system_settings.serial_number)))
+        if( 0 != memcmp(boron_serial_number, &buffer[SN_INDEX], sizeof(boron_serial_number)))
         {
             // if the serial number does not match, do nothing as this message wasn't meant for this device,
             // This ideally should never happen

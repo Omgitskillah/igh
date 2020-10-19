@@ -15,6 +15,8 @@
 #define PAYLOAD_LEN_INDEX (PAYLOAD_INDEX + 1)
 #define FIRST_TUPLE_INDEX (PAYLOAD_LEN_INDEX + 1)
 
+char boron_serial_number[BORON_SN_LEN];
+
 device_op_state current_op_state;
 device_op_state previous_op_state;
 

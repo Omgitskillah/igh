@@ -74,6 +74,9 @@ struct system_settings
 };
 typedef struct system_settings system_settings;
 
+#define BORON_SN_LEN (12)
+extern char boron_serial_number[BORON_SN_LEN];
+
 #define SIZE_OF_SYSTEM_SETTINGS 22 // TODO: increment this whenever we expand the system settings
 
 #define INDEX_RFM69_NETWORK_ID  10 // 10th byte of the serial number is the Network ID
