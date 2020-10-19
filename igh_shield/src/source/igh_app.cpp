@@ -187,10 +187,10 @@ uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload
     _buffer[i++] = DATA_PKT;
     i++; // leave room for payload length
 
-    // Add Boron ID
-    _buffer[i++] = BORON_SN;
+    // Add Shield ID
+    _buffer[i++] = SHIELD_ID;
     _buffer[i++] = sizeof(boron_serial_number);
-    memcpy(&_buffer[i], boron_serial_number, sizeof(boron_serial_number) );
+    memcpy(&_buffer[i], igh_current_system_settings.serial_number, sizeof(igh_current_system_settings.serial_number) );
     i += sizeof(boron_serial_number);
 
     // Add Timestamp

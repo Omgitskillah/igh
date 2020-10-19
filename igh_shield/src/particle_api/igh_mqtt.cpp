@@ -9,16 +9,13 @@
 #include "igh_mqtt.h"
 #include "igh_boron.h"
 #include "include/igh_settings.h"
+#include "include/igh_default_settings.h"
 #include "include/igh_message.h"
 
 /* MQTT variables */
-char domain[] = "broker.hivemq.com";
-byte ip_address[] = {138,197,6,61};
-uint16_t port = 1883;
-uint8_t device_name[] = "home_test_device";
-uint8_t inbound_topic[] = "Synnefa_Green_MQTT_SETTINGS_LOCAL";
-uint8_t outbound_topic[] = "Synnefa_Green_MQTT_DATA_LOCAT";
-
+String device_name;
+String inbound_topic;
+String outbound_topic;
 
 unsigned long upload_timer = 0;
 unsigned long reconnect_interval = 0;
@@ -27,7 +24,7 @@ bool mqtt_subscribed = false;
 
 /* mqtt functions */
 void mqtt_callback(char* topic, byte* payload, unsigned int length);
-MQTT client(domain, port, mqtt_callback);
+MQTT client(DEFAULT_MQTT_BROKER, DEFAULT_MQTT_BROKER_PORT, mqtt_callback);
 
 void mqtt_callback(char* topic, byte* payload, unsigned int length) {
     igh_msg_type msg_type = UNKNOWN_MSG;
@@ -49,7 +46,10 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
 
 void igh_mqtt_setup( void )
 {
-    // connect to the server
+    // set mqtt device name
+    device_name = System.deviceID();
+    inbound_topic = "44" + System.deviceID();
+    outbound_topic = "55" + System.deviceID();
     client.connect( (const char *)device_name );
 
 }
@@ -91,7 +91,12 @@ void igh_mqtt_service( void )
         if( (millis() - reconnect_interval) > 10000 )
         {
             // try to reconnect only once every 10 seconds
-            Serial.println("Reconnecting to Broker");
+            Serial.println("\nConnecting to Broker");
+            Serial.println("====================");
+            Serial.print("InTopic: "); Serial.println(inbound_topic);
+            Serial.print("OutTopic: "); Serial.println(outbound_topic);
+            Serial.print("Device Name: "); Serial.println(device_name);
+
             client.connect( (const char *)device_name );
             reconnect_interval = millis();
         }

@@ -82,15 +82,14 @@ void igh_boron_setup(void)
 {
     lastSync = millis();
     // get serial number 
-    uint8_t deviceID[24];
-    memcpy( deviceID, System.deviceID(), sizeof(deviceID) );
+    memcpy( deviceID_string, System.deviceID(), sizeof(deviceID_string) );
 
     uint8_t k = 0; uint8_t j = 0;
-    while( k < sizeof(deviceID) )
+    while( k < sizeof(deviceID_string) )
     {
-        boron_serial_number[j] = get_int_from_str(deviceID[k]) << 4;
+        boron_serial_number[j] = get_int_from_str(deviceID_string[k]) << 4;
         k++;
-        boron_serial_number[j] |= get_int_from_str(deviceID[k]);
+        boron_serial_number[j] |= get_int_from_str(deviceID_string[k]);
         k++; j++;
     }
 }

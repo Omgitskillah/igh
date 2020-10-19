@@ -76,6 +76,7 @@ typedef struct system_settings system_settings;
 
 #define BORON_SN_LEN (12)
 extern char boron_serial_number[BORON_SN_LEN];
+extern uint8_t deviceID_string[24];
 
 #define SIZE_OF_SYSTEM_SETTINGS 22 // TODO: increment this whenever we expand the system settings
 
