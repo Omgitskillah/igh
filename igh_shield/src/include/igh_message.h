@@ -110,6 +110,8 @@ typedef enum igh_msg_dir igh_msg_dir;
 #define LOCAL static
 #endif
 
+extern uint8_t mqtt_connected;
+
 
 // function APIs
 #ifdef TEST

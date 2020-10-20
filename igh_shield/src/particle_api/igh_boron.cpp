@@ -38,9 +38,9 @@ void igh_boron_sync_time(void)
     }
 }
 
-unsigned long igh_boron_unix_time(void)
+uint32_t igh_boron_unix_time(void)
 {
-    return Time.now();
+    return (uint32_t)Time.now();
 }
 
 float igh_boron_SoC(void)

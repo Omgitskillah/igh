@@ -14,7 +14,12 @@
 #include "particle_api/igh_rfm69.h"
 #include "particle_api/igh_mqtt.h"
 #include "particle_api/igh_eeprom.h"
+#include "particle_api/igh_sd_log.h"
 
+#define JAN_01_2020 1577836800
+#define ONE_SECOND 1000
+
+unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
 extern uint8_t igh_msg_buffer[MESSAGE_SIZE]; 
 
@@ -25,6 +30,7 @@ void igh_app_receive_and_stage_sensor_data( void );
 uint8_t igh_app_get_serial_hex_data( uint8_t * buffer, uint8_t len );
 void igh_app_get_new_settings( void );
 void igh_app_commit_new_settings( void );
+void igh_app_log_service( void );
 
 void igh_app_setup( void )
 {
@@ -41,6 +47,9 @@ void igh_app_setup( void )
     
     // setup MQTT
     igh_mqtt_setup();
+
+    // setup the SD card
+    igh_sd_log_setup();
 }
 
 void igh_main_application( void )
@@ -65,6 +74,9 @@ void igh_main_application( void )
 
     // rfm69 service in the background
     igh_rfm69_service();
+
+    // manage data on SD card
+    igh_app_log_service();
 }
 
 void igh_app_receive_and_stage_sensor_data( void )
@@ -93,6 +105,8 @@ void igh_app_receive_and_stage_sensor_data( void )
 
         igh_msg_buffer[1] = i; // add length
 
+        Serial.print("\nTIMESTAMP: "); Serial.println(igh_boron_unix_time());
+
         Serial.print("{");
         for( uint8_t k = 0; k < i; k++ )
         {
@@ -102,14 +116,22 @@ void igh_app_receive_and_stage_sensor_data( void )
         Serial.print("}\n");
 
         // publish the data or store it if the publish fails
-        igh_mqtt_publish_data( igh_msg_buffer, (unsigned int)i );
+        uint32_t current_time = igh_boron_unix_time();
+        
+        // Log data only if the time is synced
+        if( JAN_01_2020 < current_time )
+        igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
 
     }
 }
 
 void igh_app_send_device_restart( void )
 {
-    if( true == device_restart )
+    uint32_t current_time = igh_boron_unix_time();
+
+    // only ssave a restart message if the time is synced. Otherwise wait till that happens
+    if( (true == device_restart)
+        && (JAN_01_2020 < current_time) )
     {
         uint8_t i = 0; // keep track of pkt data
         uint8_t restart_msg[3];
@@ -142,8 +164,8 @@ void igh_app_send_device_restart( void )
         }
         Serial.print("}\n");
 
-        // publish the data or store it if the publish fails
-        igh_mqtt_publish_data( igh_msg_buffer, (unsigned int)i );
+        // save restart message
+        igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
 
         device_restart = false;
     }
@@ -175,7 +197,7 @@ uint8_t igh_app_add_message_header( uint8_t *_buffer, uint8_t start, igh_msg_typ
 
 uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload, uint8_t _payload_len )
 {
-    uint32_t timestamp_to_store = (uint32_t)igh_boron_unix_time();
+    uint32_t timestamp_to_store = igh_boron_unix_time();
     float battery_soc_float = igh_boron_SoC();
     uint32_t battery_soc;
     memcpy(&battery_soc, &battery_soc_float, sizeof battery_soc);
@@ -322,6 +344,52 @@ uint8_t igh_app_get_serial_hex_data( uint8_t * buffer, uint8_t len )
         }
     }
     return ret;
+}
+
+void igh_app_log_service( void )
+{
+    if( (millis() - log_service_timer) > ONE_SECOND )
+    {
+        // throttle sending data
+        Serial.print(".");
+        if( 1 == mqtt_connected )
+        {
+            char next_file[FILE_NAME_SIZE];
+            if( true == igh_sd_log_get_next_file_name(next_file) )
+            {
+                uint8_t sd_data_point[MAX_FILE_SIZE];
+                if( true == igh_sd_log_read_data_point(next_file, sd_data_point, MAX_FILE_SIZE) )
+                {
+                    Serial.print("NEXT FILE TO SEND: "); Serial.println((String)next_file);
+                    Serial.print("PAYLOAD: {");
+                    for(uint8_t i = 0; i < MAX_FILE_SIZE; i++ )
+                    {
+                        if( sd_data_point[i] <= 0x0F ) Serial.print("0");
+                        Serial.print( sd_data_point[i], HEX );
+                    }
+                    Serial.println("}");
+
+                    if( true == igh_mqtt_publish_data(sd_data_point, sd_data_point[1]) )
+                    {
+                        if( true == igh_sd_log_remove_data_point(next_file) ) 
+                        {
+                            Serial.println("File Deleted");
+                        }
+                        else
+                        {
+                            Serial.println("File delete file");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Serial.println("No new file to send");
+            }
+        }
+
+        log_service_timer = millis();
+    }
 }
 
 

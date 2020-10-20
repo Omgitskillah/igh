@@ -21,6 +21,7 @@ unsigned long upload_timer = 0;
 unsigned long reconnect_interval = 0;
 
 bool mqtt_subscribed = false;
+uint8_t mqtt_connected = 0;
 
 /* mqtt functions */
 void mqtt_callback(char* topic, byte* payload, unsigned int length);
@@ -78,7 +79,8 @@ void igh_mqtt_service( void )
     if (client.isConnected())
     {
         client.loop();
-        
+        mqtt_connected = 1;
+
         if( false == mqtt_subscribed )
         {
             client.subscribe( (const char *)inbound_topic );
@@ -88,15 +90,11 @@ void igh_mqtt_service( void )
     else
     {
         /* try to connect */
+        mqtt_connected = 0;
+
         if( (millis() - reconnect_interval) > 10000 )
         {
             // try to reconnect only once every 10 seconds
-            Serial.println("\nConnecting to Broker");
-            Serial.println("====================");
-            Serial.print("InTopic: "); Serial.println(inbound_topic);
-            Serial.print("OutTopic: "); Serial.println(outbound_topic);
-            Serial.print("Device Name: "); Serial.println(device_name);
-
             client.connect( (const char *)device_name );
             reconnect_interval = millis();
         }

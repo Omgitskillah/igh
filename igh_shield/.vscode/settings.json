@@ -5,7 +5,14 @@
     "files.associations": {
         "*.ino": "cpp",
         "typeinfo": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "initializer_list": "cpp",
+        "list": "cpp",
+        "type_traits": "cpp",
+        "vector": "cpp",
+        "xhash": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp"
     },
     "particle.targetPlatform": "boron",
     "particle.targetDevice": "gravity_falls"
