@@ -10,14 +10,19 @@
 #define ON        1
 #define OFF       0
 
+#define ONE_SECOND 1000
+
 // Pin Mapping
 #define BORON_LED               D7
 #define IGH_IRRIGATION_BUTTON   A4
 #define IGH_IRRIGATION_VALVE    D7 //TODO replace with actual pin, route to on board LED in the mean time 
 
+#define IGH_WATER_FLOW_PIN      D5
+
 // extern variables
 extern uint8_t igh_button_sec_counter;
- 
+extern float total_water_dispensed_Liters;
+
 void igh_hardware_setup(void);
 void igh_hardware_service(void);
 void igh_boron_toggle_boron_led(uint8_t _state);
