@@ -13,37 +13,50 @@
 unsigned long liters_timer = 0;
 float total_water_dispensed_Liters = 0;
 uint32_t flow_meter_pulses = 0;
+uint8_t previous_hr = 0;
+bool ok_to_irrigate = false;
+uint32_t valve_open_seconds_counter = 0;
+bool button_irrigate = false;
+float water_dispensed_by_button = 0;
+uint16_t soil_humidity = 0;
+uint16_t soil_temperature = 0;
+uint8_t  refreshed_soil_data = INVALID_SOIL_DATA;
 
 #define FLOW_METER_CAL_FACTOR  (4.5)
 #define ONE_MIN                (60)
 #define WATER_SCALING_FACTOR_L (270) // FLOW_METER_CAL_FACTOR * ONE_MIN
 
 #define TWENTY_FOUR_HOURS      (24)
+#define MIDNIGHT               (0)
+#define THREE_SECONDS          (3)
 
 
 // button global variables
 uint8_t igh_button_sec_counter;
-Timer igh_button_timer(1000, igh_boron_button_press_duration);
+Timer igh_button_timer(ONE_SECOND, igh_boron_button_press_duration);
 void igh_app_water_counter_callback( void );
 void igh_hardware_water_flow_setup( void );
 void igh_hardware_litres_service( void );
 void detach_flow_meter_interrupt( void );
 void attach_flow_meter_interrupt( void );
 uint8_t igh_get_local_time_hour( void );
+void igh_hardware_water_management_service( void );
 
 // local functions
 static void igh_hardware_irrigiation_button_setup(void);
 static void igh_hardware_onboard_led_setup(void);
 static void igh_hardware_vlave_setup(void);
+void igh_hardware_valve_open_timer_service( void );
 
 Timer water_flow_timer(ONE_SECOND, igh_hardware_litres_service);
+
 
 
 void igh_hardware_setup(void)
 {
     igh_hardware_irrigiation_button_setup();
     igh_hardware_onboard_led_setup();
-    // igh_hardware_vlave_setup();
+    igh_hardware_vlave_setup();
     igh_hardware_water_flow_setup();
 }
 
@@ -106,6 +119,12 @@ void igh_boron_button_press_duration(void)
     {
         igh_button_sec_counter = 0;
     } 
+
+    if( THREE_SECONDS >= igh_button_sec_counter )
+    {
+        // start or stop irrigation at any time with button
+        button_irrigate = !button_irrigate;
+    }
 }
 
 void igh_hardware_water_flow_setup( void )
@@ -148,9 +167,21 @@ void igh_hardware_litres_service( void )
     // add to the total amount of water flow
     total_water_dispensed_Liters += flow_Liters; 
 
-    // Serial.print("TOTAL WATER DISP: "); Serial.print(total_water_dispensed_Liters); 
-    // Serial.print("L SECOND WATER DISP: "); Serial.print(flow_Liters); Serial.println("L");
-    // Serial.print("HOUR: "); Serial.println( igh_get_local_time_hour() );
+    // if button is open, keep track of how much water is used up then
+    if( true == button_irrigate )
+    {
+        water_dispensed_by_button += flow_Liters;
+    }
+    else
+    {
+        water_dispensed_by_button = 0;
+    }
+    
+
+    // keep track of valve open state
+    igh_hardware_valve_open_timer_service();
+    // control valve state
+    igh_hardware_water_management_service();
 }
 
 uint8_t igh_get_local_time_hour( void )
@@ -164,12 +195,98 @@ uint8_t igh_get_local_time_hour( void )
 
     if( 0 > local_hour )
     {
-        local_hour + TWENTY_FOUR_HOURS;
+        local_hour += TWENTY_FOUR_HOURS;
     }
     else if( TWENTY_FOUR_HOURS > local_hour )
     {
-        local_hour - TWENTY_FOUR_HOURS;
+        local_hour -= TWENTY_FOUR_HOURS;
     }
 
     return (uint8_t)local_hour;
 }
+
+void igh_hardware_water_management_service( void )
+{
+    // This should run on a one second tick
+    uint8_t current_hr = igh_get_local_time_hour();
+
+    if( current_hr != previous_hr )
+    {
+        if( current_hr == igh_current_system_settings.irrigation_hr )
+        {
+            // it is ok to irrigat if it hits the irrigation hour
+            ok_to_irrigate = true;
+        }
+        else if( MIDNIGHT == current_hr )
+        {
+            // reset the system at midnight
+            ok_to_irrigate = false;
+            total_water_dispensed_Liters = 0;
+        }
+
+        previous_hr = current_hr;
+    }
+
+    if( true == button_irrigate )
+    {
+        if( (water_dispensed_by_button < (float)igh_current_threshold_settings.water_dispensed_period_low) &&
+            (valve_open_seconds_counter < igh_current_system_settings.water_dispenser_period) )
+        {
+            current_valve_position = VALVE_OPEN;
+        }
+        else
+        {
+            current_valve_position = VALVE_CLOSE;
+        }
+    }
+    else
+    {
+        /* Only do auto irrigation if button irrigation is not set */
+        if( true == ok_to_irrigate &&
+        VALID_SOIL_DATA == refreshed_soil_data)
+        {
+            /**
+             * run the dispensor if we are within the dispensor window
+             * and if we have valid sensor data
+             * */
+            if( soil_humidity < igh_current_threshold_settings.soil_humidity_low &&
+                soil_humidity < igh_current_threshold_settings.soil_humidity_high &&
+                total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_high )
+            {
+                /**
+                 * Dispense water only if
+                 * 1. the soil moisture is too low
+                 * 2. The soil moisture is not too high
+                 * 3. We have not dispensed too much water 
+                 * */
+                current_valve_position = VALVE_OPEN;
+            }
+            else
+            {
+                // close valve if even one of these conditions is not met
+                // current_valve_position <--- check this
+                current_valve_position = VALVE_CLOSE;
+            }
+        }
+        else
+        {
+            // close valve
+            current_valve_position = VALVE_CLOSE;
+        }
+    }
+    
+}
+
+void igh_hardware_valve_open_timer_service( void )
+{
+    // count for how many seconds the valve is open
+    if( VALVE_OPEN == current_valve_position )
+    {
+        valve_open_seconds_counter++;
+    }
+    else
+    {
+        valve_open_seconds_counter = 0;
+    }
+}
+

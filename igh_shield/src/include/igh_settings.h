@@ -68,6 +68,7 @@ struct system_settings
     int timezone; // timezone in which the device is installed
     uint8_t irrigation_hr; // at what hour should we irrigate?
     device_op_state op_state; // inactive, basic, standard, premium
+    uint32_t water_dispenser_period; // tracks time in seconds
     uint32_t reporting_interval; // frequency of data sending to cloud
     uint32_t data_resolution; // frequency of data collection
     uint8_t serial_number[12]; // The device serial number/ID
@@ -98,6 +99,7 @@ enum igh_settings_subid
     SUBID_MQTT_BROKER_PORT,
     SUBID_TIMEZONE,
     SUBID_IRRIGATION_HR,
+    SUBID_WATER_DISP_PERIOD,
     
     //High Threshold tirggers
     SUBID_SOIL_MOISTURE_LOW = 0x10,          
@@ -139,6 +141,7 @@ enum igh_settings_subid
 #define LENGTH_SUBID_SUBID_IRRIGATION_HR            1
 #define MAX_HOUR                                    24
 #define MIN_HOUR                                    0
+#define LENGTH_SUBID_WATER_DISP_PERIOD              4
 //High Threshold tirggers
 #define LENGTH_SUBID_SOIL_MOISTURE_LOW              2          
 #define LENGTH_SUBID_AIR_HUMIDITY_LOW               2           
@@ -163,6 +166,18 @@ enum igh_settings_subid
 #define LENGTH_SUBID_SHIELD_BATTERY_LEVEL_HIGH      2   
 #define LENGTH_SUBID_SPEAR_BATTERY_LEVEL_HIGH       2             
 #define LENGTH_SUBID_WATER_DISPENSED_PERIOD_HIGH    4
+
+
+// SHT1x Multipliers
+#define SOIL_TEMPERATURE_MULTIPLIER_D1              (-39.66)
+#define SOIL_TEMPERATURE_MULTIPLIER_D2              (0.01)
+#define SOIL_HUMIDITY_MULTIPLIER_C1                 (-2.0468)
+#define SOIL_HUMIDITY_MULTIPLIER_C2                 (0.0367)
+#define SOIL_HUMIDITY_MULTIPLIER_C3                 (-1.59955e-6)
+#define SOIL_HUMIDITY_MULTIPLIER_T1                 (0.01)
+#define SOIL_HUMIDITY_MULTIPLIER_T2                 (0.00008)
+#define ROOM_TEMPERATURE                            (25.0)
+
 
 extern system_settings igh_default_system_settings;
 extern system_settings igh_current_system_settings;

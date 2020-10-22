@@ -50,6 +50,7 @@ LOCAL void igh_settings_get_defaults(void) // Total bytes
     memset(&igh_default_system_settings, 0, sizeof(igh_default_system_settings));
     igh_default_system_settings.timezone                    = DEFAULT_TIMEZONE;
     igh_default_system_settings.irrigation_hr               = DEFAULT_IRRIGATION_HR;
+    igh_default_system_settings.water_dispenser_period      = DEFAULT_WATER_DISP_PERIOD;
     igh_default_system_settings.op_state                    = DEFAULT_NEW_OPSTATE;
     igh_default_system_settings.reporting_interval          = DEFAULT_REPORTING_INTERVAL;
     igh_default_system_settings.data_resolution             = DEFAULT_DATA_RESOLUTION;
@@ -171,6 +172,20 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                     {
                         // do nothing
                     }                   
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_WATER_DISP_PERIOD:
+                if(LENGTH_SUBID_WATER_DISP_PERIOD == current_tuple_length)
+                {
+                    uint8_t new_water_dispensed_period[LENGTH_SUBID_WATER_DISP_PERIOD]; 
+                    memcpy(new_water_dispensed_period, &settings[current_data_index], LENGTH_SUBID_WATER_DISP_PERIOD);
+                    igh_current_threshold_settings.water_dispensed_period_high = GET32(new_water_dispensed_period);
                 }
                 else
                 {

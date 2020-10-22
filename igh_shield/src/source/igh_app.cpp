@@ -23,8 +23,6 @@ unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
 extern uint8_t igh_msg_buffer[MESSAGE_SIZE]; 
 
-//temp
-unsigned long water_disp_timer = millis();
 
 uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload, uint8_t _payload_len );
 uint8_t igh_app_add_message_header( uint8_t *_buffer, uint8_t start, igh_msg_type msg_type, igh_msg_dir dir );
@@ -34,6 +32,8 @@ uint8_t igh_app_get_serial_hex_data( uint8_t * buffer, uint8_t len );
 void igh_app_get_new_settings( void );
 void igh_app_commit_new_settings( void );
 void igh_app_log_service( void );
+void igh_app_get_temperature_and_humidity( uint8_t * incoming_data );
+uint16_t igh_app_calculate_humidity( uint16_t temperature, uint16_t humidity );
 
 void igh_app_setup( void )
 {
@@ -83,6 +83,9 @@ void igh_main_application( void )
     // manage data on SD card
     igh_app_log_service();
 
+    // control the valve
+    igh_hardware_service_valve_state();
+
 }
 
 void igh_app_receive_and_stage_sensor_data( void )
@@ -95,6 +98,9 @@ void igh_app_receive_and_stage_sensor_data( void )
     if( 0 != data_rx_len )
     {
         igh_boron_toggle_boron_led(ON);
+
+        // read data needed by the shield
+        igh_app_get_temperature_and_humidity(rx_buffer);
 
         uint8_t i = 0; // keep track of pkt data
 
@@ -319,6 +325,7 @@ void igh_app_commit_new_settings( void )
         Serial.print("MQTT BROKER PORT: "); Serial.println(igh_current_system_settings.broker_port);
         Serial.print("TIMEZONE: "); Serial.println(igh_current_system_settings.timezone);
         Serial.print("IRRIGATION HOUR: "); Serial.println(igh_current_system_settings.irrigation_hr);
+        Serial.print("VALVE OPEN PERIOD: "); Serial.println(igh_current_system_settings.water_dispenser_period);
         Serial.print("CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
 
         if ( true == igh_eeprom_save_system_settings( &igh_current_system_settings) )
@@ -408,6 +415,95 @@ void igh_app_log_service( void )
 
         log_service_timer = millis();
     }
+}
+
+void igh_app_get_temperature_and_humidity( uint8_t * incoming_data )
+{
+    uint8_t data_len = incoming_data[1];
+    uint8_t current_tuple_id = 0;
+    uint8_t current_tuple_length = 0;
+    uint8_t current_data_index = 0;
+    uint8_t byte_tracker = 2;
+
+    uint16_t new_temperature = 0xFFFF;
+    uint16_t new_humidity = 0xFFFF;
+    bool valid_temerature = false;
+    bool valid_humidity = false;
+
+    while(byte_tracker < data_len)
+    {
+        // extract tuples
+        current_tuple_id = incoming_data[byte_tracker];
+        // extract the length
+        current_tuple_length = incoming_data[byte_tracker + 1];
+        // extract the tuple data based on tuple id
+        current_data_index = byte_tracker + 2;
+
+        switch( current_tuple_id )
+        {
+            case SOIL_TEMPERATURE:
+                if( SIZE_OF_SOIL_TEMPERATURE == current_tuple_length )
+                {
+                    uint8_t new_temperature_reading[SIZE_OF_SOIL_TEMPERATURE]; 
+                    memcpy(new_temperature_reading, &incoming_data[current_data_index], SIZE_OF_SOIL_TEMPERATURE);
+                    new_temperature = GET16(new_temperature_reading);
+                    valid_temerature = true;
+                }
+                else
+                {
+                    /* Do nothing */
+                }
+                break;
+                
+            case SOIL_HUMIDITY:
+                if( SIZE_OF_SOIL_HUMIDITY == current_tuple_length )
+                {
+                    uint8_t new_humidity_reading[SIZE_OF_SOIL_HUMIDITY]; 
+                    memcpy(new_humidity_reading, &incoming_data[current_data_index], SIZE_OF_SOIL_HUMIDITY);
+                    new_humidity = GET16(new_humidity_reading);
+                    valid_humidity = true;
+                }
+                else
+                {
+                    /* Do nothing */
+                }
+                break;
+
+            default:
+                /* Ignore other data */
+                break;
+        }
+        // move index to next tuple id
+        byte_tracker += current_tuple_length + TUPLE_HEADER_LEN;
+    }
+
+
+    if( true == valid_humidity &&
+        true == valid_temerature )
+    {
+        refreshed_soil_data = VALID_SOIL_DATA;
+        soil_humidity = igh_app_calculate_humidity(new_temperature, new_humidity);
+    }
+    else
+    {
+        refreshed_soil_data = INVALID_SOIL_DATA;
+    }   
+}
+
+uint16_t igh_app_calculate_humidity( uint16_t new_temperature, uint16_t new_humidity )
+{
+    double linearHumidity = SOIL_HUMIDITY_MULTIPLIER_C1 + SOIL_HUMIDITY_MULTIPLIER_C2 * new_humidity 
+                          + SOIL_HUMIDITY_MULTIPLIER_C3 * new_humidity * new_humidity;
+
+    float temperature = SOIL_TEMPERATURE_MULTIPLIER_D1 
+                      + SOIL_TEMPERATURE_MULTIPLIER_D2 * new_temperature;
+
+    float correctedHumidity = (temperature - ROOM_TEMPERATURE) * 
+                              (SOIL_HUMIDITY_MULTIPLIER_T1 + SOIL_HUMIDITY_MULTIPLIER_T2 * new_humidity) 
+                              + linearHumidity;
+
+    // offload the decimal places
+    return (uint16_t)correctedHumidity;
 }
 
 

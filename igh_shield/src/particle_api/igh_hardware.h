@@ -21,7 +21,13 @@
 
 // extern variables
 extern uint8_t igh_button_sec_counter;
+
+#define INVALID_SOIL_DATA      0x00
+#define VALID_SOIL_DATA        0xFF
 extern float total_water_dispensed_Liters;
+extern uint16_t soil_humidity;
+extern uint16_t soil_temperature;
+extern uint8_t refreshed_soil_data;
 
 void igh_hardware_setup(void);
 void igh_hardware_service(void);
