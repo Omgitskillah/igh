@@ -65,6 +65,8 @@ typedef struct thresholds thresholds;
 struct system_settings
 {
     uint8_t checksum; // should always start so that it is always buffered
+    int timezone; // timezone in which the device is installed
+    uint8_t irrigation_hr; // at what hour should we irrigate?
     device_op_state op_state; // inactive, basic, standard, premium
     uint32_t reporting_interval; // frequency of data sending to cloud
     uint32_t data_resolution; // frequency of data collection
@@ -94,6 +96,8 @@ enum igh_settings_subid
     SUBID_SET_SERIAL_NUMBER,
     SUBID_MQTT_BROKER,
     SUBID_MQTT_BROKER_PORT,
+    SUBID_TIMEZONE,
+    SUBID_IRRIGATION_HR,
     
     //High Threshold tirggers
     SUBID_SOIL_MOISTURE_LOW = 0x10,          
@@ -128,6 +132,13 @@ enum igh_settings_subid
 #define LENGTH_SUBID_DATA_RESOLUTION                4
 #define LENGTH_SUBID_SET_SERIAL_NUMBER              12
 #define LENGTH_SUBID_MQTT_PORT                      2
+#define LENGTH_SUBID_SUBID_TIMEZONE                 2
+#define MAX_TIMEZONE                                12
+#define NEGATIVE_TIME_ZONE                          0x00
+#define POSITIVE_TIME_ZONE                          0xFF
+#define LENGTH_SUBID_SUBID_IRRIGATION_HR            1
+#define MAX_HOUR                                    24
+#define MIN_HOUR                                    0
 //High Threshold tirggers
 #define LENGTH_SUBID_SOIL_MOISTURE_LOW              2          
 #define LENGTH_SUBID_AIR_HUMIDITY_LOW               2           

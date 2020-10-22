@@ -15,13 +15,16 @@
 #include "particle_api/igh_mqtt.h"
 #include "particle_api/igh_eeprom.h"
 #include "particle_api/igh_sd_log.h"
+#include "particle_api/igh_hardware.h"
 
 #define JAN_01_2020 1577836800
-#define ONE_SECOND 1000
 
 unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
 extern uint8_t igh_msg_buffer[MESSAGE_SIZE]; 
+
+//temp
+unsigned long water_disp_timer = millis();
 
 uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload, uint8_t _payload_len );
 uint8_t igh_app_add_message_header( uint8_t *_buffer, uint8_t start, igh_msg_type msg_type, igh_msg_dir dir );
@@ -35,9 +38,11 @@ void igh_app_log_service( void );
 void igh_app_setup( void )
 {
     Serial.begin(19200);
-    Serial.println("START");
     
     igh_boron_setup();
+
+    // setup hardwar
+    igh_hardware_setup();
     
     // get settings from eeprom
     igh_eeprom_init();
@@ -77,6 +82,7 @@ void igh_main_application( void )
 
     // manage data on SD card
     igh_app_log_service();
+
 }
 
 void igh_app_receive_and_stage_sensor_data( void )
@@ -88,6 +94,8 @@ void igh_app_receive_and_stage_sensor_data( void )
 
     if( 0 != data_rx_len )
     {
+        igh_boron_toggle_boron_led(ON);
+
         uint8_t i = 0; // keep track of pkt data
 
         // first clear the buffer
@@ -105,15 +113,15 @@ void igh_app_receive_and_stage_sensor_data( void )
 
         igh_msg_buffer[1] = i; // add length
 
-        Serial.print("\nTIMESTAMP: "); Serial.println(igh_boron_unix_time());
+        Serial.print("\nTIME: "); Serial.println(igh_boron_unix_time(), HEX);
 
-        Serial.print("{");
-        for( uint8_t k = 0; k < i; k++ )
-        {
-            if( igh_msg_buffer[k] <= 0x0F ) Serial.print("0");
-            Serial.print(igh_msg_buffer[k], HEX);
-        }
-        Serial.print("}\n");
+        // Serial.print("{");
+        // for( uint8_t k = 0; k < i; k++ )
+        // {
+        //     if( igh_msg_buffer[k] <= 0x0F ) Serial.print("0");
+        //     Serial.print(igh_msg_buffer[k], HEX);
+        // }
+        // Serial.print("}\n");
 
         // publish the data or store it if the publish fails
         uint32_t current_time = igh_boron_unix_time();
@@ -121,7 +129,8 @@ void igh_app_receive_and_stage_sensor_data( void )
         // Log data only if the time is synced
         if( JAN_01_2020 < current_time )
         igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
-
+        
+        igh_boron_toggle_boron_led(OFF);
     }
 }
 
@@ -201,7 +210,6 @@ uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload
     float battery_soc_float = igh_boron_SoC();
     uint32_t battery_soc;
     memcpy(&battery_soc, &battery_soc_float, sizeof battery_soc);
-    uint32_t total_water_dispensed = 12364897; // replace with actual reading
 
     uint8_t i = start;
 
@@ -237,12 +245,14 @@ uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload
     _buffer[i++] = current_valve_position;
 
     // Add water dispensed 
+    uint32_t curr_water_L = 0;
+    memcpy( &curr_water_L, &total_water_dispensed_Liters, sizeof curr_water_L );
     _buffer[i++] = WATER_DISPENSED;
     _buffer[i++] = SIZE_OF_WATER_DISPENSED;
-    _buffer[i++] = (uint8_t)total_water_dispensed;
-    _buffer[i++] = (uint8_t)( total_water_dispensed >> 8);
-    _buffer[i++] = (uint8_t)( total_water_dispensed >> 16);
-    _buffer[i++] = (uint8_t)( total_water_dispensed >> 24);
+    _buffer[i++] = (uint8_t)curr_water_L;
+    _buffer[i++] = (uint8_t)( curr_water_L >> 8);
+    _buffer[i++] = (uint8_t)( curr_water_L >> 16);
+    _buffer[i++] = (uint8_t)( curr_water_L >> 24);
 
     // only add payload if the package fits, prevvent memory leak
     if( (_payload_len + i + 1) < MESSAGE_SIZE )
@@ -307,6 +317,8 @@ void igh_app_commit_new_settings( void )
         Serial.print("\n");
         Serial.print("MQTT BROKER: "); Serial.println((char *)igh_current_system_settings.broker);
         Serial.print("MQTT BROKER PORT: "); Serial.println(igh_current_system_settings.broker_port);
+        Serial.print("TIMEZONE: "); Serial.println(igh_current_system_settings.timezone);
+        Serial.print("IRRIGATION HOUR: "); Serial.println(igh_current_system_settings.irrigation_hr);
         Serial.print("CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
 
         if ( true == igh_eeprom_save_system_settings( &igh_current_system_settings) )
@@ -360,26 +372,32 @@ void igh_app_log_service( void )
                 uint8_t sd_data_point[MAX_FILE_SIZE];
                 if( true == igh_sd_log_read_data_point(next_file, sd_data_point, MAX_FILE_SIZE) )
                 {
-                    Serial.print("NEXT FILE TO SEND: "); Serial.println((String)next_file);
-                    Serial.print("PAYLOAD: {");
-                    for(uint8_t i = 0; i < MAX_FILE_SIZE; i++ )
-                    {
-                        if( sd_data_point[i] <= 0x0F ) Serial.print("0");
-                        Serial.print( sd_data_point[i], HEX );
-                    }
-                    Serial.println("}");
+                    Serial.print("Uploading: "); Serial.print((String)next_file);
+                    
+                    // Serial.print("PAYLOAD: {");
+                    // for(uint8_t i = 0; i < sd_data_point[1]; i++ )
+                    // {
+                    //     if( sd_data_point[i] <= 0x0F ) Serial.print("0");
+                    //     Serial.print( sd_data_point[i], HEX );
+                    // }
+                    // Serial.println("}");
 
                     if( true == igh_mqtt_publish_data(sd_data_point, sd_data_point[1]) )
                     {
                         if( true == igh_sd_log_remove_data_point(next_file) ) 
                         {
-                            Serial.println("File Deleted");
+                            Serial.println(" OK");
                         }
                         else
                         {
-                            Serial.println("File delete file");
+                            Serial.println(" DEL ERROR");
                         }
                     }
+                    else
+                    {
+                        Serial.println(" MQTT ERROR");
+                    }
+                    
                 }
             }
             else

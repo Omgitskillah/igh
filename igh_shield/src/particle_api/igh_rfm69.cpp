@@ -32,7 +32,7 @@ void igh_rfm69_setup(void)
     if( false == igh_radio.initialize( FREQUENCY, RFM69_NODE_ID, RFM69_NETWORK_ID) )
     Serial.println("RFM69 INIT ERROR");
 
-    Serial.print( "NEW NODE ID: " ); Serial.println( RFM69_NODE_ID);
+    Serial.print( "NEW SHIELD RF ID: " ); Serial.println( RFM69_NODE_ID);
     Serial.print( "NEW NETWORK ID: " ); Serial.println( RFM69_NETWORK_ID);
 
     igh_radio.setHighPower(); // This should only be called for RFM69HCW & HW

@@ -48,6 +48,8 @@ LOCAL void igh_settings_get_defaults(void) // Total bytes
 {
     // System settings
     memset(&igh_default_system_settings, 0, sizeof(igh_default_system_settings));
+    igh_default_system_settings.timezone                    = DEFAULT_TIMEZONE;
+    igh_default_system_settings.irrigation_hr               = DEFAULT_IRRIGATION_HR;
     igh_default_system_settings.op_state                    = DEFAULT_NEW_OPSTATE;
     igh_default_system_settings.reporting_interval          = DEFAULT_REPORTING_INTERVAL;
     igh_default_system_settings.data_resolution             = DEFAULT_DATA_RESOLUTION;
@@ -120,6 +122,55 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                         // do nothing
                     }
                     
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_TIMEZONE:
+                if(LENGTH_SUBID_SUBID_TIMEZONE == current_tuple_length)
+                {
+                    // check if new timezone is valid
+                    if( POSITIVE_TIME_ZONE == settings[current_data_index] )
+                    {
+                        if( MAX_TIMEZONE > settings[current_data_index + 1] )
+                        {
+                            igh_current_system_settings.timezone = (int)settings[current_data_index + 1];
+                        }
+                    }
+
+                    else if( NEGATIVE_TIME_ZONE == settings[current_data_index] )
+                    {
+                        if( MAX_TIMEZONE > settings[current_data_index + 1] )
+                        {
+                            igh_current_system_settings.timezone = -1 * settings[current_data_index + 1];
+                        }
+                    }
+                    
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_IRRIGATION_HR:
+                if(LENGTH_SUBID_SUBID_IRRIGATION_HR == current_tuple_length)
+                {
+                    // check if the time is within 24 hours
+                    if( MAX_HOUR >  (settings[current_data_index]) ||
+                        MIN_HOUR <= (settings[current_data_index]))
+                    {
+                        igh_current_system_settings.irrigation_hr = settings[current_data_index];
+                    }  
+                    else
+                    {
+                        // do nothing
+                    }                   
                 }
                 else
                 {

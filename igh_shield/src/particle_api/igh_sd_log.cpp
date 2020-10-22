@@ -45,24 +45,26 @@ void igh_sd_log_get_file_name(unsigned long _unix_time, char * file_name)
 
 uint8_t igh_sd_log_save_data_point(unsigned long _unix_time, uint8_t * data, uint8_t size)
 {
+    uint8_t ret = 0;
     char name[FILE_NAME_SIZE]; // include the null terminator?
     igh_sd_log_get_file_name(_unix_time, name);
     igh_file = igh_sd.open((const char *)name, FILE_WRITE);
 
-    Serial.print("File name: "); Serial.print(name); Serial.print(" Size: "); Serial.println(size);
+    Serial.print("Saving: "); Serial.print(name); Serial.print(" Size: "); Serial.print(size);
 
     if(igh_file)
     {
         igh_file.write( data, size);
-        igh_file.close();
-        Serial.println("DATA LOG SUCCESS");
-        return 1;
+        Serial.println(" OK");
+        ret = 1;
     }
     else
     {
-        Serial.println("DATA LOG ERROR");
-        return 0;
+        Serial.println(" ERROR");
     }
+
+    igh_file.close();
+    return ret;
 }
 
 uint8_t igh_sd_log_remove_data_point(char * file_name)

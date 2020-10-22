@@ -15,6 +15,8 @@ extern "C" {
 // Sysem default settings for both shield and spear
 
 // System settings
+#define DEFAULT_TIMEZONE                        3
+#define DEFAULT_IRRIGATION_HR                   6
 #define DEFAULT_NEW_OPSTATE                     OP_INACTIVE
 #define DEFAULT_REPORTING_INTERVAL              1800 // 30 mins   
 #define DEFAULT_DATA_RESOLUTION                 600  // 10 mins

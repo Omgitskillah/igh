@@ -18,6 +18,8 @@ uint32_t flow_meter_pulses = 0;
 #define ONE_MIN                (60)
 #define WATER_SCALING_FACTOR_L (270) // FLOW_METER_CAL_FACTOR * ONE_MIN
 
+#define TWENTY_FOUR_HOURS      (24)
+
 
 // button global variables
 uint8_t igh_button_sec_counter;
@@ -27,6 +29,7 @@ void igh_hardware_water_flow_setup( void );
 void igh_hardware_litres_service( void );
 void detach_flow_meter_interrupt( void );
 void attach_flow_meter_interrupt( void );
+uint8_t igh_get_local_time_hour( void );
 
 // local functions
 static void igh_hardware_irrigiation_button_setup(void);
@@ -145,6 +148,28 @@ void igh_hardware_litres_service( void )
     // add to the total amount of water flow
     total_water_dispensed_Liters += flow_Liters; 
 
-    Serial.print("TOTAL WATER DISP: "); Serial.print(total_water_dispensed_Liters); 
-    Serial.print("L SECOND WATER DISP: "); Serial.print(flow_Liters); Serial.println("L");
+    // Serial.print("TOTAL WATER DISP: "); Serial.print(total_water_dispensed_Liters); 
+    // Serial.print("L SECOND WATER DISP: "); Serial.print(flow_Liters); Serial.println("L");
+    // Serial.print("HOUR: "); Serial.println( igh_get_local_time_hour() );
+}
+
+uint8_t igh_get_local_time_hour( void )
+{
+    int local_hour = 0;
+    int utc_hour = 0;
+    utc_hour = Time.hour();
+
+    //correct to timezone
+    local_hour = utc_hour + igh_current_system_settings.timezone;
+
+    if( 0 > local_hour )
+    {
+        local_hour + TWENTY_FOUR_HOURS;
+    }
+    else if( TWENTY_FOUR_HOURS > local_hour )
+    {
+        local_hour - TWENTY_FOUR_HOURS;
+    }
+
+    return (uint8_t)local_hour;
 }

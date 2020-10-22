@@ -69,7 +69,8 @@ void igh_mqtt_service( void )
         char new_broker[broker_len + 1];
         memcpy( new_broker, igh_current_system_settings.broker, sizeof(new_broker) );
 
-        Serial.print("NEW MQTT BROKER SET: "); Serial.println(new_broker);
+        Serial.print("BROKER: "); Serial.print(new_broker);
+        Serial.print(" PORT: "); Serial.println(igh_current_system_settings.broker_port);
         
         client.setBroker(new_broker, igh_current_system_settings.broker_port);
 
