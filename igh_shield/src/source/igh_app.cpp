@@ -165,13 +165,13 @@ void igh_app_send_device_restart( void )
 
         igh_msg_buffer[1] = i; // add length
 
-        Serial.print("{");
-        for( uint8_t k = 0; k < i; k++ )
-        {
-            if( igh_msg_buffer[k] <= 0x0F ) Serial.print("0");
-            Serial.print(igh_msg_buffer[k], HEX);
-        }
-        Serial.print("}\n");
+        // Serial.print("{");
+        // for( uint8_t k = 0; k < i; k++ )
+        // {
+        //     if( igh_msg_buffer[k] <= 0x0F ) Serial.print("0");
+        //     Serial.print(igh_msg_buffer[k], HEX);
+        // }
+        // Serial.print("}\n");
 
         // save restart message
         igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
@@ -363,7 +363,7 @@ void igh_app_log_service( void )
     if( (millis() - log_service_timer) > ONE_SECOND )
     {
         // throttle sending data
-        Serial.print(".");
+        // Serial.print(".");
         if( 1 == mqtt_connected )
         {
             char next_file[FILE_NAME_SIZE];
