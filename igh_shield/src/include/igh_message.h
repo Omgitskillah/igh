@@ -30,6 +30,7 @@ extern "C" {
 
 // Macro functions for breaking large numbers into multiple bytes and the opposite
 #define GET16(buf)          (((uint16_t)(buf)[0]<<8)+(buf)[1])
+#define GET16_LI(buf)       (((uint16_t)(buf)[1]<<8)+(buf)[0])
 #define PUT16(val, buf)     {(buf)[1]=((val)&0xff);(buf)[0]=((val)>>8);}
 #define GET32(buf)          (((uint32_t)(buf)[0]<<24)+((uint32_t)(buf)[1]<<16)+((uint32_t)(buf)[2]<<8)+(buf)[3])
 #define PUT32(val, buf)     {(buf)[3]=((val)&0xff);(buf)[2]=(((val)>>8)&0xff);(buf)[1]=(((val)>>16)&0xff);(buf)[0]=(((val)>>24)&0xff);}

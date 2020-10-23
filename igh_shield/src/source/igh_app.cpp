@@ -446,7 +446,7 @@ void igh_app_get_temperature_and_humidity( uint8_t * incoming_data )
                 {
                     uint8_t new_temperature_reading[SIZE_OF_SOIL_TEMPERATURE]; 
                     memcpy(new_temperature_reading, &incoming_data[current_data_index], SIZE_OF_SOIL_TEMPERATURE);
-                    new_temperature = GET16(new_temperature_reading);
+                    new_temperature = GET16_LI(new_temperature_reading);
                     valid_temerature = true;
                 }
                 else
@@ -460,7 +460,7 @@ void igh_app_get_temperature_and_humidity( uint8_t * incoming_data )
                 {
                     uint8_t new_humidity_reading[SIZE_OF_SOIL_HUMIDITY]; 
                     memcpy(new_humidity_reading, &incoming_data[current_data_index], SIZE_OF_SOIL_HUMIDITY);
-                    new_humidity = GET16(new_humidity_reading);
+                    new_humidity = GET16_LI(new_humidity_reading);
                     valid_humidity = true;
                 }
                 else
@@ -501,6 +501,10 @@ uint16_t igh_app_calculate_humidity( uint16_t new_temperature, uint16_t new_humi
     float correctedHumidity = (temperature - ROOM_TEMPERATURE) * 
                               (SOIL_HUMIDITY_MULTIPLIER_T1 + SOIL_HUMIDITY_MULTIPLIER_T2 * new_humidity) 
                               + linearHumidity;
+
+    Serial.print("TEMPERATURE: "); Serial.print(temperature);
+    Serial.print("C HUMIDITY: "); Serial.print(correctedHumidity);
+    Serial.println("%");
 
     // offload the decimal places
     return (uint16_t)correctedHumidity;

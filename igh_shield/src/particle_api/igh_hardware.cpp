@@ -22,6 +22,10 @@ uint16_t soil_humidity = 0;
 uint16_t soil_temperature = 0;
 uint8_t  refreshed_soil_data = INVALID_SOIL_DATA;
 
+
+// temp 
+uint8_t hour_counter = 0;
+
 #define FLOW_METER_CAL_FACTOR  (4.5)
 #define ONE_MIN                (60)
 #define WATER_SCALING_FACTOR_L (270) // FLOW_METER_CAL_FACTOR * ONE_MIN
@@ -176,7 +180,6 @@ void igh_hardware_litres_service( void )
     {
         water_dispensed_by_button = 0;
     }
-    
 
     // keep track of valve open state
     igh_hardware_valve_open_timer_service();
@@ -193,11 +196,11 @@ uint8_t igh_get_local_time_hour( void )
     //correct to timezone
     local_hour = utc_hour + igh_current_system_settings.timezone;
 
-    if( 0 > local_hour )
+    if( local_hour < 0 )
     {
         local_hour += TWENTY_FOUR_HOURS;
     }
-    else if( TWENTY_FOUR_HOURS > local_hour )
+    else if( local_hour > TWENTY_FOUR_HOURS )
     {
         local_hour -= TWENTY_FOUR_HOURS;
     }
@@ -216,12 +219,19 @@ void igh_hardware_water_management_service( void )
         {
             // it is ok to irrigat if it hits the irrigation hour
             ok_to_irrigate = true;
+            time_t time = Time.now();
+            Serial.print("IRRIGATION TIME STARTED: ");
+            Serial.println( Time.format(time, TIME_FORMAT_DEFAULT) );
         }
         else if( MIDNIGHT == current_hr )
         {
             // reset the system at midnight
             ok_to_irrigate = false;
             total_water_dispensed_Liters = 0;
+            
+            time_t time = Time.now();
+            Serial.print("RESETTING WATER PARAMS: ");
+            Serial.println( Time.format(time, TIME_FORMAT_DEFAULT) );
         }
 
         previous_hr = current_hr;
