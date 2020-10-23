@@ -330,7 +330,12 @@ void igh_app_commit_new_settings( void )
 
         if ( true == igh_eeprom_save_system_settings( &igh_current_system_settings) )
         {
-            Serial.println("Settings Saved successfully");
+            Serial.println("System Settings Saved successfully");
+        }
+
+        if ( true == igh_eeprom_save_threshold_settings( &igh_current_threshold_settings) )
+        {
+            Serial.println("Threshold Settings Saved successfully");
         }
 
         new_settings_available = 0;

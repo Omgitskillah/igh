@@ -16,21 +16,42 @@
 void igh_eeprom_init( void )
 {
   system_settings settings_in_memory;
-  bool settings_read_successfully = igh_eeprom_read_system_settings(&settings_in_memory);
-  uint8_t valid_checksum = igh_settings_calculate_checksum( &settings_in_memory, sizeof(settings_in_memory) );
+  thresholds thresholds_in_memory;
 
-  if( false == settings_read_successfully ||
-      (settings_in_memory.checksum != valid_checksum) ||
+  bool system_settings_read_successfully = igh_eeprom_read_system_settings(&settings_in_memory);
+  uint8_t valid_system_checksum = igh_settings_calculate_checksum( &settings_in_memory, sizeof(settings_in_memory) );
+
+  if( false == system_settings_read_successfully ||
+      (settings_in_memory.checksum != valid_system_checksum) ||
       ( 0 == settings_in_memory.checksum) )
   {
     // if we can't get valid settings from memory at all, use default settings
     Serial.println("USING DEFAULT SETTINGS");
     igh_settings_reset_system_to_default();
+    new_settings_available = 1;
   }
   else
   {
     Serial.println("USING SETTINGS FROM MEMORY");
     igh_current_system_settings = settings_in_memory;
+  }
+
+  bool threshold_settings_read_successfully = igh_eeprom_read_threshold_settings(&thresholds_in_memory);
+  uint8_t valid_threshold_checksum = igh_settings_calculate_checksum( &thresholds_in_memory, sizeof(thresholds_in_memory) );
+
+  if( false == threshold_settings_read_successfully ||
+      (thresholds_in_memory.checksum != valid_threshold_checksum) ||
+      ( 0 == thresholds_in_memory.checksum) )
+  {
+    // if we can't get valid settings from memory at all, use default settings
+    Serial.println("USING DEFAULT THRESHOLDS");
+    igh_settings_reset_system_to_default();
+    new_settings_available = 1;
+  }
+  else
+  {
+    Serial.println("USING THRESHOLDS FROM MEMORY");
+    igh_current_threshold_settings = thresholds_in_memory;
   }
 }
 

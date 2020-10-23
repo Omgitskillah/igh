@@ -32,7 +32,7 @@ extern "C" {
 #define DEFAULT_LIGHT_INTENSITY_LOW             0            
 #define DEFAULT_SHIELD_BATTERY_LEVEL_LOW        0            
 #define DEFAULT_SPEAR_BATTERY_LEVEL_LOW         0           
-#define DEFAULT_WATER_DISPENSED_PERIOD_LOW      0                 
+#define DEFAULT_WATER_DISPENSED_PERIOD_LOW      100              
 // Low Threshold Trigger        
 #define DEFAULT_SOIL_MOISTURE_HIGH              255             
 #define DEFAULT_AIR_HUMIDITY_HIGH               255          

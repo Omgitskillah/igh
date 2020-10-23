@@ -124,10 +124,11 @@ void igh_boron_button_press_duration(void)
         igh_button_sec_counter = 0;
     } 
 
-    if( THREE_SECONDS >= igh_button_sec_counter )
+    if( igh_button_sec_counter >= THREE_SECONDS )
     {
         // start or stop irrigation at any time with button
         button_irrigate = !button_irrigate;
+
     }
 }
 
@@ -246,6 +247,7 @@ void igh_hardware_water_management_service( void )
         }
         else
         {
+            button_irrigate = false;
             current_valve_position = VALVE_CLOSE;
         }
     }
@@ -273,8 +275,10 @@ void igh_hardware_water_management_service( void )
             }
             else
             {
-                // close valve if even one of these conditions is not met
-                // current_valve_position <--- check this
+                /**
+                 * close valve if even one of these conditions is not met
+                 * current_valve_position <--- check this
+                 * */
                 current_valve_position = VALVE_CLOSE;
             }
         }
@@ -284,7 +288,6 @@ void igh_hardware_water_management_service( void )
             current_valve_position = VALVE_CLOSE;
         }
     }
-    
 }
 
 void igh_hardware_valve_open_timer_service( void )
