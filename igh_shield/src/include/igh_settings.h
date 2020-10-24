@@ -72,8 +72,10 @@ struct system_settings
     uint32_t reporting_interval; // frequency of data sending to cloud
     uint32_t data_resolution; // frequency of data collection
     uint8_t serial_number[12]; // The device serial number/ID
-    uint8_t broker[32]; // MQTT broker url
+    uint8_t broker[64]; // MQTT broker url
     uint16_t broker_port; //MQTT broker connection port
+    uint8_t mqtt_username[32];
+    uint8_t mqtt_password[32];
 };
 typedef struct system_settings system_settings;
 
@@ -100,6 +102,8 @@ enum igh_settings_subid
     SUBID_TIMEZONE,
     SUBID_IRRIGATION_HR,
     SUBID_WATER_DISP_PERIOD,
+    SUBID_MQTT_USERNAME,
+    SUBID_MQTT_PASSWORD,
     
     //High Threshold tirggers
     SUBID_SOIL_MOISTURE_LOW = 0x10,          

@@ -323,6 +323,8 @@ void igh_app_commit_new_settings( void )
         Serial.print("\n");
         Serial.print("MQTT BROKER: "); Serial.println((char *)igh_current_system_settings.broker);
         Serial.print("MQTT BROKER PORT: "); Serial.println(igh_current_system_settings.broker_port);
+        Serial.print("MQTT USERNAME: "); Serial.println((char *)igh_current_system_settings.mqtt_username);
+        Serial.print("MQTT PASSWORD: "); Serial.println((char *)igh_current_system_settings.mqtt_password);
         Serial.print("TIMEZONE: "); Serial.println(igh_current_system_settings.timezone);
         Serial.print("IRRIGATION HOUR: "); Serial.println(igh_current_system_settings.irrigation_hr);
         Serial.print("VALVE OPEN PERIOD: "); Serial.println(igh_current_system_settings.water_dispenser_period);

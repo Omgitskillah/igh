@@ -46,8 +46,10 @@ extern "C" {
 #define DEFAULT_SPEAR_BATTERY_LEVEL_HIGH        255                     
 #define DEFAULT_WATER_DISPENSED_PERIOD_HIGH     800 // 800 Litres
 #define DEFAULT_SERIAL_NUMBER                   {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff}
-#define DEFAULT_MQTT_BROKER                     "broker.hivemq.com" // the mqtt library takes care of the headers
+#define DEFAULT_MQTT_BROKER                     "farmshield.illuminumgreenhouses.com" // the mqtt library takes care of the headers
 #define DEFAULT_MQTT_BROKER_PORT                1883
+#define DEFAULT_MQTT_USERNAME                   "shields"
+#define DEFAULT_MQTT_PASSWORD                   "940610b43b1"
 
 #ifdef __cplusplus
 }

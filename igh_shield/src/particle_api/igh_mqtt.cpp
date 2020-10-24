@@ -60,6 +60,7 @@ void igh_mqtt_service( void )
     if( true == mqtt_set_broker )
     {
         uint8_t broker_len = 0;
+
         while( igh_current_system_settings.broker[broker_len] )
         {
             if( '\0' == igh_current_system_settings.broker[broker_len] ) break;
@@ -67,6 +68,7 @@ void igh_mqtt_service( void )
         }
         
         char new_broker[broker_len + 1];
+        
         memcpy( new_broker, igh_current_system_settings.broker, sizeof(new_broker) );
 
         Serial.print("BROKER: "); Serial.print(new_broker);
@@ -96,7 +98,32 @@ void igh_mqtt_service( void )
         if( (millis() - reconnect_interval) > 10000 )
         {
             // try to reconnect only once every 10 seconds
-            client.connect( (const char *)device_name );
+            uint8_t broker_uname_len = 0;
+            uint8_t broker_password_len = 0;
+
+            while( igh_current_system_settings.mqtt_username[broker_uname_len] )
+            {
+                if( '\0' == igh_current_system_settings.mqtt_username[broker_uname_len] ) break;
+                broker_uname_len++;
+            }
+
+            while( igh_current_system_settings.mqtt_password[broker_password_len] )
+            {
+                if( '\0' == igh_current_system_settings.mqtt_password[broker_password_len] ) break;
+                broker_password_len++;
+            }
+
+            char new_uname[broker_uname_len + 1];
+            char new_password[broker_password_len + 1];
+            
+            memcpy( new_uname, igh_current_system_settings.mqtt_username, sizeof(new_uname) );
+            memcpy( new_password, igh_current_system_settings.mqtt_password, sizeof(new_password) );
+            
+            // Serial.print("CLIENT NAME: "); Serial.print((const char *)device_name);
+            // Serial.print(" USERNAME: "); Serial.print(new_uname);
+            // Serial.print(" PASSWORD: "); Serial.println(new_password);
+            
+            client.connect( (const char *)device_name, (const char *)new_uname, (const char *)new_password );
             reconnect_interval = millis();
         }
     }

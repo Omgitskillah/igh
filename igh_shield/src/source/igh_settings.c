@@ -25,6 +25,8 @@ thresholds igh_default_thresholds;
 system_settings igh_default_system_settings;
 uint8_t default_serial_number[] = DEFAULT_SERIAL_NUMBER;
 uint8_t default_broker_url[] = DEFAULT_MQTT_BROKER;
+uint8_t default_broker_uname[] = DEFAULT_MQTT_USERNAME;
+uint8_t default_broker_pword[] = DEFAULT_MQTT_PASSWORD;
 
 thresholds igh_current_threshold_settings;
 system_settings igh_current_system_settings;
@@ -54,9 +56,13 @@ LOCAL void igh_settings_get_defaults(void) // Total bytes
     igh_default_system_settings.op_state                    = DEFAULT_NEW_OPSTATE;
     igh_default_system_settings.reporting_interval          = DEFAULT_REPORTING_INTERVAL;
     igh_default_system_settings.data_resolution             = DEFAULT_DATA_RESOLUTION;
+    igh_default_system_settings.broker_port                 = DEFAULT_MQTT_BROKER_PORT;
+
     memcpy(igh_default_system_settings.serial_number, default_serial_number, LENGTH_SUBID_SET_SERIAL_NUMBER);
     memcpy(igh_default_system_settings.broker, default_broker_url, sizeof(default_broker_url));
-    igh_default_system_settings.broker_port                 = DEFAULT_MQTT_BROKER_PORT;
+    memcpy(igh_default_system_settings.mqtt_username, default_broker_uname, sizeof(default_broker_uname));
+    memcpy(igh_default_system_settings.mqtt_password, default_broker_pword, sizeof(default_broker_pword));
+    
     igh_default_system_settings.checksum = igh_settings_calculate_checksum(&igh_default_system_settings, sizeof(igh_default_system_settings));
 
     //High Threshold tirggers
@@ -240,6 +246,36 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                     memset(igh_current_system_settings.broker, '\0', sizeof(igh_current_system_settings.broker));
                     memcpy(igh_current_system_settings.broker, &settings[current_data_index], current_tuple_length);
                     igh_current_system_settings.broker[current_tuple_length] = '\0'; // terminate the string
+                    mqtt_set_broker = 1;
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_MQTT_USERNAME:
+                if( sizeof(igh_current_system_settings.mqtt_username) > current_tuple_length)
+                {
+                    memset(igh_current_system_settings.mqtt_username, '\0', sizeof(igh_current_system_settings.mqtt_username));
+                    memcpy(igh_current_system_settings.mqtt_username, &settings[current_data_index], current_tuple_length);
+                    igh_current_system_settings.mqtt_username[current_tuple_length] = '\0'; // terminate the string
+                    mqtt_set_broker = 1;
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_MQTT_PASSWORD:
+                if( sizeof(igh_current_system_settings.mqtt_password) > current_tuple_length)
+                {
+                    memset(igh_current_system_settings.mqtt_password, '\0', sizeof(igh_current_system_settings.mqtt_password));
+                    memcpy(igh_current_system_settings.mqtt_password, &settings[current_data_index], current_tuple_length);
+                    igh_current_system_settings.mqtt_password[current_tuple_length] = '\0'; // terminate the string
                     mqtt_set_broker = 1;
                 }
                 else
