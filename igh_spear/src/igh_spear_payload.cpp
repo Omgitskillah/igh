@@ -23,13 +23,14 @@
  * bytes the RFM module can transmit 
  * with encryption
  * */
-#define SIZE_OF_MSG_HEADER    2
-#define SIZE_OF_RF_ID         2
-#define SIZE_OF_OP_STATE      1
-#define SIZE_OF_SEND_INTERVAL 4
-#define MAX_PAYLOAD_LENGTH    60 
-#define ONE_SECOND            1000
-#define SETTINGS_CLIENT       1984
+#define SIZE_OF_MSG_HEADER     2
+#define SIZE_OF_RF_ID          2
+#define SIZE_OF_BATT_THRESHOLD 2
+#define SIZE_OF_OP_STATE       1
+#define SIZE_OF_SEND_INTERVAL  4
+#define MAX_PAYLOAD_LENGTH     60 
+#define ONE_SECOND             1000
+#define SETTINGS_CLIENT        1984
 
 uint8_t resp[] = "<SETTINGS:OK>";
 
@@ -89,7 +90,8 @@ uint8_t igh_spear_payload_build_pkt( void )
 
 void igh_spear_payload_tick( void )
 {
-    if( STATE_LIVE == active_system_setting.op_state )
+    if( STATE_LIVE == active_system_setting.op_state &&
+        (active_system_setting.battery_low_threshold < igh_spear_get_battery_mV()) )
     {
         if( (millis() - payload_millis_counter) >= ONE_SECOND )
         {
@@ -143,6 +145,7 @@ void igh_spear_payload_get_new_settings( void )
 
         uint8_t i = 2;
 
+        new_system_settings = active_system_setting;
         while( i < len )
         {
             uint8_t processed_len = igh_spear_payload_parse_new_settings( &_buffer[i]);
@@ -170,11 +173,12 @@ void igh_spear_payload_get_new_settings( void )
                 sprintf(&debug_buff[i*2], "%02X", active_system_setting.serial_number[i]);
             }
             igh_spear_log(debug_buff);
-            sprintf(debug_buff, "\nSHIELD ID: %d\nSPEAR ID: %d\nDATA INTERVAL: %d\nOP STATE: %d\n", 
+            sprintf(debug_buff, "\nSHIELD ID: %d\nSPEAR ID: %d\nDATA INTERVAL: %d\nOP STATE: %d\nBatt Voltage threshold: %dmV\n", 
                     active_system_setting.parent_shield_rf_id,
                     active_system_setting.spear_rf_id,
                     active_system_setting.data_collection_interval,
-                    active_system_setting.op_state);
+                    active_system_setting.op_state,
+                    active_system_setting.battery_low_threshold);
             igh_spear_log(debug_buff);
 #endif
         }
@@ -185,6 +189,7 @@ uint8_t igh_spear_payload_parse_new_settings( uint8_t * data )
 {
     uint8_t len = data[1];
     uint8_t pkt_len = 0;
+    uint16_t _16bit_buffer = 0;
     switch( data[0] )
     {
         case SPEAR_ID:
@@ -204,27 +209,32 @@ uint8_t igh_spear_payload_parse_new_settings( uint8_t * data )
         case SPEAR_RF_ID:
             if( len == SIZE_OF_RF_ID )
             {
-                uint16_t new_id = 0;
-                new_id = data[2] | ( data[3] << 8 );
-                new_system_settings.spear_rf_id = new_id;
+                _16bit_buffer = data[2] | ( data[3] << 8 );
+                new_system_settings.spear_rf_id = _16bit_buffer;
                 pkt_len = SIZE_OF_RF_ID + SIZE_OF_MSG_HEADER;
             }
             break;
         case SHIELD_RF_ID:
             if( len == SIZE_OF_RF_ID )
             {
-                uint16_t new_id = 0;
-                new_id = data[2] | ( data[3] << 8 );
-                new_system_settings.parent_shield_rf_id = new_id;
+                _16bit_buffer = data[2] | ( data[3] << 8 );
+                new_system_settings.parent_shield_rf_id = _16bit_buffer;
                 pkt_len = SIZE_OF_RF_ID + SIZE_OF_MSG_HEADER;
+            }
+            break;
+        case SPEAR_BATT_LOW_THRESHOLD:
+            if( len == SIZE_OF_BATT_THRESHOLD )
+            {
+                _16bit_buffer = data[2] | ( data[3] << 8 );
+                new_system_settings.battery_low_threshold = _16bit_buffer;
+                pkt_len = SIZE_OF_BATT_THRESHOLD + SIZE_OF_MSG_HEADER;
             }
             break;
         case SEND_INTERVAL:
             if( len == SIZE_OF_SEND_INTERVAL )
             {
-                uint16_t new_id = 0;
-                new_id = data[2] | ( data[3] << 8 ) | ( data[4] << 16 ) | ( data[5] << 24 );
-                new_system_settings.data_collection_interval = new_id;
+                _16bit_buffer = data[2] | ( data[3] << 8 ) | ( data[4] << 16 ) | ( data[5] << 24 );
+                new_system_settings.data_collection_interval = _16bit_buffer;
                 pkt_len = SIZE_OF_SEND_INTERVAL + SIZE_OF_MSG_HEADER;
             }
             break;

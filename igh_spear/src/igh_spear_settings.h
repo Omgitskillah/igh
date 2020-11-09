@@ -23,6 +23,7 @@ typedef struct Settings
   uint8_t serial_number[12];
   uint16_t parent_shield_rf_id;
   uint16_t spear_rf_id;
+  uint16_t battery_low_threshold;
   // data collection interval in seconds
   unsigned long data_collection_interval;
 } igh_spear_settings;

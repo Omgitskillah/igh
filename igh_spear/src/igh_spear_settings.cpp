@@ -16,6 +16,7 @@ FlashStorage(settings_store, igh_spear_settings);
 uint8_t default_serail_number[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint16_t default_parent_shield_rf_id = 0;
 uint16_t default_spear_rf_id = 1;
+uint16_t default_low_bat_threshold = 3000; // 3000mV
 unsigned long default_data_collection_interval = 5; // time in seconds
 
 igh_spear_settings active_system_setting;
@@ -32,6 +33,7 @@ void igh_spear_settings_get_defaults( void )
     default_system_settings.op_state = STATE_SHIPPING;
     default_system_settings.parent_shield_rf_id = default_parent_shield_rf_id;
     default_system_settings.spear_rf_id = default_spear_rf_id;
+    default_system_settings.battery_low_threshold = default_low_bat_threshold;
     default_system_settings.data_collection_interval = default_data_collection_interval;
 }
 
@@ -85,11 +87,12 @@ void igh_spear_settings_init( void )
         sprintf(&debug_buff[i*2], "%02X", active_system_setting.serial_number[i]);
     }
     igh_spear_log(debug_buff);
-    sprintf(debug_buff, "\nSHIELD ID: %d\nSPEAR ID: %d\nDATA INTERVAL: %d\nOP STATE: %d\n", 
+    sprintf(debug_buff, "\nSHIELD ID: %d\nSPEAR ID: %d\nDATA INTERVAL: %d\nOP STATE: %d\nBatt Voltage threshold: %dmV\n", 
             active_system_setting.parent_shield_rf_id,
             active_system_setting.spear_rf_id,
             active_system_setting.data_collection_interval,
-            active_system_setting.op_state);
+            active_system_setting.op_state,
+            active_system_setting.battery_low_threshold);
     igh_spear_log(debug_buff);
 
     igh_spear_log("\nSETTINGS IN MEMORY\nSN:");
@@ -98,11 +101,12 @@ void igh_spear_settings_init( void )
         sprintf(&debug_buff[i*2], "%02X", settings_in_memory.serial_number[i]);
     }
     igh_spear_log(debug_buff);
-    sprintf(debug_buff, "\nSHIELD ID: %d\nSPEAR ID: %d\nDATA INTERVAL: %d\nOP STATE: %d\n", 
+    sprintf(debug_buff, "\nSHIELD ID: %d\nSPEAR ID: %d\nDATA INTERVAL: %d\nOP STATE: %d\nBatt Voltage threshold: %dmV\n", 
             settings_in_memory.parent_shield_rf_id,
             settings_in_memory.spear_rf_id,
             settings_in_memory.data_collection_interval,
-            settings_in_memory.op_state);
+            settings_in_memory.op_state,
+            active_system_setting.battery_low_threshold);
     igh_spear_log(debug_buff);
 #endif
 }
