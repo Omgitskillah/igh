@@ -15,7 +15,11 @@
 // Pin Mapping
 #define BORON_LED               D7
 #define IGH_IRRIGATION_BUTTON   A4
-#define IGH_IRRIGATION_VALVE    D7 //TODO replace with actual pin, route to on board LED in the mean time 
+
+#define IGH_VALVE_YELLOW        D0
+#define IGH_VALVE_BLUE          D1
+#define IGH_VALVE_CLOSE         A1
+#define IGH_VALVE_OPEN          A0
 
 #define IGH_WATER_FLOW_PIN      D5
 

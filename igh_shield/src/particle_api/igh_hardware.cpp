@@ -51,6 +51,7 @@ static void igh_hardware_irrigiation_button_setup(void);
 static void igh_hardware_onboard_led_setup(void);
 static void igh_hardware_vlave_setup(void);
 void igh_hardware_valve_open_timer_service( void );
+uint8_t igh_read_valve_state( void );
 
 Timer water_flow_timer(ONE_SECOND, igh_hardware_litres_service);
 
@@ -73,18 +74,49 @@ void igh_hardware_service(void)
 /* Valve control APIs */
 static void igh_hardware_vlave_setup(void)
 {
-    pinMode(IGH_IRRIGATION_VALVE, OUTPUT);
+    pinMode(IGH_VALVE_YELLOW, OUTPUT);
+    pinMode(IGH_VALVE_BLUE, OUTPUT);
+    pinMode(IGH_VALVE_CLOSE, INPUT_PULLUP);
+    pinMode(IGH_VALVE_OPEN, INPUT_PULLUP);
+    
     current_valve_position = VALVE_CLOSE;
 }
 
-void igh_hardware_service_valve_state(void)
+uint8_t igh_read_valve_state( void )
 {
-    digitalWrite(IGH_IRRIGATION_VALVE, current_valve_position);
+    return ( digitalRead(IGH_VALVE_OPEN) || digitalRead(IGH_VALVE_CLOSE) ); 
+}
+
+void igh_hardware_service_valve_state( void )
+{
+    if( true == igh_read_valve_state() )
+    {
+        if( VALVE_CLOSE == current_valve_position )
+        {
+            digitalWrite(IGH_VALVE_YELLOW, HIGH);
+            digitalWrite(IGH_VALVE_BLUE, LOW);
+        }
+        else if( VALVE_OPEN == current_valve_position )
+        {
+            digitalWrite(IGH_VALVE_YELLOW, LOW);
+            digitalWrite(IGH_VALVE_BLUE, HIGH);
+        }
+        else
+        {
+            digitalWrite(IGH_VALVE_YELLOW, LOW);
+            digitalWrite(IGH_VALVE_BLUE, LOW);
+        }
+    }
+    else
+    {
+        digitalWrite(IGH_VALVE_YELLOW, LOW);
+        digitalWrite(IGH_VALVE_BLUE, LOW);
+    }  
 }
 
 uint8_t igh_hardware_test_valve_state(void)
 {
-    return digitalRead(IGH_IRRIGATION_VALVE);
+    return (uint8_t)current_valve_position;
 }
 
 /* Onboard LED APIs */

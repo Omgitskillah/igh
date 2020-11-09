@@ -32,40 +32,46 @@ extern "C" {
 #define GET16(buf)          (((uint16_t)(buf)[0]<<8)+(buf)[1])
 #define GET16_LI(buf)       (((uint16_t)(buf)[1]<<8)+(buf)[0])
 #define PUT16(val, buf)     {(buf)[1]=((val)&0xff);(buf)[0]=((val)>>8);}
+#define PUT16_LI(val, buf)  {(buf)[0]=((val)&0xff);(buf)[1]=((val)>>8);}
 #define GET32(buf)          (((uint32_t)(buf)[0]<<24)+((uint32_t)(buf)[1]<<16)+((uint32_t)(buf)[2]<<8)+(buf)[3])
+#define GET32_LI(buf)       (((uint32_t)(buf)[3]<<24)+((uint32_t)(buf)[2]<<16)+((uint32_t)(buf)[1]<<1)+(buf)[0])
 #define PUT32(val, buf)     {(buf)[3]=((val)&0xff);(buf)[2]=(((val)>>8)&0xff);(buf)[1]=(((val)>>16)&0xff);(buf)[0]=(((val)>>24)&0xff);}
+#define PUT32_LI(val, buf)  {(buf)[0]=((val)&0xff);(buf)[1]=(((val)>>8)&0xff);(buf)[2]=(((val)>>16)&0xff);(buf)[3]=(((val)>>24)&0xff);}
 
 // all possible message identifiers
 typedef enum igh_pkt_id
 {
-    MSG_ACK_TUPLE           = 0x00,
-    SPEAR_ID                = 0x01,
-    STORE_TIMESTAMP         = 0x02,
-    SEND_TIMESTAMP          = 0x03,
-    SOIL_MOISTURE           = 0x04,
-    AIR_HUMIDITY            = 0x05,
-    SOIL_HUMIDITY           = 0x06,
-    WATER_DISPENSED         = 0x07,
-    CARBON_DIOXIDE          = 0x08,
-    AIR_TEMPERATURE         = 0x09,
-    SOIL_TEMPERATURE        = 0x0A,
-    SOIL_NPK                = 0x0B,
-    LIGHT_INTENSITY         = 0x0C,
-    SHIELD_BATTERY_LEVEL    = 0x0D,
-    SPEAR_BATTERY_LEVEL     = 0x0E,
-    VALVE_POSITION          = 0x0F,
-    IGH_SEND_SETTINGS       = 0x10,
-    IGH_READ_SETTINGS       = 0x11,
-    SPEAR_DATA              = 0x12,
-    SPEAR_RF_ID             = 0x13,
-    SHIELD_RF_ID            = 0x14,
-    SEND_INTERVAL           = 0x15,
-    OP_STATE                = 0x16,
-    SHIELD_ID               = 0x17,
-    RESTART                 = 0xFD,
-    DATA_PKT                = 0xFE,
-    END_OF_PKT_ID           = 0xFF
+    MSG_ACK_TUPLE             = 0x00,
+    SPEAR_ID                  = 0x01,
+    STORE_TIMESTAMP           = 0x02,
+    SEND_TIMESTAMP            = 0x03,
+    SOIL_MOISTURE             = 0x04,
+    AIR_HUMIDITY              = 0x05,
+    SOIL_HUMIDITY             = 0x06,
+    WATER_DISPENSED           = 0x07,
+    CARBON_DIOXIDE            = 0x08,
+    AIR_TEMPERATURE           = 0x09,
+    SOIL_TEMPERATURE          = 0x0A,
+    SOIL_NPK                  = 0x0B,
+    LIGHT_INTENSITY           = 0x0C,
+    SHIELD_BATTERY_LEVEL      = 0x0D,
+    SPEAR_BATTERY_LEVEL       = 0x0E,
+    VALVE_POSITION            = 0x0F,
+    IGH_SEND_SETTINGS         = 0x10,
+    IGH_READ_SETTINGS         = 0x11,
+    SPEAR_DATA                = 0x12,
+    SPEAR_RF_ID               = 0x13,
+    SHIELD_RF_ID              = 0x14,
+    SEND_INTERVAL             = 0x15,
+    OP_STATE                  = 0x16,
+    SHIELD_ID                 = 0x17,
+    SPEAR_BATT_LOW_THRESHOLD  = 0x18,
+    SHIELD_BATT_LOW_THRESHOLD = 0x18,
+    RESTART                   = 0xFD,
+    DATA_PKT                  = 0xFE,
+    END_OF_PKT_ID             = 0xFF
 } pkt_id;
+
 
 // size of each message type in bytes
 #define SIZE_OF_MSG_ACK_TUPLE           1
