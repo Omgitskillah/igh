@@ -98,7 +98,7 @@ void igh_hardware_service_valve_state( void )
 
 void close_valve( void )
 {
-    if( digitalRead(IGH_VALVE_OPEN) || !digitalRead(IGH_VALVE_CLOSE) )
+    if( HIGH == digitalRead(IGH_VALVE_CLOSE) )
     {
         digitalWrite(IGH_VALVE_YELLOW, HIGH);
         digitalWrite(IGH_VALVE_BLUE, LOW);
@@ -111,7 +111,7 @@ void close_valve( void )
 
 void open_valve( void )
 {
-    if( !digitalRead(IGH_VALVE_OPEN) || digitalRead(IGH_VALVE_CLOSE) )
+    if( HIGH == digitalRead(IGH_VALVE_OPEN) )
     {
         digitalWrite(IGH_VALVE_YELLOW, LOW);
         digitalWrite(IGH_VALVE_BLUE, HIGH);
