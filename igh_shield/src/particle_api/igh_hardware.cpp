@@ -51,7 +51,9 @@ static void igh_hardware_irrigiation_button_setup(void);
 static void igh_hardware_onboard_led_setup(void);
 static void igh_hardware_vlave_setup(void);
 void igh_hardware_valve_open_timer_service( void );
-uint8_t igh_read_valve_state( void );
+void idle_valve( void );
+void open_valve( void );
+void close_valve( void );
 
 Timer water_flow_timer(ONE_SECOND, igh_hardware_litres_service);
 
@@ -82,36 +84,48 @@ static void igh_hardware_vlave_setup(void)
     current_valve_position = VALVE_CLOSE;
 }
 
-uint8_t igh_read_valve_state( void )
-{
-    return ( digitalRead(IGH_VALVE_OPEN) || digitalRead(IGH_VALVE_CLOSE) ); 
-}
-
 void igh_hardware_service_valve_state( void )
 {
-    if( true == igh_read_valve_state() )
+    if( VALVE_CLOSE == current_valve_position ) 
     {
-        if( VALVE_CLOSE == current_valve_position )
-        {
-            digitalWrite(IGH_VALVE_YELLOW, HIGH);
-            digitalWrite(IGH_VALVE_BLUE, LOW);
-        }
-        else if( VALVE_OPEN == current_valve_position )
-        {
-            digitalWrite(IGH_VALVE_YELLOW, LOW);
-            digitalWrite(IGH_VALVE_BLUE, HIGH);
-        }
-        else
-        {
-            digitalWrite(IGH_VALVE_YELLOW, LOW);
-            digitalWrite(IGH_VALVE_BLUE, LOW);
-        }
+        close_valve();
+    }
+    else if( VALVE_OPEN == current_valve_position )
+    {
+        open_valve();
+    }
+}
+
+void close_valve( void )
+{
+    if( digitalRead(IGH_VALVE_OPEN) || !digitalRead(IGH_VALVE_CLOSE) )
+    {
+        digitalWrite(IGH_VALVE_YELLOW, HIGH);
+        digitalWrite(IGH_VALVE_BLUE, LOW);
     }
     else
     {
+        idle_valve();
+    }
+}
+
+void open_valve( void )
+{
+    if( !digitalRead(IGH_VALVE_OPEN) || digitalRead(IGH_VALVE_CLOSE) )
+    {
         digitalWrite(IGH_VALVE_YELLOW, LOW);
-        digitalWrite(IGH_VALVE_BLUE, LOW);
-    }  
+        digitalWrite(IGH_VALVE_BLUE, HIGH);
+    }
+    else
+    {
+        idle_valve();
+    }
+}
+
+void idle_valve( void )
+{
+    digitalWrite(IGH_VALVE_YELLOW, LOW);
+    digitalWrite(IGH_VALVE_BLUE, LOW);
 }
 
 uint8_t igh_hardware_test_valve_state(void)

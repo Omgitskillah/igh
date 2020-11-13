@@ -21,6 +21,7 @@ The following pin configurations are assumed for the shield bringup test.
 |VALVE_BLUE   |   D1    |
 |VALVE_CLOSE  |   A1    |
 |VALVE_OPEN   |   A0    |
+|FLOW METER   |   D5    |
 
 
 The bringup firmware considers all the peripherals and resources of the device under test and lets the development/engineering team test the hardware so that production may be done parallel to the firmware development.  
