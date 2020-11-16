@@ -6,19 +6,55 @@
  *******************************************************************************/
 
 #include "Particle.h"
-#include "include/igh_settings.h"
+#include "igh_eeprom.h"
 // We only have 4KB for the Boron
 #define SYSTEM_SETTINGS_ADDRESS     (int)0x0000
 #define SYSTEM_THRESHOLDS_ADDRESS   (int)0x0200
 #define SYSTEM_ERRORS_ADDRESS       (int)0x0400
 
-/* functions */
-uint8_t igh_eeprom_save_system_settings(system_settings * settings_to_save);
-uint8_t igh_eeprom_save_threshold_settings(thresholds * settings_to_save);
-void igh_eeprom_update_errors(uint32_t error_bit_field);
-uint8_t igh_eeprom_read_system_settings(system_settings * running_system_settings_buffer);
-uint8_t igh_eeprom_read_threshold_settings(thresholds * running_thresholds);
-void igh_eeprom_get_errors(uint32_t * error_bit_field);
+
+void igh_eeprom_init( void )
+{
+  system_settings settings_in_memory;
+  thresholds thresholds_in_memory;
+
+  bool system_settings_read_successfully = igh_eeprom_read_system_settings(&settings_in_memory);
+  uint8_t valid_system_checksum = igh_settings_calculate_checksum( &settings_in_memory, sizeof(settings_in_memory) );
+
+  if( false == system_settings_read_successfully ||
+      (settings_in_memory.checksum != valid_system_checksum) ||
+      ( 0 == settings_in_memory.checksum) )
+  {
+    // if we can't get valid settings from memory at all, use default settings
+    Serial.println("USING DEFAULT SETTINGS");
+    igh_settings_reset_system_to_default();
+    new_settings_available = 1;
+  }
+  else
+  {
+    Serial.println("USING SETTINGS FROM MEMORY");
+    igh_current_system_settings = settings_in_memory;
+  }
+
+  bool threshold_settings_read_successfully = igh_eeprom_read_threshold_settings(&thresholds_in_memory);
+  uint8_t valid_threshold_checksum = igh_settings_calculate_checksum( &thresholds_in_memory, sizeof(thresholds_in_memory) );
+
+  if( false == threshold_settings_read_successfully ||
+      (thresholds_in_memory.checksum != valid_threshold_checksum) ||
+      ( 0 == thresholds_in_memory.checksum) )
+  {
+    // if we can't get valid settings from memory at all, use default settings
+    Serial.println("USING DEFAULT THRESHOLDS");
+    igh_settings_reset_system_to_default();
+    new_settings_available = 1;
+  }
+  else
+  {
+    Serial.println("USING THRESHOLDS FROM MEMORY");
+    igh_current_threshold_settings = thresholds_in_memory;
+  }
+}
+
 
 
 /*******************************************************************************

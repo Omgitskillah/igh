@@ -1,2 +1,9 @@
 igh_shield/target/1.5.2/boron/obj/
 igh_spear/build/
+igh_spear/.vscode/settings.json
+igh_shield/target/1.5.2/boron/igh_shield.bin.no_crc
+igh_shield/target/1.5.2/boron/igh_shield.dfu
+igh_shield/target/1.5.2/boron/igh_shield.elf
+igh_shield/target/1.5.2/boron/igh_shield.hex
+igh_shield/target/1.5.2/boron/igh_shield.lst
+igh_shield/target/1.5.2/boron/igh_shield.map

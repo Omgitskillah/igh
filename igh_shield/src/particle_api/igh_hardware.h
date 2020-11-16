@@ -10,22 +10,29 @@
 #define ON        1
 #define OFF       0
 
+#define ONE_SECOND 1000
+
 // Pin Mapping
 #define BORON_LED               D7
 #define IGH_IRRIGATION_BUTTON   A4
-#define IGH_IRRIGATION_VALVE    D7 //TODO replace with actual pin, route to on board LED in the mean time 
 
-enum valve_position
-{
-    VALVE_CLOSE,
-    VALVE_OPEN
-};
-typedef enum valve_position valve_position;
+#define IGH_VALVE_YELLOW        D0
+#define IGH_VALVE_BLUE          D1
+#define IGH_VALVE_CLOSE         A1
+#define IGH_VALVE_OPEN          A0
+
+#define IGH_WATER_FLOW_PIN      D5
 
 // extern variables
 extern uint8_t igh_button_sec_counter;
-extern volatile valve_position current_valve_position;
- 
+
+#define INVALID_SOIL_DATA      0x00
+#define VALID_SOIL_DATA        0xFF
+extern float total_water_dispensed_Liters;
+extern uint16_t soil_humidity;
+extern uint16_t soil_temperature;
+extern uint8_t refreshed_soil_data;
+
 void igh_hardware_setup(void);
 void igh_hardware_service(void);
 void igh_boron_toggle_boron_led(uint8_t _state);

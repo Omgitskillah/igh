@@ -8,6 +8,8 @@
 #ifndef IGH_SD_LOG
 #define IGH_SD_LOG
 
+#define FILE_NAME_SIZE  13
+#define MAX_FILE_SIZE   255
 #define IGH_SD_CS   D14 // review this
 //MISO, MOSI, SCK: D11, D12, D13 
 

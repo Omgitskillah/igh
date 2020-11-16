@@ -4,34 +4,15 @@
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
-
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include "include/igh_message.h"
 #include "include/igh_settings.h"
 
-// size of each message type in bytes
-#define SIZE_OF_MSG_ACK_TUPLE           1
-#define SIZE_OF_SPEAR_ID                12
-#define SIZE_OF_STORE_TIMESTAMP         4 
-#define SIZE_OF_SEND_TIMESTAMP          4
-#define SIZE_OF_SOIL_MOISTURE           2
-#define SIZE_OF_AIR_HUMIDITY            2
-#define SIZE_OF_SOIL_HUMIDITY           2
-#define SIZE_OF_WATER_DISPENSED         4
-#define SIZE_OF_CARBON_DIOXIDE          2
-#define SIZE_OF_AIR_TEMPERATURE         2
-#define SIZE_OF_SOIL_TEMPERATURE        2
-#define SIZE_OF_SOIL_NPK                2
-#define SIZE_OF_LIGHT_INTENSITY         2
-#define SIZE_OF_SHIELD_BATTERY_LEVEL    2
-#define SIZE_OF_SPEAR_BATTERY_LEVEL     2
-#define SIZE_OF_VALVE_POSITION          1
-
 #define MESSAGE_FITS(X,Y) ((MESSAGE_SIZE - X) >= Y)
 
-LOCAL uint8_t igh_msg_buffer[MESSAGE_SIZE];  // global variable to be used to hold page for sending, maximum message size is 256 bytes
+uint8_t igh_msg_buffer[MESSAGE_SIZE];  // global variable to be used to hold page for sending, maximum message size is 256 bytes
 LOCAL uint8_t igh_msg_buffer_tracker = 0; // track globally how full the message buffer is
 
 LOCAL uint8_t igh_cmd_buffer[MESSAGE_SIZE];
@@ -265,7 +246,7 @@ uint8_t igh_message_process_incoming_msg(uint8_t * buffer)
     if( (buffer[0] == FRAME_START) && (buffer[length-1] == FRAME_END) )
     {
         // check the serial number
-        if( 0 != memcmp(igh_current_system_settings.serial_number, &buffer[SN_INDEX], sizeof(igh_current_system_settings.serial_number)))
+        if( 0 != memcmp(boron_serial_number, &buffer[SN_INDEX], sizeof(boron_serial_number)))
         {
             // if the serial number does not match, do nothing as this message wasn't meant for this device,
             // This ideally should never happen
@@ -361,9 +342,6 @@ LOCAL uint8_t igh_message_build_ACK_payload(void)
     uint8_t bytes_added = igh_msg_buffer_tracker + 1 ;
     return bytes_added;
 }
-
-
-
 
 
 

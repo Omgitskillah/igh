@@ -2,21 +2,25 @@
 
 ## Boron Pinout
 The following pin configurations are assumed for the shield bringup test.
-|Pin Name  | Pin Num |
-|:---      | :---    |
-|RFM69_CS  |   A2    |
-|RFM69_G0  |   D8    |
-|RFM69_RST |   D6    |
-|RFM69_EN  |   N/C   |
-|SD_CARD_CS|   A5    |
-|VALVE_CTRL|   D7    |
-|IRR_BUTTON|   A4    |
-|SD_MISO   |   D11   |
-|SD_MOSI   |   D12   |
-|SD_SCK    |   D13   |
-|RFM69_MISO|   D4    |
-|RFM69_MOSI|   D3    |
-|RFM69_SCK |   D2    |
+|Pin Name     | Pin Num |
+|:---         | :---    |
+|RFM69_CS     |   A2    |
+|RFM69_G0     |   D8    |
+|RFM69_RST    |   D6    |
+|RFM69_EN     |   N/C   |
+|SD_CARD_CS   |   A5    |
+|VALVE_CTRL   |   D7    |
+|IRR_BUTTON   |   A4    |
+|SD_MISO      |   D11   |
+|SD_MOSI      |   D12   |
+|SD_SCK       |   D13   |
+|RFM69_MISO   |   D4    |
+|RFM69_MOSI   |   D3    |
+|RFM69_SCK    |   D2    |
+|VALVE_YELLOW |   D0    |
+|VALVE_BLUE   |   D1    |
+|VALVE_CLOSE  |   A1    |
+|VALVE_OPEN   |   A0    |
 
 
 The bringup firmware considers all the peripherals and resources of the device under test and lets the development/engineering team test the hardware so that production may be done parallel to the firmware development.  
@@ -26,7 +30,7 @@ The bringup firmware considers all the peripherals and resources of the device u
 2. Install the lates version of Particle CLI for windows by following the instruction at this [link](https://docs.particle.io/tutorials/developer-tools/cli/)
 3. Connect a fully built Shield to the computer over USB
 4. Press both the `RESET` and `MODE` buttons on the Boron, release only the `RESET` button then and wait for the Boron to start blinking yellow after it blinks magenta then release the `MODE` button immediately the device starts blinking yellow
-5. Open a `CMD terminal/PowerShell` at from the folder containing `igh_shield_bringup.bin`
+5. Open a `CMD terminal/PowerShell` at from the folder containing `igh_shield_bringup.bin` or `igh_shield_v0.bin` 
 6. Enter the following command `particle flash --usb igh_shield_bringup.bin` then press enter
 7. After successfully programming the device, the terminal will display a `Flash success!` message and will reset the board automatically.
 
@@ -94,7 +98,7 @@ To simplify the devlopment process, we will be using the Arduino CLI feature to 
 1. Install `Arduino 1.8.12` fro this [link](https://www.arduino.cc/download_handler.php?f=/arduino-1.8.12-windows.exe)
 2. Follow the instructions from the [Arduino IDE setup](https://learn.adafruit.com/adafruit-feather-m0-radio-with-rfm69-packet-radio/setup) page instructions to add the `package_adafruit_index.json` support to the IDE
 3. Follow the instruction from [Using With Arduino IDE](https://learn.adafruit.com/adafruit-feather-m0-radio-with-rfm69-packet-radio/using-with-arduino-ide) page to add Feather M0 Radio support to the IDE. 
-4. Download `igh_spear_bringup.bin` or `igh_spear_radio_test_hub.bin` and save it in an easy to reach path, e.g. `Desktop/`
+4. Download `igh_spear_bringup.bin` or `igh_spear_radio_test_hub.bin` or `igh_spear_v0.bin` and save it in an easy to reach path, e.g. `Desktop/`
 5. Connect each feather you would like to program ***one at a time*** to a computer via USB. 
 6. Double tap the `reset button` on the `Feather M0` and make sure the `red LED` next to the USB Micro port is `pulsing with a faded glow`. 
 7. Look in `Device Manager` to find the COM port at which the Feather M0 is attached. For isntance `COM4`.

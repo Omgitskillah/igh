@@ -4,8 +4,17 @@
     "cortex-debug.openocdPath": "${command:particle.getDebuggerOpenocdPath}",
     "files.associations": {
         "*.ino": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "ratio": "cpp",
+        "initializer_list": "cpp",
+        "list": "cpp",
+        "type_traits": "cpp",
+        "vector": "cpp",
+        "xhash": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp",
+        "cstdlib": "c"
     },
     "particle.targetPlatform": "boron",
-    "particle.targetDevice": "chocolate_charlie"
+    "particle.targetDevice": "gravity_falls"
 }

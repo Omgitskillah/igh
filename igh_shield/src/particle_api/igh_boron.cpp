@@ -7,6 +7,7 @@
 
 #include "Particle.h"
 #include "igh_boron.h"
+#include "include/igh_settings.h"
 
 // Local variable
 #define ONE_DAY_MILLIS (24 * 60 * 60 * 1000)
@@ -20,6 +21,13 @@ FuelGauge fuel;
 float battery_voltage, battery_SOC;
 unsigned long unix_time;
 
+bool print_serial = true;
+
+char hex_digits_LC[] = "0123456789abcdef";
+
+/* Local function prototypes */
+uint8_t get_int_from_str( uint8_t num );
+
 /* Functions */
 void igh_boron_sync_time(void)
 {
@@ -30,9 +38,9 @@ void igh_boron_sync_time(void)
     }
 }
 
-unsigned long igh_boron_unix_time(void)
+uint32_t igh_boron_unix_time(void)
 {
-    return Time.now();
+    return (uint32_t)Time.now();
 }
 
 float igh_boron_SoC(void)
@@ -73,26 +81,48 @@ uint8_t igh_boron_connected_to_cloud(void)
 void igh_boron_setup(void)
 {
     lastSync = millis();
+    // get serial number 
+    memcpy( deviceID_string, System.deviceID(), sizeof(deviceID_string) );
+
+    uint8_t k = 0; uint8_t j = 0;
+    while( k < sizeof(deviceID_string) )
+    {
+        boron_serial_number[j] = get_int_from_str(deviceID_string[k]) << 4;
+        k++;
+        boron_serial_number[j] |= get_int_from_str(deviceID_string[k]);
+        k++; j++;
+    }
+}
+
+uint8_t get_int_from_str( uint8_t num )
+{
+    unsigned long location = (unsigned long)strchr(hex_digits_LC, num);
+    unsigned long origin = (unsigned long)hex_digits_LC;
+    return uint8_t(location - origin);
 }
 
 void igh_boron_service(void)
 {
     igh_boron_sync_time();
+#ifdef TEST_MODE
     igh_boron_get_celular_data();
+#endif
 }
 
 void igh_boron_test_device(void)
 {
-    Serial.print("\nUnix Time:        "); Serial.println(igh_boron_unix_time());
+    Serial.print("\nDevice ID:       "); 
+    for( uint8_t i = 0; i < sizeof(boron_serial_number); i++ )
+    {
+        if( boron_serial_number[i] <= 0x0F ) Serial.print("0");
+        Serial.print( boron_serial_number[i], HEX );
+    }
+    Serial.print("\n");
+    Serial.print("Unix Time:        "); Serial.println(igh_boron_unix_time());
     Serial.print("cloud status:     "); Serial.println(igh_boron_connected_to_cloud());
     Serial.print("network status:   "); Serial.println(igh_boron_connecetd_to_network());
     Serial.print("signal strength:  "); Serial.println(igh_boron_ss());
     Serial.print("signal quality:   "); Serial.println(igh_boron_sq());
     Serial.print("Battery Voltage:  "); Serial.println(igh_boron_voltage());
     Serial.print("Battery SOC:      "); Serial.println(igh_boron_SoC());
-}
-
-String igh_boron_test_id(void)
-{
-    return System.deviceID();
 }

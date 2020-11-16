@@ -14,9 +14,6 @@ File igh_file;
 SdFile sd_root;
 SdFile next_file;
 
-#define FILE_NAME_SIZE  13
-#define MAX_FILE_SIZE   255
-
 /* File name format
  * Since we are limited to a 8.3 naming routine,
  * file names are the timestamp in hex to meet 8 characters
@@ -48,20 +45,26 @@ void igh_sd_log_get_file_name(unsigned long _unix_time, char * file_name)
 
 uint8_t igh_sd_log_save_data_point(unsigned long _unix_time, uint8_t * data, uint8_t size)
 {
+    uint8_t ret = 0;
     char name[FILE_NAME_SIZE]; // include the null terminator?
     igh_sd_log_get_file_name(_unix_time, name);
     igh_file = igh_sd.open((const char *)name, FILE_WRITE);
 
+    Serial.print("Saving: "); Serial.print(name); Serial.print(" Size: "); Serial.print(size);
+
     if(igh_file)
     {
-        igh_file.println((const char *)data);
-        igh_file.close();
-        return 1;
+        igh_file.write( data, size);
+        Serial.println(" OK");
+        ret = 1;
     }
     else
     {
-        return 0;
+        Serial.println(" ERROR");
     }
+
+    igh_file.close();
+    return ret;
 }
 
 uint8_t igh_sd_log_remove_data_point(char * file_name)

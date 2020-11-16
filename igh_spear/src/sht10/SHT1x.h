@@ -53,7 +53,7 @@ class SHT1x
       , SoftReset               = 0b00011110
     };
 
-    SHT1x(uint8_t dataPin, uint8_t clockPin, Voltage voltage = Voltage::DC_5_0v);
+    SHT1x(uint8_t dataPin, uint8_t clockPin, Voltage voltage = Voltage::DC_3_3v);
 
     float readHumidity() const;
     float readTemperatureC() const;

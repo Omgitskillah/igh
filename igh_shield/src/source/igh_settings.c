@@ -11,10 +11,12 @@
 #include "include/igh_message.h"
 #include "include/igh_settings.h"
 #include "include/igh_default_settings.h"
-// #include "include/igh_message.h"
 
 #define PAYLOAD_LEN_INDEX (PAYLOAD_INDEX + 1)
 #define FIRST_TUPLE_INDEX (PAYLOAD_LEN_INDEX + 1)
+
+char boron_serial_number[BORON_SN_LEN];
+uint8_t deviceID_string[24];
 
 device_op_state current_op_state;
 device_op_state previous_op_state;
@@ -23,15 +25,22 @@ thresholds igh_default_thresholds;
 system_settings igh_default_system_settings;
 uint8_t default_serial_number[] = DEFAULT_SERIAL_NUMBER;
 uint8_t default_broker_url[] = DEFAULT_MQTT_BROKER;
+uint8_t default_broker_uname[] = DEFAULT_MQTT_USERNAME;
+uint8_t default_broker_pword[] = DEFAULT_MQTT_PASSWORD;
 
 thresholds igh_current_threshold_settings;
 system_settings igh_current_system_settings;
 valve_position current_valve_position;
 
+// flags to re-initialize various modules in case of settings change
+uint8_t initialize_rfm69 = 0;
+uint8_t mqtt_set_broker = 1; // make sure we set the broker on init
+uint8_t new_settings_available = 0;
+
+
 // functions
 #ifndef TEST
 LOCAL void igh_settings_get_defaults(void);
-LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings);
 LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
 LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
 #endif
@@ -41,12 +50,19 @@ LOCAL void igh_settings_get_defaults(void) // Total bytes
 {
     // System settings
     memset(&igh_default_system_settings, 0, sizeof(igh_default_system_settings));
+    igh_default_system_settings.timezone                    = DEFAULT_TIMEZONE;
+    igh_default_system_settings.irrigation_hr               = DEFAULT_IRRIGATION_HR;
+    igh_default_system_settings.water_dispenser_period      = DEFAULT_WATER_DISP_PERIOD;
     igh_default_system_settings.op_state                    = DEFAULT_NEW_OPSTATE;
     igh_default_system_settings.reporting_interval          = DEFAULT_REPORTING_INTERVAL;
     igh_default_system_settings.data_resolution             = DEFAULT_DATA_RESOLUTION;
+    igh_default_system_settings.broker_port                 = DEFAULT_MQTT_BROKER_PORT;
+
     memcpy(igh_default_system_settings.serial_number, default_serial_number, LENGTH_SUBID_SET_SERIAL_NUMBER);
     memcpy(igh_default_system_settings.broker, default_broker_url, sizeof(default_broker_url));
-    igh_default_system_settings.broker_port                 = DEFAULT_MQTT_BROKER_PORT;
+    memcpy(igh_default_system_settings.mqtt_username, default_broker_uname, sizeof(default_broker_uname));
+    memcpy(igh_default_system_settings.mqtt_password, default_broker_pword, sizeof(default_broker_pword));
+    
     igh_default_system_settings.checksum = igh_settings_calculate_checksum(&igh_default_system_settings, sizeof(igh_default_system_settings));
 
     //High Threshold tirggers
@@ -78,31 +94,21 @@ LOCAL void igh_settings_get_defaults(void) // Total bytes
 
 } 
 
-LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
+uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_tracker, uint8_t end_index )
 {
-    // get the length
-    uint8_t length = settings[PAYLOAD_LEN_INDEX]; // byte at position one should always be length
-    // guard the process
-    if(0 >= length)
-    {
-        return 0; // do not allow settings with zero payload to be processed
-    }
-    // get index of last byte to process
-    uint8_t settings_end_index = FIRST_TUPLE_INDEX + length;
-    // get the location of first tuple
-    uint8_t settings_byte_tracker = FIRST_TUPLE_INDEX;
     //cycle through tuples to get the settings data
     uint8_t current_tuple_id;
     uint8_t current_tuple_length;
     uint8_t current_data_index;
-    while(settings_byte_tracker < settings_end_index)
+
+    while(byte_tracker < end_index)
     {
         // extract tuples
-        current_tuple_id = settings[settings_byte_tracker];
+        current_tuple_id = settings[byte_tracker];
         // extract the length
-        current_tuple_length = settings[settings_byte_tracker + 1]; // should always follow
+        current_tuple_length = settings[byte_tracker + 1]; // should always follow
         // extract the tuple data based on tuple id
-        current_data_index = settings_byte_tracker+2;
+        current_data_index = byte_tracker + 2;
 
         switch(current_tuple_id)
         {
@@ -131,10 +137,68 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 }
                 break;
 
+            case SUBID_TIMEZONE:
+                if( (LENGTH_SUBID_SUBID_TIMEZONE == current_tuple_length) &&
+                    (MAX_TIMEZONE > settings[current_data_index + 1]) )
+                {
+                    // check if new timezone is valid
+                    if( POSITIVE_TIME_ZONE == settings[current_data_index] )
+                    {
+                        igh_current_system_settings.timezone = (int)settings[current_data_index + 1];
+                    }
+
+                    else if( NEGATIVE_TIME_ZONE == settings[current_data_index] )
+                    {
+                        igh_current_system_settings.timezone = -1 * settings[current_data_index + 1];
+                    }
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_IRRIGATION_HR:
+                if(LENGTH_SUBID_SUBID_IRRIGATION_HR == current_tuple_length)
+                {
+                    // check if the time is within 24 hours
+                    if( MAX_HOUR >  (settings[current_data_index]) ||
+                        MIN_HOUR <= (settings[current_data_index]) )
+                    {
+                        igh_current_system_settings.irrigation_hr = settings[current_data_index];
+                    }  
+                    else
+                    {
+                        // do nothing
+                    }                   
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_WATER_DISP_PERIOD:
+                if(LENGTH_SUBID_WATER_DISP_PERIOD == current_tuple_length)
+                {
+                    uint8_t new_water_dispensed_period[LENGTH_SUBID_WATER_DISP_PERIOD]; 
+                    memcpy(new_water_dispensed_period, &settings[current_data_index], LENGTH_SUBID_WATER_DISP_PERIOD);
+                    igh_current_threshold_settings.water_dispensed_period_high = GET32_LI(new_water_dispensed_period);
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
             case SUBID_SET_SERIAL_NUMBER:
                 if(LENGTH_SUBID_SET_SERIAL_NUMBER == current_tuple_length)
                 {
                     memcpy(igh_current_system_settings.serial_number, &settings[current_data_index], LENGTH_SUBID_SET_SERIAL_NUMBER);
+                    initialize_rfm69 = 1;
                 }
                 else
                 {
@@ -148,7 +212,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_reporting_interval[LENGTH_SUBID_REPORTING_INTERVAL]; 
                     memcpy(new_reporting_interval, &settings[current_data_index], LENGTH_SUBID_REPORTING_INTERVAL);
-                    igh_current_system_settings.reporting_interval = GET32(new_reporting_interval);
+                    igh_current_system_settings.reporting_interval = GET32_LI(new_reporting_interval);
                 }
                 else
                 {
@@ -162,7 +226,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_data_resolution[LENGTH_SUBID_DATA_RESOLUTION]; 
                     memcpy(new_data_resolution, &settings[current_data_index], LENGTH_SUBID_DATA_RESOLUTION);
-                    igh_current_system_settings.data_resolution = GET32(new_data_resolution);
+                    igh_current_system_settings.data_resolution = GET32_LI(new_data_resolution);
                 }
                 else
                 {
@@ -176,6 +240,37 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                     memset(igh_current_system_settings.broker, '\0', sizeof(igh_current_system_settings.broker));
                     memcpy(igh_current_system_settings.broker, &settings[current_data_index], current_tuple_length);
                     igh_current_system_settings.broker[current_tuple_length] = '\0'; // terminate the string
+                    mqtt_set_broker = 1;
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_MQTT_USERNAME:
+                if( sizeof(igh_current_system_settings.mqtt_username) > current_tuple_length)
+                {
+                    memset(igh_current_system_settings.mqtt_username, '\0', sizeof(igh_current_system_settings.mqtt_username));
+                    memcpy(igh_current_system_settings.mqtt_username, &settings[current_data_index], current_tuple_length);
+                    igh_current_system_settings.mqtt_username[current_tuple_length] = '\0'; // terminate the string
+                    mqtt_set_broker = 1;
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_MQTT_PASSWORD:
+                if( sizeof(igh_current_system_settings.mqtt_password) > current_tuple_length)
+                {
+                    memset(igh_current_system_settings.mqtt_password, '\0', sizeof(igh_current_system_settings.mqtt_password));
+                    memcpy(igh_current_system_settings.mqtt_password, &settings[current_data_index], current_tuple_length);
+                    igh_current_system_settings.mqtt_password[current_tuple_length] = '\0'; // terminate the string
+                    mqtt_set_broker = 1;
                 }
                 else
                 {
@@ -189,7 +284,8 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_mqtt_port[LENGTH_SUBID_MQTT_PORT]; 
                     memcpy(new_mqtt_port, &settings[current_data_index], LENGTH_SUBID_MQTT_PORT);
-                    igh_current_system_settings.broker_port = GET16(new_mqtt_port);
+                    igh_current_system_settings.broker_port = GET16_LI(new_mqtt_port);
+                    mqtt_set_broker = 1;
                 }
                 else
                 {
@@ -202,7 +298,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_moisture_low_th[LENGTH_SUBID_SOIL_MOISTURE_LOW]; 
                     memcpy(new_moisture_low_th, &settings[current_data_index], LENGTH_SUBID_SOIL_MOISTURE_LOW);
-                    igh_current_threshold_settings.soil_moisture_low = GET16(new_moisture_low_th);
+                    igh_current_threshold_settings.soil_moisture_low = GET16_LI(new_moisture_low_th);
                 }
                 else
                 {
@@ -215,7 +311,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_moisture_high_th[LENGTH_SUBID_SOIL_MOISTURE_HIGH]; 
                     memcpy(new_moisture_high_th, &settings[current_data_index], LENGTH_SUBID_SOIL_MOISTURE_LOW);
-                    igh_current_threshold_settings.soil_moisture_high = GET16(new_moisture_high_th);
+                    igh_current_threshold_settings.soil_moisture_high = GET16_LI(new_moisture_high_th);
                 }
                 else
                 {
@@ -228,7 +324,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_air_humidity_low_th[LENGTH_SUBID_AIR_HUMIDITY_LOW]; 
                     memcpy(new_air_humidity_low_th, &settings[current_data_index], LENGTH_SUBID_AIR_HUMIDITY_LOW);
-                    igh_current_threshold_settings.air_humidity_low = GET16(new_air_humidity_low_th);
+                    igh_current_threshold_settings.air_humidity_low = GET16_LI(new_air_humidity_low_th);
                 }
                 else
                 {
@@ -241,7 +337,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_air_humidity_high_th[LENGTH_SUBID_AIR_HUMIDITY_HIGH]; 
                     memcpy(new_air_humidity_high_th, &settings[current_data_index], LENGTH_SUBID_AIR_HUMIDITY_HIGH);
-                    igh_current_threshold_settings.air_humidity_high = GET16(new_air_humidity_high_th);
+                    igh_current_threshold_settings.air_humidity_high = GET16_LI(new_air_humidity_high_th);
                 }
                 else
                 {
@@ -254,7 +350,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_soil_humidity_low_th[LENGTH_SUBID_SOIL_HUMIDITY_LOW]; 
                     memcpy(new_soil_humidity_low_th, &settings[current_data_index], LENGTH_SUBID_SOIL_HUMIDITY_LOW);
-                    igh_current_threshold_settings.soil_humidity_low = GET16(new_soil_humidity_low_th);
+                    igh_current_threshold_settings.soil_humidity_low = GET16_LI(new_soil_humidity_low_th);
                 }
                 else
                 {
@@ -267,7 +363,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_soil_humidity_high_th[LENGTH_SUBID_SOIL_HUMIDITY_HIGH]; 
                     memcpy(new_soil_humidity_high_th, &settings[current_data_index], LENGTH_SUBID_SOIL_HUMIDITY_HIGH);
-                    igh_current_threshold_settings.soil_humidity_high = GET16(new_soil_humidity_high_th);
+                    igh_current_threshold_settings.soil_humidity_high = GET16_LI(new_soil_humidity_high_th);
                 }
                 else
                 {
@@ -280,7 +376,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_carbon_dioxide_low_th[LENGTH_SUBID_CARBON_DIOXIDE_LOW]; 
                     memcpy(new_carbon_dioxide_low_th, &settings[current_data_index], LENGTH_SUBID_CARBON_DIOXIDE_LOW);
-                    igh_current_threshold_settings.carbon_dioxide_low = GET16(new_carbon_dioxide_low_th);
+                    igh_current_threshold_settings.carbon_dioxide_low = GET16_LI(new_carbon_dioxide_low_th);
                 }
                 else
                 {
@@ -293,7 +389,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_carbon_dioxide_high_th[LENGTH_SUBID_CARBON_DIOXIDE_HIGH]; 
                     memcpy(new_carbon_dioxide_high_th, &settings[current_data_index], LENGTH_SUBID_CARBON_DIOXIDE_HIGH);
-                    igh_current_threshold_settings.carbon_dioxide_high = GET16(new_carbon_dioxide_high_th);
+                    igh_current_threshold_settings.carbon_dioxide_high = GET16_LI(new_carbon_dioxide_high_th);
                 }
                 else
                 {
@@ -306,7 +402,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_air_temperature_low_th[LENGTH_SUBID_AIR_TEMPERATURE_LOW]; 
                     memcpy(new_air_temperature_low_th, &settings[current_data_index], LENGTH_SUBID_AIR_TEMPERATURE_LOW);
-                    igh_current_threshold_settings.air_temperature_low = GET16(new_air_temperature_low_th);
+                    igh_current_threshold_settings.air_temperature_low = GET16_LI(new_air_temperature_low_th);
                 }
                 else
                 {
@@ -319,7 +415,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_air_temperature_high_th[LENGTH_SUBID_AIR_TEMPERATURE_HIGH]; 
                     memcpy(new_air_temperature_high_th, &settings[current_data_index], LENGTH_SUBID_AIR_TEMPERATURE_HIGH);
-                    igh_current_threshold_settings.air_temperature_high = GET16(new_air_temperature_high_th);
+                    igh_current_threshold_settings.air_temperature_high = GET16_LI(new_air_temperature_high_th);
                 }
                 else
                 {
@@ -332,7 +428,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_soil_temperature_low_th[LENGTH_SUBID_SOIL_TEMPERATURE_LOW]; 
                     memcpy(new_soil_temperature_low_th, &settings[current_data_index], LENGTH_SUBID_SOIL_TEMPERATURE_LOW);
-                    igh_current_threshold_settings.soil_temperature_low = GET16(new_soil_temperature_low_th);
+                    igh_current_threshold_settings.soil_temperature_low = GET16_LI(new_soil_temperature_low_th);
                 }
                 else
                 {
@@ -345,7 +441,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_soil_temperature_high_th[LENGTH_SUBID_SOIL_TEMPERATURE_HIGH]; 
                     memcpy(new_soil_temperature_high_th, &settings[current_data_index], LENGTH_SUBID_SOIL_TEMPERATURE_HIGH);
-                    igh_current_threshold_settings.soil_temperature_high = GET16(new_soil_temperature_high_th);
+                    igh_current_threshold_settings.soil_temperature_high = GET16_LI(new_soil_temperature_high_th);
                 }
                 else
                 {
@@ -358,7 +454,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_soil_npk_high_th[LENGTH_SUBID_SOIL_NPK_HIGH]; 
                     memcpy(new_soil_npk_high_th, &settings[current_data_index], LENGTH_SUBID_SOIL_NPK_HIGH);
-                    igh_current_threshold_settings.soil_npk_high = GET16(new_soil_npk_high_th);
+                    igh_current_threshold_settings.soil_npk_high = GET16_LI(new_soil_npk_high_th);
                 }
                 else
                 {
@@ -371,7 +467,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_soil_npk_low_th[LENGTH_SUBID_SOIL_NPK_LOW]; 
                     memcpy(new_soil_npk_low_th, &settings[current_data_index], LENGTH_SUBID_SOIL_NPK_LOW);
-                    igh_current_threshold_settings.soil_npk_low = GET16(new_soil_npk_low_th);
+                    igh_current_threshold_settings.soil_npk_low = GET16_LI(new_soil_npk_low_th);
                 }
                 else
                 {
@@ -384,7 +480,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_light_intensity_low_th[LENGTH_SUBID_LIGHT_INTENSITY_LOW]; 
                     memcpy(new_light_intensity_low_th, &settings[current_data_index], LENGTH_SUBID_LIGHT_INTENSITY_LOW);
-                    igh_current_threshold_settings.light_intensity_low = GET16(new_light_intensity_low_th);
+                    igh_current_threshold_settings.light_intensity_low = GET16_LI(new_light_intensity_low_th);
                 }
                 else
                 {
@@ -397,7 +493,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_light_intensity_high_th[LENGTH_SUBID_LIGHT_INTENSITY_HIGH]; 
                     memcpy(new_light_intensity_high_th, &settings[current_data_index], LENGTH_SUBID_LIGHT_INTENSITY_HIGH);
-                    igh_current_threshold_settings.light_intensity_high = GET16(new_light_intensity_high_th);
+                    igh_current_threshold_settings.light_intensity_high = GET16_LI(new_light_intensity_high_th);
                 }
                 else
                 {
@@ -410,7 +506,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_shield_battery_low_th[LENGTH_SUBID_SHIELD_BATTERY_LEVEL_LOW]; 
                     memcpy(new_shield_battery_low_th, &settings[current_data_index], LENGTH_SUBID_SHIELD_BATTERY_LEVEL_LOW);
-                    igh_current_threshold_settings.shield_battery_level_low = GET16(new_shield_battery_low_th);
+                    igh_current_threshold_settings.shield_battery_level_low = GET16_LI(new_shield_battery_low_th);
                 }
                 else
                 {
@@ -423,7 +519,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_shield_battery_high_th[LENGTH_SUBID_SHIELD_BATTERY_LEVEL_HIGH]; 
                     memcpy(new_shield_battery_high_th, &settings[current_data_index], LENGTH_SUBID_SHIELD_BATTERY_LEVEL_HIGH);
-                    igh_current_threshold_settings.shield_battery_level_high = GET16(new_shield_battery_high_th);
+                    igh_current_threshold_settings.shield_battery_level_high = GET16_LI(new_shield_battery_high_th);
                 }
                 else
                 {
@@ -436,7 +532,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_spear_battery_low_th[LENGTH_SUBID_SPEAR_BATTERY_LEVEL_LOW]; 
                     memcpy(new_spear_battery_low_th, &settings[current_data_index], LENGTH_SUBID_SPEAR_BATTERY_LEVEL_LOW);
-                    igh_current_threshold_settings.spear_battery_level_low = GET16(new_spear_battery_low_th);
+                    igh_current_threshold_settings.spear_battery_level_low = GET16_LI(new_spear_battery_low_th);
                 }
                 else
                 {
@@ -449,7 +545,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_spear_battery_high_th[LENGTH_SUBID_SPEAR_BATTERY_LEVEL_HIGH]; 
                     memcpy(new_spear_battery_high_th, &settings[current_data_index], LENGTH_SUBID_SPEAR_BATTERY_LEVEL_HIGH);
-                    igh_current_threshold_settings.spear_battery_level_high = GET16(new_spear_battery_high_th);
+                    igh_current_threshold_settings.spear_battery_level_high = GET16_LI(new_spear_battery_high_th);
                 }
                 else
                 {
@@ -462,7 +558,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_water_dispensed_period_low[LENGTH_SUBID_WATER_DISPENSED_PERIOD_LOW]; 
                     memcpy(new_water_dispensed_period_low, &settings[current_data_index], LENGTH_SUBID_WATER_DISPENSED_PERIOD_LOW);
-                    igh_current_threshold_settings.water_dispensed_period_low = GET32(new_water_dispensed_period_low);
+                    igh_current_threshold_settings.water_dispensed_period_low = GET32_LI(new_water_dispensed_period_low);
                 }
                 else
                 {
@@ -476,7 +572,7 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 {
                     uint8_t new_water_dispensed_period_high[LENGTH_SUBID_WATER_DISPENSED_PERIOD_HIGH]; 
                     memcpy(new_water_dispensed_period_high, &settings[current_data_index], LENGTH_SUBID_WATER_DISPENSED_PERIOD_HIGH);
-                    igh_current_threshold_settings.water_dispensed_period_high = GET32(new_water_dispensed_period_high);
+                    igh_current_threshold_settings.water_dispensed_period_high = GET32_LI(new_water_dispensed_period_high);
                 }
                 else
                 {
@@ -489,13 +585,38 @@ LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings)
                 break;
         }
         // move index to next tuple id
-        settings_byte_tracker += current_tuple_length + TUPLE_HEADER_LEN;
+        byte_tracker += current_tuple_length + TUPLE_HEADER_LEN;
     }
+    return 1;
+}
 
-    // update the checksum of the system settings
-    igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
-    // update the checksum for the threshold settings
-    igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
+uint8_t igh_settings_parse_new_settings(uint8_t * settings)
+{
+    // get the length
+    uint8_t length = settings[PAYLOAD_LEN_INDEX]; // byte at position one should always be length
+    // guard the process
+    if(0 >= length)
+    {
+        return 0; // do not allow settings with zero payload to be processed
+    }
+    // get index of last byte to process
+    uint8_t settings_end_index = FIRST_TUPLE_INDEX + length;
+    // get the location of first tuple
+    uint8_t settings_byte_tracker = FIRST_TUPLE_INDEX;
+    
+    if( 0 == igh_settings_process_settings_tuples( settings, settings_byte_tracker, settings_end_index ) ) 
+    {
+        return 0;
+    }
+    else
+    {
+        // update the checksum of the system settings
+        igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
+        // update the checksum for the threshold settings
+        igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
+        
+        new_settings_available = 1;
+    }
     
     return 1;
 }
@@ -544,14 +665,14 @@ LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req
             case SUBID_REPORTING_INTERVAL:
                 buffer[buffer_index_tracker++] = SUBID_REPORTING_INTERVAL;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_REPORTING_INTERVAL;
-                PUT32(igh_current_system_settings.reporting_interval, &buffer[buffer_index_tracker]);
+                PUT32_LI(igh_current_system_settings.reporting_interval, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_REPORTING_INTERVAL;
                 break;
 
             case SUBID_DATA_RESOLUTION:
                 buffer[buffer_index_tracker++] = SUBID_DATA_RESOLUTION;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_DATA_RESOLUTION;
-                PUT32(igh_current_system_settings.data_resolution, &buffer[buffer_index_tracker]);
+                PUT32_LI(igh_current_system_settings.data_resolution, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_DATA_RESOLUTION;
                 break;
 
@@ -584,161 +705,161 @@ LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req
             case SUBID_MQTT_BROKER_PORT: 
                 buffer[buffer_index_tracker++] = SUBID_MQTT_BROKER_PORT;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_MQTT_PORT;
-                PUT16(igh_current_system_settings.broker_port, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_system_settings.broker_port, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_MQTT_PORT;
                 break;
 
             case SUBID_SOIL_MOISTURE_LOW: 
                 buffer[buffer_index_tracker++] = SUBID_SOIL_MOISTURE_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SOIL_MOISTURE_LOW;
-                PUT16(igh_current_threshold_settings.soil_moisture_low, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.soil_moisture_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SOIL_MOISTURE_LOW;
                 break;
 
             case SUBID_AIR_HUMIDITY_LOW:
                 buffer[buffer_index_tracker++] = SUBID_AIR_HUMIDITY_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_AIR_HUMIDITY_LOW;
-                PUT16(igh_current_threshold_settings.air_humidity_low, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.air_humidity_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_AIR_HUMIDITY_LOW;           
                 break;
 
             case SUBID_SOIL_HUMIDITY_LOW:
                 buffer[buffer_index_tracker++] = SUBID_SOIL_HUMIDITY_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SOIL_HUMIDITY_LOW;
-                PUT16(igh_current_threshold_settings.soil_humidity_low, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.soil_humidity_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SOIL_HUMIDITY_LOW;                 
                 break;
 
             case SUBID_CARBON_DIOXIDE_LOW:
                 buffer[buffer_index_tracker++] = SUBID_CARBON_DIOXIDE_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_CARBON_DIOXIDE_LOW;
-                PUT16(igh_current_threshold_settings.carbon_dioxide_low, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.carbon_dioxide_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_CARBON_DIOXIDE_LOW;  
                 break;
 
             case SUBID_AIR_TEMPERATURE_LOW:        
                 buffer[buffer_index_tracker++] = SUBID_AIR_TEMPERATURE_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_AIR_TEMPERATURE_LOW;
-                PUT16(igh_current_threshold_settings.air_temperature_low, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.air_temperature_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_AIR_TEMPERATURE_LOW;  
                 break;
 
             case SUBID_SOIL_TEMPERATURE_LOW:       
                 buffer[buffer_index_tracker++] = SUBID_SOIL_TEMPERATURE_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SOIL_TEMPERATURE_LOW;
-                PUT16(igh_current_threshold_settings.soil_temperature_low, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.soil_temperature_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SOIL_TEMPERATURE_LOW;  
                 break;
 
             case SUBID_SOIL_NPK_LOW:               
                 buffer[buffer_index_tracker++] = SUBID_SOIL_NPK_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SOIL_NPK_LOW;
-                PUT16(igh_current_threshold_settings.soil_npk_low, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.soil_npk_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SOIL_NPK_LOW;  
                 break;
 
             case SUBID_LIGHT_INTENSITY_LOW:        
                 buffer[buffer_index_tracker++] = SUBID_LIGHT_INTENSITY_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_LIGHT_INTENSITY_LOW;
-                PUT16(igh_current_threshold_settings.light_intensity_low, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.light_intensity_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_LIGHT_INTENSITY_LOW;  
                 break;
 
             case SUBID_SHIELD_BATTERY_LEVEL_LOW:   
                 buffer[buffer_index_tracker++] = SUBID_SHIELD_BATTERY_LEVEL_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SHIELD_BATTERY_LEVEL_LOW;
-                PUT16(igh_current_threshold_settings.shield_battery_level_low, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.shield_battery_level_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SHIELD_BATTERY_LEVEL_LOW;  
                 break;
 
             case SUBID_SPEAR_BATTERY_LEVEL_LOW:   
                 buffer[buffer_index_tracker++] = SUBID_SPEAR_BATTERY_LEVEL_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SPEAR_BATTERY_LEVEL_LOW;
-                PUT16(igh_current_threshold_settings.spear_battery_level_low, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.spear_battery_level_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SPEAR_BATTERY_LEVEL_LOW;  
                 break;
 
             case SUBID_WATER_DISPENSED_PERIOD_LOW:
                 buffer[buffer_index_tracker++] = SUBID_WATER_DISPENSED_PERIOD_LOW;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_WATER_DISPENSED_PERIOD_LOW;
-                PUT32(igh_current_threshold_settings.water_dispensed_period_low, &buffer[buffer_index_tracker]);
+                PUT32_LI(igh_current_threshold_settings.water_dispensed_period_low, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_WATER_DISPENSED_PERIOD_LOW;  
                 break;
 
             case SUBID_SOIL_MOISTURE_HIGH: 
                 buffer[buffer_index_tracker++] = SUBID_SOIL_MOISTURE_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SOIL_MOISTURE_HIGH;
-                PUT16(igh_current_threshold_settings.soil_moisture_high, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.soil_moisture_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SOIL_MOISTURE_HIGH;
                 break;
 
             case SUBID_AIR_HUMIDITY_HIGH:
                 buffer[buffer_index_tracker++] = SUBID_AIR_HUMIDITY_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_AIR_HUMIDITY_HIGH;
-                PUT16(igh_current_threshold_settings.air_humidity_high, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.air_humidity_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_AIR_HUMIDITY_HIGH;           
                 break;
 
             case SUBID_SOIL_HUMIDITY_HIGH:
                 buffer[buffer_index_tracker++] = SUBID_SOIL_HUMIDITY_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SOIL_HUMIDITY_HIGH;
-                PUT16(igh_current_threshold_settings.soil_humidity_high, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.soil_humidity_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SOIL_HUMIDITY_HIGH;                 
                 break;
 
             case SUBID_CARBON_DIOXIDE_HIGH:
                 buffer[buffer_index_tracker++] = SUBID_CARBON_DIOXIDE_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_CARBON_DIOXIDE_HIGH;
-                PUT16(igh_current_threshold_settings.carbon_dioxide_high, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.carbon_dioxide_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_CARBON_DIOXIDE_HIGH;  
                 break;
 
             case SUBID_AIR_TEMPERATURE_HIGH:        
                 buffer[buffer_index_tracker++] = SUBID_AIR_TEMPERATURE_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_AIR_TEMPERATURE_HIGH;
-                PUT16(igh_current_threshold_settings.air_temperature_high, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.air_temperature_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_AIR_TEMPERATURE_HIGH;  
                 break;
 
             case SUBID_SOIL_TEMPERATURE_HIGH:       
                 buffer[buffer_index_tracker++] = SUBID_SOIL_TEMPERATURE_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SOIL_TEMPERATURE_HIGH;
-                PUT16(igh_current_threshold_settings.soil_temperature_high, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.soil_temperature_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SOIL_TEMPERATURE_HIGH;  
                 break;
 
             case SUBID_SOIL_NPK_HIGH:               
                 buffer[buffer_index_tracker++] = SUBID_SOIL_NPK_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SOIL_NPK_HIGH;
-                PUT16(igh_current_threshold_settings.soil_npk_high, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.soil_npk_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SOIL_NPK_HIGH;  
                 break;
 
             case SUBID_LIGHT_INTENSITY_HIGH:        
                 buffer[buffer_index_tracker++] = SUBID_LIGHT_INTENSITY_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_LIGHT_INTENSITY_HIGH;
-                PUT16(igh_current_threshold_settings.light_intensity_high, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.light_intensity_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_LIGHT_INTENSITY_HIGH;  
                 break;
 
             case SUBID_SHIELD_BATTERY_LEVEL_HIGH:   
                 buffer[buffer_index_tracker++] = SUBID_SHIELD_BATTERY_LEVEL_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SHIELD_BATTERY_LEVEL_HIGH;
-                PUT16(igh_current_threshold_settings.shield_battery_level_high, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.shield_battery_level_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SHIELD_BATTERY_LEVEL_HIGH;  
                 break;
 
             case SUBID_SPEAR_BATTERY_LEVEL_HIGH:   
                 buffer[buffer_index_tracker++] = SUBID_SPEAR_BATTERY_LEVEL_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_SPEAR_BATTERY_LEVEL_HIGH;
-                PUT16(igh_current_threshold_settings.spear_battery_level_high, &buffer[buffer_index_tracker]);
+                PUT16_LI(igh_current_threshold_settings.spear_battery_level_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_SPEAR_BATTERY_LEVEL_HIGH;  
                 break;
 
             case SUBID_WATER_DISPENSED_PERIOD_HIGH:
                 buffer[buffer_index_tracker++] = SUBID_WATER_DISPENSED_PERIOD_HIGH;
                 buffer[buffer_index_tracker++] = LENGTH_SUBID_WATER_DISPENSED_PERIOD_HIGH;
-                PUT32(igh_current_threshold_settings.water_dispensed_period_high, &buffer[buffer_index_tracker]);
+                PUT32_LI(igh_current_threshold_settings.water_dispensed_period_high, &buffer[buffer_index_tracker]);
                 buffer_index_tracker += LENGTH_SUBID_WATER_DISPENSED_PERIOD_HIGH;  
                 break;
 
