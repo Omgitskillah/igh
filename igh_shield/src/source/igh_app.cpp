@@ -22,6 +22,9 @@
 unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
 extern uint8_t igh_msg_buffer[MESSAGE_SIZE]; 
+valve_position previous_valve_position = VALVE_CLOSE;
+extern bool button_irrigate;
+bool previous_button_irrigate = false;
 
 
 uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload, uint8_t _payload_len );
@@ -33,7 +36,9 @@ void igh_app_get_new_settings( void );
 void igh_app_commit_new_settings( void );
 void igh_app_log_service( void );
 void igh_app_get_temperature_and_humidity( uint8_t * incoming_data );
+void igh_app_send_button_and_valve_events( void );
 uint16_t igh_app_calculate_humidity( uint16_t temperature, uint16_t humidity );
+void igh_app_print_valid_settings( void );
 
 void igh_app_setup( void )
 {
@@ -86,6 +91,75 @@ void igh_main_application( void )
     // control the valve
     igh_hardware_service_valve_state();
 
+    // send button and valve events 
+    igh_app_send_button_and_valve_events();
+
+}
+
+void igh_app_send_button_and_valve_events( void )
+{
+    if( previous_valve_position != current_valve_position )
+    {
+        // send a packet with the current valve state
+
+        uint32_t current_time = igh_boron_unix_time();
+
+        uint8_t i = 0; // keep track of pkt data
+        uint8_t valve_state_msg[3];
+
+        memset( igh_msg_buffer, 0, sizeof(igh_msg_buffer) );
+
+        valve_state_msg[0] = VALVE_POSITION;
+        valve_state_msg[1] = SIZE_OF_VALVE_POSITION;
+        valve_state_msg[2] = current_valve_position;
+
+        // Add frame start
+        igh_msg_buffer[i++] = FRAME_START;
+        i++; // leave room for pkg length
+
+        i = igh_app_add_message_header( igh_msg_buffer, i, ERROR_MSG, IGH_UPLOAD );
+        i = igh_app_add_payload( igh_msg_buffer, i, valve_state_msg, sizeof(valve_state_msg) );
+
+        // Add Frame End 
+        igh_msg_buffer[i++] = FRAME_END;
+
+        igh_msg_buffer[1] = i; // add length
+
+        igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
+
+        previous_valve_position = current_valve_position;
+    }
+
+    if( previous_button_irrigate != button_irrigate )
+    {
+        // send packet with button press event
+        uint32_t current_time = igh_boron_unix_time();
+
+        uint8_t i = 0; // keep track of pkt data
+        uint8_t button_press_msg[3];
+
+        memset( igh_msg_buffer, 0, sizeof(igh_msg_buffer) );
+
+        button_press_msg[0] = BUTTON_PRESS;
+        button_press_msg[1] = SIZE_OF_BUTTON_PRESS;
+        button_press_msg[2] = true;
+
+        // Add frame start
+        igh_msg_buffer[i++] = FRAME_START;
+        i++; // leave room for pkg length
+
+        i = igh_app_add_message_header( igh_msg_buffer, i, ERROR_MSG, IGH_UPLOAD );
+        i = igh_app_add_payload( igh_msg_buffer, i, button_press_msg, sizeof(button_press_msg) );
+
+        // Add Frame End 
+        igh_msg_buffer[i++] = FRAME_END;
+
+        igh_msg_buffer[1] = i; // add length
+
+        igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
+
+        previous_button_irrigate = button_irrigate;
+    }
 }
 
 void igh_app_receive_and_stage_sensor_data( void )
@@ -304,6 +378,12 @@ void igh_app_get_new_settings( void )
             }
             
         }
+        else if( (igh_msg_buffer[0] == '?') &&
+                 (igh_msg_buffer[1] == '?') &&
+                 (igh_msg_buffer[2] == '?') )
+        {
+            igh_app_print_valid_settings();
+        }
     }
 }
 
@@ -311,24 +391,7 @@ void igh_app_commit_new_settings( void )
 {
     if( 1 == new_settings_available )
     {
-        Serial.print("OP STATE:"); Serial.println(igh_current_system_settings.op_state);
-        Serial.print("REPORTING INTERVAL: "); Serial.println(igh_current_system_settings.reporting_interval);
-        Serial.print("DATA RESOLUTION: "); Serial.println(igh_current_system_settings.data_resolution);
-        Serial.print("SERIAL NUMBER: ");
-        for( uint8_t i = 0; i < sizeof(igh_default_system_settings.serial_number); i++ )
-        {
-            if( igh_current_system_settings.serial_number[i] <= 0x0F ) Serial.print("0");
-            Serial.print(igh_current_system_settings.serial_number[i], HEX);
-        }
-        Serial.print("\n");
-        Serial.print("MQTT BROKER: "); Serial.println((char *)igh_current_system_settings.broker);
-        Serial.print("MQTT BROKER PORT: "); Serial.println(igh_current_system_settings.broker_port);
-        Serial.print("MQTT USERNAME: "); Serial.println((char *)igh_current_system_settings.mqtt_username);
-        Serial.print("MQTT PASSWORD: "); Serial.println((char *)igh_current_system_settings.mqtt_password);
-        Serial.print("TIMEZONE: "); Serial.println(igh_current_system_settings.timezone);
-        Serial.print("IRRIGATION HOUR: "); Serial.println(igh_current_system_settings.irrigation_hr);
-        Serial.print("VALVE OPEN PERIOD: "); Serial.println(igh_current_system_settings.water_dispenser_period);
-        Serial.print("CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
+        igh_app_print_valid_settings();
 
         if ( true == igh_eeprom_save_system_settings( &igh_current_system_settings) )
         {
@@ -342,6 +405,34 @@ void igh_app_commit_new_settings( void )
 
         new_settings_available = 0;
     }
+}
+
+void igh_app_print_valid_settings( void )
+{
+    Serial.print("OP STATE:"); Serial.println(igh_current_system_settings.op_state);
+    Serial.print("REPORTING INTERVAL: "); Serial.println(igh_current_system_settings.reporting_interval);
+    Serial.print("DATA RESOLUTION: "); Serial.println(igh_current_system_settings.data_resolution);
+    Serial.print("SERIAL NUMBER: ");
+    for( uint8_t i = 0; i < sizeof(igh_default_system_settings.serial_number); i++ )
+    {
+        if( igh_current_system_settings.serial_number[i] <= 0x0F ) Serial.print("0");
+        Serial.print(igh_current_system_settings.serial_number[i], HEX);
+    }
+    Serial.print("\n");
+    Serial.print("MQTT BROKER: "); Serial.println((char *)igh_current_system_settings.broker);
+    Serial.print("MQTT BROKER PORT: "); Serial.println(igh_current_system_settings.broker_port);
+    Serial.print("MQTT USERNAME: "); Serial.println((char *)igh_current_system_settings.mqtt_username);
+    Serial.print("MQTT PASSWORD: "); Serial.println((char *)igh_current_system_settings.mqtt_password);
+    Serial.print("TIMEZONE: "); Serial.println(igh_current_system_settings.timezone);
+    Serial.print("IRRIGATION HOUR: "); Serial.println(igh_current_system_settings.irrigation_hr);
+    Serial.print("WATER DISPENSER PERIOD: "); Serial.println(igh_current_system_settings.water_dispenser_period);
+    Serial.print("SYSTEM SETTINGS CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
+
+    Serial.print("\n\nSOIL HUMIDITY LOW THRESHOLD: "); Serial.println(igh_default_thresholds.soil_humidity_low);
+    Serial.print("SOIL HUMIDITY HIGH THRESHOLD: "); Serial.println(igh_default_thresholds.soil_humidity_high);
+    Serial.print("SOIL HUMIDITY HIGH THRESHOLD: "); Serial.println(igh_default_thresholds.soil_humidity_high);
+    Serial.print("MIN WATER TO DISPENSE: "); Serial.println(igh_default_thresholds.water_dispensed_period_low);
+    Serial.print("MAX WATER TO DISPENSE: "); Serial.println(igh_default_thresholds.water_dispensed_period_high);
 }
 
 uint8_t igh_app_get_serial_hex_data( uint8_t * buffer, uint8_t len )
