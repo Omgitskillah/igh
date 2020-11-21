@@ -426,13 +426,15 @@ void igh_app_print_valid_settings( void )
     Serial.print("TIMEZONE: "); Serial.println(igh_current_system_settings.timezone);
     Serial.print("IRRIGATION HOUR: "); Serial.println(igh_current_system_settings.irrigation_hr);
     Serial.print("WATER DISPENSER PERIOD: "); Serial.println(igh_current_system_settings.water_dispenser_period);
+    Serial.print("AMOUNT BUTTON CAN DISPENSE: "); Serial.print(igh_current_system_settings.water_amount_by_button_press); Serial.println("L");
     Serial.print("SYSTEM SETTINGS CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
 
     Serial.print("\n\nSOIL HUMIDITY LOW THRESHOLD: "); Serial.println(igh_default_thresholds.soil_humidity_low);
     Serial.print("SOIL HUMIDITY HIGH THRESHOLD: "); Serial.println(igh_default_thresholds.soil_humidity_high);
     Serial.print("SOIL HUMIDITY HIGH THRESHOLD: "); Serial.println(igh_default_thresholds.soil_humidity_high);
-    Serial.print("MIN WATER TO DISPENSE: "); Serial.println(igh_default_thresholds.water_dispensed_period_low);
-    Serial.print("MAX WATER TO DISPENSE: "); Serial.println(igh_default_thresholds.water_dispensed_period_high);
+    Serial.print("MIN WATER TO DISPENSE: "); Serial.print(igh_default_thresholds.water_dispensed_period_low); Serial.println("L");
+    Serial.print("MAX WATER TO DISPENSE: "); Serial.print(igh_default_thresholds.water_dispensed_period_high); Serial.println("L");
+    Serial.print("THRESHOLDS SETTINGS CHECKSUM: "); Serial.println(igh_default_thresholds.checksum);
 }
 
 uint8_t igh_app_get_serial_hex_data( uint8_t * buffer, uint8_t len )
@@ -579,12 +581,23 @@ void igh_app_get_temperature_and_humidity( uint8_t * incoming_data )
     if( true == valid_humidity &&
         true == valid_temerature )
     {
-        refreshed_soil_data = VALID_SOIL_DATA;
         soil_humidity = igh_app_calculate_humidity(new_temperature, new_humidity);
+        if( soil_humidity >= 0 &&
+            soil_humidity <= 100 )
+        {
+            // only use valid sensor data
+            refreshed_soil_data = VALID_SOIL_DATA;
+            Serial.println("VALID HUMIDITY DATA");
+        }
+        else
+        {
+            Serial.println("INVALID HUMIDITY DATA");
+        }
     }
     else
     {
         refreshed_soil_data = INVALID_SOIL_DATA;
+        Serial.println("INVALID HUMIDITY DATA");
     }   
 }
 

@@ -20,6 +20,7 @@ extern "C" {
 #define DEFAULT_WATER_DISP_PERIOD               1800 // 30 mins
 #define DEFAULT_NEW_OPSTATE                     OP_INACTIVE
 #define DEFAULT_REPORTING_INTERVAL              1800 // 30 mins   
+#define DEFAULT_WATER_BY_BUTTON                 100 // 100 Litres   
 #define DEFAULT_DATA_RESOLUTION                 600  // 10 mins
 #define DEFAULT_SERIAL_NUMBER                   {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff}
 #define DEFAULT_MQTT_BROKER                     "farmshield.illuminumgreenhouses.com" // the mqtt library takes care of the headers
@@ -37,7 +38,7 @@ extern "C" {
 #define DEFAULT_LIGHT_INTENSITY_LOW             0            
 #define DEFAULT_SHIELD_BATTERY_LEVEL_LOW        0            
 #define DEFAULT_SPEAR_BATTERY_LEVEL_LOW         0           
-#define DEFAULT_WATER_DISPENSED_PERIOD_LOW      100              
+#define DEFAULT_WATER_DISPENSED_PERIOD_LOW      300              
 // Low Threshold Trigger        
 #define DEFAULT_SOIL_MOISTURE_HIGH              255             
 #define DEFAULT_AIR_HUMIDITY_HIGH               255          
