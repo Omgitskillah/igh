@@ -66,7 +66,8 @@ typedef enum igh_pkt_id
     OP_STATE                  = 0x16,
     SHIELD_ID                 = 0x17,
     SPEAR_BATT_LOW_THRESHOLD  = 0x18,
-    SHIELD_BATT_LOW_THRESHOLD = 0x18,
+    SHIELD_BATT_LOW_THRESHOLD = 0x19,
+    BUTTON_PRESS              = 0x1A,
     RESTART                   = 0xFD,
     DATA_PKT                  = 0xFE,
     END_OF_PKT_ID             = 0xFF
@@ -91,6 +92,7 @@ typedef enum igh_pkt_id
 #define SIZE_OF_SPEAR_BATTERY_LEVEL     2
 #define SIZE_OF_RESTART                 1
 #define SIZE_OF_VALVE_POSITION          1
+#define SIZE_OF_BUTTON_PRESS            1
 
 typedef enum igh_pkt_id igh_pkt_id;
 

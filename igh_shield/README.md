@@ -72,27 +72,37 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 
 ### *Currently supported tuple ids and their length*  
 
-| Tuple Name                 | Tuple ID| Length     |
-| :---                       | :---    | :---       |
-|    MSG_ACK                 | 0x00    | 1          |
-|    SPEAR_ID                | 0x01    | 12         |
-|    STORE_TIMESTAMP         | 0x02    | 4          |  
-|    SEND_TIMESTAMP          | 0x03    | 4          |  
-|    SOIL_MOISTURE           | 0x04    | 2          |  
-|    AIR_HUMIDITY            | 0x05    | 2          |  
-|    SOIL_HUMIDITY           | 0x06    | 2          |  
-|    WATER_DISPENSED         | 0x07    | 4          |  
-|    CARBON_DIOXIDE          | 0x08    | 2          |  
-|    AIR_TEMPERATURE         | 0x09    | 2          |  
-|    SOIL_TEMPERATURE        | 0x0A    | 2          |  
-|    SOIL_NPK                | 0x0B    | 2          |  
-|    LIGHT_INTENSITY         | 0x0C    | 2          |  
-|    SHIELD_BATTERY_LEVEL    | 0x0D    | 2          |  
-|    SPEAR_BATTERY_LEVEL     | 0x0E    | 2          |  
-|    VALVE_POSITION          | 0x0F    | 1          |  
-|    IGH_SEND_SETTINGS       | 0x10    | Variable   |  
-|    IGH_READ_SETTINGS       | 0x11    | Variable   | 
-|    SPEAR_DATA              | 0x12    | Variable   | 
+| Tuple Name                  | Tuple ID| Length     |
+| :---                        | :---    | :---       |
+|    MSG_ACK                  | 0x00    | 1          |
+|    SPEAR_ID                 | 0x01    | 12         |
+|    STORE_TIMESTAMP          | 0x02    | 4          |  
+|    SEND_TIMESTAMP           | 0x03    | 4          |  
+|    SOIL_MOISTURE            | 0x04    | 2          |  
+|    AIR_HUMIDITY             | 0x05    | 2          |  
+|    SOIL_HUMIDITY            | 0x06    | 2          |  
+|    WATER_DISPENSED          | 0x07    | 4          |  
+|    CARBON_DIOXIDE           | 0x08    | 2          |  
+|    AIR_TEMPERATURE          | 0x09    | 2          |  
+|    SOIL_TEMPERATURE         | 0x0A    | 2          |  
+|    SOIL_NPK                 | 0x0B    | 2          |  
+|    LIGHT_INTENSITY          | 0x0C    | 2          |  
+|    SHIELD_BATTERY_LEVEL     | 0x0D    | 2          |  
+|    SPEAR_BATTERY_LEVEL      | 0x0E    | 2          |  
+|    VALVE_POSITION           | 0x0F    | 1          |  
+|    IGH_SEND_SETTINGS        | 0x10    | Variable   |  
+|    IGH_READ_SETTINGS        | 0x11    | Variable   | 
+|    SPEAR_DATA               | 0x12    | Variable   | 
+|    SPEAR_RF_ID              | 0x13    | 2          |
+|    SHIELD_RF_ID             | 0x14    | 2          |
+|    SEND_INTERVAL            | 0x15    | 4          |
+|    OP_STATE                 | 0x16    | 1          |
+|    SHIELD_ID                | 0x17    | 12         |
+|    SPEAR_BATT_LOW_THRESHOLD | 0x18    | 2          |
+|    SHIELD_BATT_LOW_THRESHOLD| 0x18    | 2          |
+|    RESTART                  | 0xFD    | 1          |
+|    DATA_PKT                 | 0xFE    | Variable   |
+|    END_OF_PKT_ID            | 0xFF    | -          |
 
 ### **IGH_READ_SETTINGS**
 In order to get the current settings in a device, the cloud platform must send a message with and **IGH_READ_SETTINGS** tuple in the payload.  
@@ -102,34 +112,43 @@ The settings subid are listed in the table below.
 
 The device will respond with the requested settings in the next payload in the following format:  
 ```<IGH_READ_SETTINGS><total_length><Settings_subid><length><data><Settings_subid><length><data>...```  
-# **TODO: This section needs editing**
+### **SETTINGS SUBID TUPLES**
 | Subid Name                        | Tuple ID | Length     |
 | :---                              | :---     | :---       |
-|SUBID_OPSTATE                      |  0x01    | 1          |
-|SUBID_REPORTING_INTERVAL           |  0x02    | 4          |
-|SUBID_DATA_RESOLUTION              |  0x03    | 4          |
-|SUBID_SOIL_MOISTURE_LOW            |  0x04    | 2          |
-|SUBID_AIR_HUMIDITY_LOW             |  0x05    | 2          |
-|SUBID_SOIL_HUMIDITY_LOW            |  0x06    | 2          |
-|SUBID_CARBON_DIOXIDE_LOW           |  0x07    | 2          |
-|SUBID_AIR_TEMPERATURE_LOW          |  0x08    | 2          |
-|SUBID_SOIL_TEMPERATURE_LOW         |  0x09    | 2          |
-|SUBID_SOIL_NPK_LOW                 |  0x0A    | 2          |
-|SUBID_LIGHT_INTENSITY_LOW          |  0x0B    | 2          |
-|SUBID_SHIELD_BATTERY_LEVEL_LOW     |  0x0C    | 2          |
-|SUBID_SPEAR_BATTERY_LEVEL_LOW      |  0x0D    | 2          |
-|SUBID_WATER_DISPENSED_PERIOD_LOW   |  0x0E    | 4          |
-|SUBID_SOIL_MOISTURE_HIGH           |  0x0F    | 2          |
-|SUBID_AIR_HUMIDITY_HIGH            |  0x10    | 2          |
-|SUBID_SOIL_HUMIDITY_HIGH           |  0x11    | 2          |
-|SUBID_CARBON_DIOXIDE_HIGH          |  0x12    | 2          |
-|SUBID_AIR_TEMPERATURE_HIGH         |  0x13    | 2          |
-|SUBID_SOIL_TEMPERATURE_HIGH        |  0x14    | 2          |
-|SUBID_SOIL_NPK_HIGH                |  0x15    | 2          |
-|SUBID_LIGHT_INTENSITY_HIGH         |  0x16    | 2          |
-|SUBID_SHIELD_BATTERY_LEVEL_HIGH    |  0x17    | 2          |
-|SUBID_SPEAR_BATTERY_LEVEL_HIGH     |  0x18    | 2          |
-|SUBID_WATER_DISPENSED_PERIOD_HIGH  |  0x19    | 4          |
+|SUBID_OPSTATE                      | 0x01     | 1          |   
+|SUBID_REPORTING_INTERVAL           | 0x02     | 4          |   
+|SUBID_DATA_RESOLUTION              | 0x03     | 4          |   
+|SUBID_SET_SERIAL_NUMBER            | 0x04     | 12         |   
+|SUBID_MQTT_BROKER                  | 0x05     | Variable   |
+|SUBID_MQTT_BROKER_PORT             | 0x06     | 2          |   
+|SUBID_TIMEZONE                     | 0x07     | 1          |   
+|SUBID_IRRIGATION_HR                | 0x08     | 1          |   
+|SUBID_WATER_DISP_PERIOD            | 0x09     | 4          |   
+|SUBID_MQTT_USERNAME                | 0x0A     | Variable   |
+|SUBID_MQTT_PASSWORD                | 0x0B     | Variable   |
+|SUBID_WATER_AMOUNT_BY_BUTTON       | 0x0C     | 4          |
+|SUBID_SOIL_MOISTURE_LOW            | 0x10     | 2          |   
+|SUBID_AIR_HUMIDITY_LOW             | 0x11     | 2          |   
+|SUBID_SOIL_HUMIDITY_LOW            | 0x12     | 2          |   
+|SUBID_CARBON_DIOXIDE_LOW           | 0x13     | 2          |   
+|SUBID_AIR_TEMPERATURE_LOW          | 0x14     | 2          |   
+|SUBID_SOIL_TEMPERATURE_LOW         | 0x15     | 2          |   
+|SUBID_SOIL_NPK_LOW                 | 0x16     | 2          |   
+|SUBID_LIGHT_INTENSITY_LOW          | 0x17     | 2          |   
+|SUBID_SHIELD_BATTERY_LEVEL_LOW     | 0x18     | 2          |   
+|SUBID_SPEAR_BATTERY_LEVEL_LOW      | 0x19     | 2          |   
+|SUBID_WATER_DISPENSED_PERIOD_LOW   | 0x1A     | 4          |   
+|SUBID_SOIL_MOISTURE_HIGH           | 0x30     | 2          |   
+|SUBID_AIR_HUMIDITY_HIGH            | 0x31     | 2          |   
+|SUBID_SOIL_HUMIDITY_HIGH           | 0x32     | 2          |   
+|SUBID_CARBON_DIOXIDE_HIGH          | 0x33     | 2          |   
+|SUBID_AIR_TEMPERATURE_HIGH         | 0x34     | 2          |   
+|SUBID_SOIL_TEMPERATURE_HIGH        | 0x35     | 2          |   
+|SUBID_SOIL_NPK_HIGH                | 0x36     | 2          |   
+|SUBID_LIGHT_INTENSITY_HIGH         | 0x37     | 2          |   
+|SUBID_SHIELD_BATTERY_LEVEL_HIGH    | 0x38     | 2          |   
+|SUBID_SPEAR_BATTERY_LEVEL_HIGH     | 0x39     | 2          |   
+|SUBID_WATER_DISPENSED_PERIOD_HIGH  | 0x3A     | 4          |   
 
 ### **IGH_SETTINGS**
 The **IGH_SETTINGS** tuple is used to send new settings down to the device in the following byte stream format using the SUBIDs listed above.  

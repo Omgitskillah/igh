@@ -286,7 +286,7 @@ void igh_hardware_water_management_service( void )
 
     if( true == button_irrigate )
     {
-        if( (water_dispensed_by_button < (float)igh_current_threshold_settings.water_dispensed_period_low) &&
+        if( (water_dispensed_by_button < (float)igh_current_system_settings.water_amount_by_button_press) &&
             (valve_open_seconds_counter < igh_current_system_settings.water_dispenser_period) )
         {
             current_valve_position = VALVE_OPEN;
@@ -300,32 +300,53 @@ void igh_hardware_water_management_service( void )
     else
     {
         /* Only do auto irrigation if button irrigation is not set */
-        if( true == ok_to_irrigate &&
-        VALID_SOIL_DATA == refreshed_soil_data)
+        if( true == ok_to_irrigate)
         {
-            /**
-             * run the dispensor if we are within the dispensor window
-             * and if we have valid sensor data
-             * */
-            if( soil_humidity < igh_current_threshold_settings.soil_humidity_low &&
-                soil_humidity < igh_current_threshold_settings.soil_humidity_high &&
-                total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_high )
+            bool automatic_irrigation_mode = false;
+
+            if( true == automatic_irrigation_mode )
             {
-                /**
-                 * Dispense water only if
-                 * 1. the soil moisture is too low
-                 * 2. The soil moisture is not too high
-                 * 3. We have not dispensed too much water 
-                 * */
-                current_valve_position = VALVE_OPEN;
+                if( VALID_SOIL_DATA == refreshed_soil_data )
+                {
+                    /**
+                     * run the dispensor if we are within the dispensor window
+                     * and if we have valid sensor data
+                     * */
+                    if( soil_humidity < igh_current_threshold_settings.soil_humidity_low &&
+                        soil_humidity < igh_current_threshold_settings.soil_humidity_high &&
+                        total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_high )
+                    {
+                        /**
+                         * Dispense water only if
+                         * 1. the soil moisture is too low
+                         * 2. The soil moisture is not too high
+                         * 3. We have not dispensed too much water 
+                         * */
+                        current_valve_position = VALVE_OPEN;
+                    }
+                    else
+                    {
+                        /**
+                         * close valve if even one of these conditions is not met
+                         * current_valve_position <--- check this
+                         * */
+                        current_valve_position = VALVE_CLOSE;
+                    }
+                }
             }
             else
             {
-                /**
-                 * close valve if even one of these conditions is not met
-                 * current_valve_position <--- check this
-                 * */
-                current_valve_position = VALVE_CLOSE;
+                // if it is now ok to irrigate, open the valve immediately 
+                // then wait till the first batch of water is used up
+                if( total_water_dispensed_Liters >= (float)igh_current_threshold_settings.water_dispensed_period_low )
+                {
+                    current_valve_position = VALVE_CLOSE;
+                    automatic_irrigation_mode = true;
+                }
+                else
+                {
+                    current_valve_position = VALVE_OPEN;
+                }
             }
         }
         else

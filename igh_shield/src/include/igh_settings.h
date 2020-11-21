@@ -69,6 +69,7 @@ struct system_settings
     uint8_t irrigation_hr; // at what hour should we irrigate?
     device_op_state op_state; // inactive, basic, standard, premium
     uint32_t water_dispenser_period; // tracks time in seconds
+    uint32_t water_amount_by_button_press; // how much water we will get when we press the button
     uint32_t reporting_interval; // frequency of data sending to cloud
     uint32_t data_resolution; // frequency of data collection
     uint8_t serial_number[12]; // The device serial number/ID
@@ -104,6 +105,7 @@ enum igh_settings_subid
     SUBID_WATER_DISP_PERIOD,
     SUBID_MQTT_USERNAME,
     SUBID_MQTT_PASSWORD,
+    SUBID_WATER_AMOUNT_BY_BUTTON,
     
     //High Threshold tirggers
     SUBID_SOIL_MOISTURE_LOW = 0x10,          
@@ -146,6 +148,7 @@ enum igh_settings_subid
 #define MAX_HOUR                                    24
 #define MIN_HOUR                                    0
 #define LENGTH_SUBID_WATER_DISP_PERIOD              4
+#define LENGTH_SUBID_SUBID_WATER_AMOUNT_BY_BUTTON   4
 //High Threshold tirggers
 #define LENGTH_SUBID_SOIL_MOISTURE_LOW              2          
 #define LENGTH_SUBID_AIR_HUMIDITY_LOW               2           
