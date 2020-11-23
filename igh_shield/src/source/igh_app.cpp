@@ -429,12 +429,12 @@ void igh_app_print_valid_settings( void )
     Serial.print("AMOUNT BUTTON CAN DISPENSE: "); Serial.print(igh_current_system_settings.water_amount_by_button_press); Serial.println("L");
     Serial.print("SYSTEM SETTINGS CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
 
-    Serial.print("\n\nSOIL HUMIDITY LOW THRESHOLD: "); Serial.println(igh_default_thresholds.soil_humidity_low);
-    Serial.print("SOIL HUMIDITY HIGH THRESHOLD: "); Serial.println(igh_default_thresholds.soil_humidity_high);
-    Serial.print("SOIL HUMIDITY HIGH THRESHOLD: "); Serial.println(igh_default_thresholds.soil_humidity_high);
-    Serial.print("MIN WATER TO DISPENSE: "); Serial.print(igh_default_thresholds.water_dispensed_period_low); Serial.println("L");
-    Serial.print("MAX WATER TO DISPENSE: "); Serial.print(igh_default_thresholds.water_dispensed_period_high); Serial.println("L");
-    Serial.print("THRESHOLDS SETTINGS CHECKSUM: "); Serial.println(igh_default_thresholds.checksum);
+    Serial.print("\n\nSOIL HUMIDITY LOW THRESHOLD: "); Serial.println(igh_current_threshold_settings.soil_humidity_low);
+    Serial.print("SOIL HUMIDITY HIGH THRESHOLD: "); Serial.println(igh_current_threshold_settings.soil_humidity_high);
+    Serial.print("SOIL HUMIDITY HIGH THRESHOLD: "); Serial.println(igh_current_threshold_settings.soil_humidity_high);
+    Serial.print("MIN WATER TO DISPENSE: "); Serial.print(igh_current_threshold_settings.water_dispensed_period_low); Serial.println("L");
+    Serial.print("MAX WATER TO DISPENSE: "); Serial.print(igh_current_threshold_settings.water_dispensed_period_high); Serial.println("L");
+    Serial.print("THRESHOLDS SETTINGS CHECKSUM: "); Serial.println(igh_current_threshold_settings.checksum);
 }
 
 uint8_t igh_app_get_serial_hex_data( uint8_t * buffer, uint8_t len )
