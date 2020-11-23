@@ -137,7 +137,7 @@ The device will respond with the requested settings in the next payload in the f
 |SUBID_LIGHT_INTENSITY_LOW          | 0x17     | 2          |   
 |SUBID_SHIELD_BATTERY_LEVEL_LOW     | 0x18     | 2          |   
 |SUBID_SPEAR_BATTERY_LEVEL_LOW      | 0x19     | 2          |   
-|SUBID_WATER_DISPENSED_PERIOD_LOW   | 0x1A     | 4          |   
+|SUBID_DAILY_WATER_DISPENSED_LOW    | 0x1A     | 4          |   
 |SUBID_SOIL_MOISTURE_HIGH           | 0x30     | 2          |   
 |SUBID_AIR_HUMIDITY_HIGH            | 0x31     | 2          |   
 |SUBID_SOIL_HUMIDITY_HIGH           | 0x32     | 2          |   
@@ -148,7 +148,7 @@ The device will respond with the requested settings in the next payload in the f
 |SUBID_LIGHT_INTENSITY_HIGH         | 0x37     | 2          |   
 |SUBID_SHIELD_BATTERY_LEVEL_HIGH    | 0x38     | 2          |   
 |SUBID_SPEAR_BATTERY_LEVEL_HIGH     | 0x39     | 2          |   
-|SUBID_WATER_DISPENSED_PERIOD_HIGH  | 0x3A     | 4          |   
+|SUBID_DAILY_WATER_DISPENSED_HIGH   | 0x3A     | 4          |   
 
 ### **IGH_SETTINGS**
 The **IGH_SETTINGS** tuple is used to send new settings down to the device in the following byte stream format using the SUBIDs listed above.  
