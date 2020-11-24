@@ -235,6 +235,15 @@ void igh_hardware_litres_service( void )
     // control valve state
     igh_hardware_water_management_service();
 
+    Serial.print("VALVE: "); 
+    if( current_valve_position == VALVE_OPEN )
+    {
+        Serial.print("OPEN ");
+    }
+    else
+    {
+        Serial.print("CLOSED ");
+    }
     Serial.print("\nWATER DISPENSED: "); Serial.print(total_water_dispensed_Liters); Serial.println("L");
 }
 
@@ -279,6 +288,7 @@ void igh_hardware_water_management_service( void )
             // reset the system at midnight
             ok_to_irrigate = false;
             total_water_dispensed_Liters = 0;
+            automatic_irrigation_mode = false;
             
             time_t time = Time.now();
             Serial.print("RESETTING WATER PARAMS: ");
@@ -286,6 +296,15 @@ void igh_hardware_water_management_service( void )
         }
 
         previous_hr = current_hr;
+    }
+
+    if( current_hr >= igh_current_system_settings.irrigation_hr &&
+        current_valve_position == VALVE_CLOSE &&
+        total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_low )
+    {
+        // force the system to autoirrigate if we are in a situation where we lost the total water dispensed
+        ok_to_irrigate = true;
+        automatic_irrigation_mode = true;
     }
 
     if( true == button_irrigate )
@@ -306,8 +325,6 @@ void igh_hardware_water_management_service( void )
         /* Only do auto irrigation if button irrigation is not set */
         if( true == ok_to_irrigate)
         {
-            automatic_irrigation_mode = false;
-
             if( true == automatic_irrigation_mode )
             {
                 if( VALID_SOIL_DATA == refreshed_soil_data )
@@ -317,8 +334,7 @@ void igh_hardware_water_management_service( void )
                      * and if we have valid sensor data
                      * */
                     if( soil_humidity < igh_current_threshold_settings.soil_humidity_low &&
-                        soil_humidity < igh_current_threshold_settings.soil_humidity_high &&
-                        total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_high )
+                        soil_humidity < igh_current_threshold_settings.soil_humidity_high)
                     {
                         /**
                          * Dispense water only if
@@ -357,6 +373,12 @@ void igh_hardware_water_management_service( void )
         {
             // close valve
             current_valve_position = VALVE_CLOSE;
+        }
+
+        if( total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_high )
+        {
+            // stop irrigating of we exceed the max amount of water allowed
+            ok_to_irrigate = false;
         }
     }
 }
