@@ -364,7 +364,7 @@ void igh_hardware_water_management_service( void )
             current_valve_position = VALVE_CLOSE;
         }
 
-        if( total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_high )
+        if( total_water_dispensed_Liters >= (float)igh_current_threshold_settings.water_dispensed_period_high )
         {
             // stop irrigating of we exceed the max amount of water allowed
             ok_to_irrigate = false;
