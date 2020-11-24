@@ -26,6 +26,8 @@ uint8_t  refreshed_soil_data = INVALID_SOIL_DATA;
 // temp 
 uint8_t hour_counter = 0;
 
+bool automatic_irrigation_mode = false;
+
 #define FLOW_METER_CAL_FACTOR  (4.5)
 #define ONE_MIN                (60)
 #define WATER_SCALING_FACTOR_L (270) // FLOW_METER_CAL_FACTOR * ONE_MIN
@@ -304,7 +306,7 @@ void igh_hardware_water_management_service( void )
         /* Only do auto irrigation if button irrigation is not set */
         if( true == ok_to_irrigate)
         {
-            bool automatic_irrigation_mode = false;
+            automatic_irrigation_mode = false;
 
             if( true == automatic_irrigation_mode )
             {
