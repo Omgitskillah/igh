@@ -101,7 +101,15 @@ void igh_app_send_button_and_valve_events( void )
     if( previous_valve_position != current_valve_position )
     {
         // send a packet with the current valve state
-
+        Serial.print("\nVALVE: "); 
+        if( current_valve_position == VALVE_OPEN )
+        {
+            Serial.print("OPEN ");
+        }
+        else
+        {
+            Serial.println("CLOSED ");
+        }
         uint32_t current_time = igh_boron_unix_time();
 
         uint8_t i = 0; // keep track of pkt data
@@ -209,7 +217,10 @@ void igh_app_receive_and_stage_sensor_data( void )
         // Log data only if the time is synced
         if( JAN_01_2020 < current_time )
         igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
-        
+
+        // rpint water dispensed data along with incoming sensor data
+        Serial.print("\nWATER DISPENSED: "); Serial.print(total_water_dispensed_Liters); Serial.println("L");
+
         igh_boron_toggle_boron_led(OFF);
     }
 }
@@ -430,7 +441,6 @@ void igh_app_print_valid_settings( void )
     Serial.print("SYSTEM SETTINGS CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
 
     Serial.print("\n\nSOIL HUMIDITY LOW THRESHOLD: "); Serial.println(igh_current_threshold_settings.soil_humidity_low);
-    Serial.print("SOIL HUMIDITY HIGH THRESHOLD: "); Serial.println(igh_current_threshold_settings.soil_humidity_high);
     Serial.print("SOIL HUMIDITY HIGH THRESHOLD: "); Serial.println(igh_current_threshold_settings.soil_humidity_high);
     Serial.print("MIN WATER TO DISPENSE: "); Serial.print(igh_current_threshold_settings.water_dispensed_period_low); Serial.println("L");
     Serial.print("MAX WATER TO DISPENSE: "); Serial.print(igh_current_threshold_settings.water_dispensed_period_high); Serial.println("L");
