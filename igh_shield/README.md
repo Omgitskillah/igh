@@ -87,7 +87,7 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 |    SOIL_TEMPERATURE         | 0x0A    | 2          |  
 |    SOIL_NPK                 | 0x0B    | 2          |  
 |    LIGHT_INTENSITY          | 0x0C    | 2          |  
-|    SHIELD_BATTERY_LEVEL     | 0x0D    | 2          |  
+|    SHIELD_BATTERY_LEVEL     | 0x0D    | 4          |  
 |    SPEAR_BATTERY_LEVEL      | 0x0E    | 2          |  
 |    VALVE_POSITION           | 0x0F    | 1          |  
 |    IGH_SEND_SETTINGS        | 0x10    | Variable   |  

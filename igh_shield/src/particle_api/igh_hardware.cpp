@@ -232,6 +232,8 @@ void igh_hardware_litres_service( void )
     igh_hardware_valve_open_timer_service();
     // control valve state
     igh_hardware_water_management_service();
+
+    Serial.print("\nWATER DISPENSED: "); Serial.print(total_water_dispensed_Liters); Serial.println("L");
 }
 
 uint8_t igh_get_local_time_hour( void )
