@@ -24,7 +24,10 @@ uint8_t device_restart = 1;
 extern uint8_t igh_msg_buffer[MESSAGE_SIZE]; 
 valve_position previous_valve_position = VALVE_CLOSE;
 extern bool button_irrigate;
+extern bool automatic_irrigation_mode;
+extern uint8_t igh_button_sec_counter_to_send;
 bool previous_button_irrigate = false;
+bool previous_automatic_irrigation_mode= false;
 
 
 uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload, uint8_t _payload_len );
@@ -138,7 +141,8 @@ void igh_app_send_button_and_valve_events( void )
         previous_valve_position = current_valve_position;
     }
 
-    if( previous_button_irrigate != button_irrigate )
+    if( previous_button_irrigate != button_irrigate ||
+        previous_automatic_irrigation_mode != automatic_irrigation_mode )
     {
         // send packet with button press event
         uint32_t current_time = igh_boron_unix_time();
@@ -150,7 +154,7 @@ void igh_app_send_button_and_valve_events( void )
 
         button_press_msg[0] = BUTTON_PRESS;
         button_press_msg[1] = SIZE_OF_BUTTON_PRESS;
-        button_press_msg[2] = true;
+        button_press_msg[2] = igh_button_sec_counter_to_send;
 
         // Add frame start
         igh_msg_buffer[i++] = FRAME_START;
@@ -167,6 +171,7 @@ void igh_app_send_button_and_valve_events( void )
         igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
 
         previous_button_irrigate = button_irrigate;
+        previous_automatic_irrigation_mode = automatic_irrigation_mode;
     }
 }
 

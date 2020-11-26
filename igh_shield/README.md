@@ -72,37 +72,38 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 
 ### *Currently supported tuple ids and their length*  
 
-| Tuple Name                  | Tuple ID| Length     |
-| :---                        | :---    | :---       |
-|    MSG_ACK                  | 0x00    | 1          |
-|    SPEAR_ID                 | 0x01    | 12         |
-|    STORE_TIMESTAMP          | 0x02    | 4          |  
-|    SEND_TIMESTAMP           | 0x03    | 4          |  
-|    SOIL_MOISTURE            | 0x04    | 2          |  
-|    AIR_HUMIDITY             | 0x05    | 2          |  
-|    SOIL_HUMIDITY            | 0x06    | 2          |  
-|    WATER_DISPENSED          | 0x07    | 4          |  
-|    CARBON_DIOXIDE           | 0x08    | 2          |  
-|    AIR_TEMPERATURE          | 0x09    | 2          |  
-|    SOIL_TEMPERATURE         | 0x0A    | 2          |  
-|    SOIL_NPK                 | 0x0B    | 2          |  
-|    LIGHT_INTENSITY          | 0x0C    | 2          |  
-|    SHIELD_BATTERY_LEVEL     | 0x0D    | 4          |  
-|    SPEAR_BATTERY_LEVEL      | 0x0E    | 2          |  
-|    VALVE_POSITION           | 0x0F    | 1          |  
-|    IGH_SEND_SETTINGS        | 0x10    | Variable   |  
-|    IGH_READ_SETTINGS        | 0x11    | Variable   | 
-|    SPEAR_DATA               | 0x12    | Variable   | 
-|    SPEAR_RF_ID              | 0x13    | 2          |
-|    SHIELD_RF_ID             | 0x14    | 2          |
-|    SEND_INTERVAL            | 0x15    | 4          |
-|    OP_STATE                 | 0x16    | 1          |
-|    SHIELD_ID                | 0x17    | 12         |
-|    SPEAR_BATT_LOW_THRESHOLD | 0x18    | 2          |
-|    SHIELD_BATT_LOW_THRESHOLD| 0x18    | 2          |
-|    RESTART                  | 0xFD    | 1          |
-|    DATA_PKT                 | 0xFE    | Variable   |
-|    END_OF_PKT_ID            | 0xFF    | -          |
+| Tuple Name                  | Tuple ID| Length     | Description                                         |
+| :---                        | :---    | :---       | :---                                                |
+| MSG_ACK                     | 0x00    | 1          |                                                     |
+| SPEAR_ID                    | 0x01    | 12         |                                                     |
+| STORE_TIMESTAMP             | 0x02    | 4          |                                                     | 
+| SEND_TIMESTAMP              | 0x03    | 4          |                                                     | 
+| SOIL_MOISTURE               | 0x04    | 2          |                                                     | 
+| AIR_HUMIDITY                | 0x05    | 2          |                                                     | 
+| SOIL_HUMIDITY               | 0x06    | 2          |                                                     | 
+| WATER_DISPENSED             | 0x07    | 4          | floating point value of water dispensed in liters   |
+| CARBON_DIOXIDE              | 0x08    | 2          |                                                     | 
+| AIR_TEMPERATURE             | 0x09    | 2          |                                                     | 
+| SOIL_TEMPERATURE            | 0x0A    | 2          |                                                     | 
+| SOIL_NPK                    | 0x0B    | 2          |                                                     | 
+| LIGHT_INTENSITY             | 0x0C    | 2          |                                                     | 
+| SHIELD_BATTERY_LEVEL        | 0x0D    | 4          |                                                     | 
+| SPEAR_BATTERY_LEVEL         | 0x0E    | 2          | floating point value of % state of charge in shield | 
+| VALVE_POSITION              | 0x0F    | 1          |                                                     | 
+| IGH_SEND_SETTINGS           | 0x10    | Variable   |                                                     | 
+| IGH_READ_SETTINGS           | 0x11    | Variable   |                                                     |
+| SPEAR_DATA                  | 0x12    | Variable   |                                                     |
+| SPEAR_RF_ID                 | 0x13    | 2          |                                                     |
+| SHIELD_RF_ID                | 0x14    | 2          |                                                     |
+| SEND_INTERVAL               | 0x15    | 4          |                                                     |
+| OP_STATE                    | 0x16    | 1          |                                                     |
+| SHIELD_ID                   | 0x17    | 12         |                                                     |
+| SPEAR_BATT_LOW_THRESHOLD    | 0x18    | 2          |                                                     |
+| SHIELD_BATT_LOW_THRESHOLD   | 0x19    | 2          |                                                     |
+| BUTTON_PRESS                | 0x19    | 1          | How long button was pressed in seconds              |
+| RESTART                     | 0xFD    | 1          |                                                     |
+| DATA_PKT                    | 0xFE    | Variable   |                                                     |
+| END_OF_PKT_ID               | 0xFF    | -          |                                                     |
 
 ### **IGH_READ_SETTINGS**
 In order to get the current settings in a device, the cloud platform must send a message with and **IGH_READ_SETTINGS** tuple in the payload.  
@@ -193,18 +194,20 @@ The Messages published over MQTT must be in the format expressed above.
 5. SD Card Fault
 6. Unreachable Spear
 7. Button Press
+# WATER IRRIGATION LOGIC
+## Button Control Logic
+- Holding the button down for at least _**FIVE SECONDS**_ will open the valve. If _***100 litres of water**_ pass through the meter **OR** if _***30 minutes**_ elapse since the valve opened, the valve will automatically close. Opening the valve via the button automatically disables anu form of automatica irrigation
+- During Normal operation, the system will wait for _***0600Hrs**_ before irrigation can start. At this hour, the system will first dispense _***300 litres of water**_ after which the system moves into **SENSOR DISPENSE MODE**. The soil humidity data is then used to open and close the vlave. If the humidity readings are between _***60%**_ and _***90%**_, the valve will open and if _***100 litres of water**_ pass through the meter **OR** if _***30 minutes**_ elapse since the valve opened, the valve will automatically close.
+- Holding the button for _**TWO SECONDS**_ will disable **SENSOR DISPENSE MODE** and hodling the button down for  _**TWO SECONDS**_ once more re enables **SENSOR DISPENSE MODE**. 
+- If the total water dispensed in a single day is above _***800 litres of water**_, **SENSOR DISPENSE MODE** is disabled but water can still be dispensed via a _**FIVE SECONDS**_ button press. 
 
-# Add the encryption key to memory
-
-#define ENCRYPTKEY      "IGH-RFM69HCW-KEY" 
-
-***************
-IGH Shield Test
-***************
-?. Options
-1. Test EEPROM
-2. Test Device API
-3. Test Button Press
-4. Test Valve Control
-5. Test SD Card
-6. Test Radio
+***NOTES:***  
+  _***100 litres of water**_ - _Default value, can be changed using settings 
+  **SUBID_WATER_AMOUNT_BY_BUTTON**_   
+  _***30 minutes**_ - _Default value, can be changed using settings **SUBID_WATER_DISP_PERIOD**_   
+  _***300 litres of water**_ - _Default value, can be changed using settings 
+  **SUBID_DAILY_WATER_DISPENSED_MIN**_  
+  _***800 litres of water**_ - _Default value, can be changed using settings 
+  **SUBID_DAILY_WATER_DISPENSED_MAX**_  
+  _***0600Hrs**_ - _Default value, can be changed using settings 
+  **SUBID_IRRIGATION_HR**_ 

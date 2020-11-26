@@ -13,7 +13,13 @@
         "xhash": "cpp",
         "xstring": "cpp",
         "xutility": "cpp",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "system_error": "cpp",
+        "array": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp",
+        "xtr1common": "cpp"
     },
     "particle.targetPlatform": "boron",
     "particle.targetDevice": "gravity_falls"

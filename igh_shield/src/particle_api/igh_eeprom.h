@@ -9,6 +9,12 @@
 
 #include "include/igh_settings.h"
 
+// We only have 4KB for the Boron
+#define SYSTEM_SETTINGS_ADDRESS     (int)0x0000
+#define SYSTEM_THRESHOLDS_ADDRESS   (int)0x0200
+#define SYSTEM_ERRORS_ADDRESS       (int)0x0400
+#define SYSTEM_IRRIGATION_FLAGS     (int)0x0600
+
 uint8_t igh_eeproom_test(void);
 
 void igh_eeprom_init( void );

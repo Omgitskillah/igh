@@ -11,6 +11,16 @@ pword = "940610b43b1"
 topic1 = "55e00fce680f88ae453f7fbc4a"
 topic2 = "55e00fce684666bdddcaa57021"
 
+# Temp Humidity constants
+SOIL_TEMPERATURE_MULTIPLIER_D1 = -39.66
+SOIL_TEMPERATURE_MULTIPLIER_D2 = 0.01
+SOIL_HUMIDITY_MULTIPLIER_C1    = -2.0468
+SOIL_HUMIDITY_MULTIPLIER_C2    = 0.0367
+SOIL_HUMIDITY_MULTIPLIER_C3    = (-1.59955) * (10**(-6))
+SOIL_HUMIDITY_MULTIPLIER_T1    = 0.01
+SOIL_HUMIDITY_MULTIPLIER_T2    = 0.00008
+ROOM_TEMPERATURE               = 25.0
+
 TOPICS = [(topic1,0),(topic2,0)]
 
 def get_random_string(length):
@@ -55,6 +65,8 @@ def get_tuple_name( tuple_id ):
 
 def process_spear_tuples( packet, start, stop ):
     byte_tracker = start
+    soil_humidity = 0
+    soil_temperature = 0
     while byte_tracker < stop:
         tuple_id = packet[byte_tracker]
         if 0x3e == tuple_id:
@@ -63,6 +75,16 @@ def process_spear_tuples( packet, start, stop ):
         tuple_data = packet[ (byte_tracker + 2) : (byte_tracker + 2 + tuple_len) ]
         if tuple_id == 0x01:
             print( get_tuple_name(tuple_id), " : ", str(tuple_data.hex()) )
+        elif tuple_id == 0x06:
+            # this assumes that the humidity tuple will always appear first in the packet
+            [soil_humidity] = struct.unpack('<H', tuple_data)
+        elif tuple_id == 0x0A:
+            [soil_temperature] = struct.unpack('<H', tuple_data)
+            linearHumidity = SOIL_HUMIDITY_MULTIPLIER_C1 + SOIL_HUMIDITY_MULTIPLIER_C2 * soil_humidity + SOIL_HUMIDITY_MULTIPLIER_C3 * soil_humidity * soil_humidity
+            temperature = SOIL_TEMPERATURE_MULTIPLIER_D1 + SOIL_TEMPERATURE_MULTIPLIER_D2 * soil_temperature
+            correctedHumidity = (temperature - ROOM_TEMPERATURE) * (SOIL_HUMIDITY_MULTIPLIER_T1 + SOIL_HUMIDITY_MULTIPLIER_T2 * soil_humidity) + linearHumidity
+            print( "SOIL_HUMIDITY               : ", "%.2f%%" % correctedHumidity )
+            print( "SOIL_TEMPERATURE            : ", "%.2fC" % temperature )
         else:
             [value] = struct.unpack('<H', tuple_data)
             print( get_tuple_name(tuple_id), " : ", value )
@@ -96,7 +118,7 @@ def process_tuples( packet, start, stop ):
         byte_tracker += tuple_len + 2
     timestamp = datetime.datetime.fromtimestamp(current_unix_time)
     print("***********************************************************" )
-    print("STORED TIME STAMP: ", timestamp.strftime('%Y-%m-%d %H:%M:%S'))
+    print("STORED TIME STAMP: ", timestamp.strftime('%Y-%m-%d_%H-%M-%S'))
     print("***********************************************************" )
 
 #define callback
