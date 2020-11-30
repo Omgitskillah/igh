@@ -77,6 +77,8 @@ void idle_valve( void );
 void open_valve( void );
 void close_valve( void );
 
+irrigation_params_str irrigation_parameters;
+
 Timer water_flow_timer(ONE_SECOND, igh_hardware_litres_service);
 
 
@@ -209,9 +211,9 @@ void igh_boron_button_press_duration(void)
 
 void igh_hardware_water_flow_setup( void )
 {
+    EEPROM.get( SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
     attach_flow_meter_interrupt();
     water_flow_timer.start();
-
 }
 
 void igh_app_water_counter_callback( void )
@@ -302,7 +304,6 @@ uint8_t igh_get_local_time_hour( void )
 void igh_hardware_manage_time_to_irrigate( void )
 {
     current_hr = igh_get_local_time_hour();
-    irrigation_params_str irrigation_parameters;
 
     if( current_hr != previous_hr )
     {
@@ -314,7 +315,7 @@ void igh_hardware_manage_time_to_irrigate( void )
             EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
 
             time_t time = Time.now();
-            Serial.print("IRRIGATION TIME STARTED: ");
+            Serial.print("IRRIGATION TIME STARTED, FLAG SET: ");
             Serial.println( Time.format(time, TIME_FORMAT_DEFAULT) );
         }
         else if( MIDNIGHT == current_hr )
@@ -353,9 +354,6 @@ void igh_hardware_water_management_service( void )
     }
     else
     {
-        irrigation_params_str irrigation_parameters;
-        EEPROM.get( SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
-
         if( OK_TO_IRRIGATE == irrigation_parameters.irrigation_state &&
             total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_high &&
             true == automatic_irrigation_mode )
@@ -369,6 +367,7 @@ void igh_hardware_water_management_service( void )
                     // if we have now dispensed all the water, set the flag the close the valve
                     irrigation_parameters.min_amount_of_water_dispens_status = MIN_AMOUNT_OF_WATER_WAS_DISPENSED;
                     EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+                    Serial.print("MIN WATER DISPENSED FLAG SET AFTER "); Serial.print(total_water_dispensed_Liters); Serial.println("L");
                     // then close the valve
                     current_valve_position = VALVE_CLOSE;
                 }
