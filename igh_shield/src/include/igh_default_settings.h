@@ -30,7 +30,7 @@ extern "C" {
 //High Threshold tirggers       
 #define DEFAULT_SOIL_MOISTURE_LOW               0            
 #define DEFAULT_AIR_HUMIDITY_LOW                0            
-#define DEFAULT_SOIL_HUMIDITY_LOW               60 // 60% humidity                 
+#define DEFAULT_SOIL_HUMIDITY_LOW               1780 // ~60% RAW*31.22                 
 #define DEFAULT_CARBON_DIOXIDE_LOW              0   
 #define DEFAULT_AIR_TEMPERATURE_LOW             0            
 #define DEFAULT_SOIL_TEMPERATURE_LOW            0            
@@ -42,7 +42,7 @@ extern "C" {
 // Low Threshold Trigger        
 #define DEFAULT_SOIL_MOISTURE_HIGH              255             
 #define DEFAULT_AIR_HUMIDITY_HIGH               255          
-#define DEFAULT_SOIL_HUMIDITY_HIGH              90 // 90% humidity                  
+#define DEFAULT_SOIL_HUMIDITY_HIGH              2860 // ~90%  RAW*31.22              
 #define DEFAULT_CARBON_DIOXIDE_HIGH             255   
 #define DEFAULT_AIR_TEMPERATURE_HIGH            255            
 #define DEFAULT_SOIL_TEMPERATURE_HIGH           255            

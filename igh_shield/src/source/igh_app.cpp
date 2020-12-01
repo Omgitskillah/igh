@@ -19,6 +19,8 @@
 
 #define JAN_01_2020 1577836800
 
+#define MAX_HUMIDITY (3300)
+
 unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
 extern uint8_t igh_msg_buffer[MESSAGE_SIZE]; 
@@ -627,8 +629,7 @@ void igh_app_get_temperature_and_humidity( uint8_t * incoming_data )
         true == valid_temerature )
     {
         soil_humidity = igh_app_calculate_humidity(new_temperature, new_humidity);
-        if( soil_humidity >= 0 &&
-            soil_humidity <= 100 )
+        if( soil_humidity <= MAX_HUMIDITY )
         {
             // only use valid sensor data
             refreshed_soil_data = VALID_SOIL_DATA;
@@ -636,7 +637,8 @@ void igh_app_get_temperature_and_humidity( uint8_t * incoming_data )
         }
         else
         {
-            Serial.println("INVALID HUMIDITY DATA");
+            refreshed_soil_data = VALID_SOIL_DATA;
+            Serial.println("SATURATED HUMIDITY DATA");
         }
     }
     else
@@ -648,6 +650,7 @@ void igh_app_get_temperature_and_humidity( uint8_t * incoming_data )
 
 uint16_t igh_app_calculate_humidity( uint16_t new_temperature, uint16_t new_humidity )
 {
+/* Human readable
     double linearHumidity = SOIL_HUMIDITY_MULTIPLIER_C1 + SOIL_HUMIDITY_MULTIPLIER_C2 * new_humidity 
                           + SOIL_HUMIDITY_MULTIPLIER_C3 * new_humidity * new_humidity;
 
@@ -662,8 +665,15 @@ uint16_t igh_app_calculate_humidity( uint16_t new_temperature, uint16_t new_humi
     Serial.print("C HUMIDITY: "); Serial.print(correctedHumidity);
     Serial.println("%");
 
-    // offload the decimal places
     return (uint16_t)correctedHumidity;
+*/
+
+/* RAW */
+    Serial.print("RAW TEMPERATURE: "); Serial.print(new_temperature);
+    Serial.print(" RAW HUMIDITY: "); Serial.println(new_humidity);
+
+    // offload the decimal places
+    return new_humidity;
 }
 
 
