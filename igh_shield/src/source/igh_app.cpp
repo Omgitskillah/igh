@@ -427,6 +427,8 @@ void igh_app_get_new_settings( void )
             // reset system
             igh_settings_reset_system_to_default();
             new_settings_available = 1;
+            mqtt_set_broker = 1;
+            initialize_rfm69 = 1;
         }
     }
 }
