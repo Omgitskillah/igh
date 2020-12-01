@@ -400,6 +400,34 @@ void igh_app_get_new_settings( void )
         {
             igh_app_print_valid_settings();
         }
+        else if( (igh_msg_buffer[0] == 'R') &&
+                 (igh_msg_buffer[1] == 'E') &&
+                 (igh_msg_buffer[2] == 'S') &&
+                 (igh_msg_buffer[3] == 'E') &&
+                 (igh_msg_buffer[4] == 'T') &&
+                 (igh_msg_buffer[5] == '-') &&
+                 (igh_msg_buffer[6] == 'I') &&
+                 (igh_msg_buffer[7] == 'R') &&
+                 (igh_msg_buffer[8] == 'R') )
+        {
+            // reset irrigation
+            reset_irrigation_params();
+            Serial.println("IRRIGATION RESET SUCCESSFUL");
+        }
+        else if( (igh_msg_buffer[0] == 'R') &&
+                 (igh_msg_buffer[1] == 'E') &&
+                 (igh_msg_buffer[2] == 'S') &&
+                 (igh_msg_buffer[3] == 'E') &&
+                 (igh_msg_buffer[4] == 'T') &&
+                 (igh_msg_buffer[5] == '-') &&
+                 (igh_msg_buffer[6] == 'S') &&
+                 (igh_msg_buffer[7] == 'Y') &&
+                 (igh_msg_buffer[8] == 'S') )
+        {
+            // reset system
+            igh_settings_reset_system_to_default();
+            new_settings_available = 1;
+        }
     }
 }
 

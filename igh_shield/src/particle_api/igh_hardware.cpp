@@ -321,10 +321,7 @@ void igh_hardware_manage_time_to_irrigate( void )
         else if( MIDNIGHT == current_hr )
         {
             // reset the system at midnight
-            irrigation_parameters.irrigation_state = NOT_OK_TO_IRRIGATE;
-            irrigation_parameters.min_amount_of_water_dispens_status = MIN_AMOUNT_OF_WATER_NOT_DISPENSED;
-            // update the flags
-            EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+            reset_irrigation_params();
 
             total_water_dispensed_Liters = 0;
             
@@ -335,6 +332,14 @@ void igh_hardware_manage_time_to_irrigate( void )
 
         previous_hr = current_hr;
     }
+}
+
+void reset_irrigation_params( void )
+{
+    irrigation_parameters.irrigation_state = NOT_OK_TO_IRRIGATE;
+    irrigation_parameters.min_amount_of_water_dispens_status = MIN_AMOUNT_OF_WATER_NOT_DISPENSED;
+    // update the flags
+    EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
 }
 
 void igh_hardware_water_management_service( void )
