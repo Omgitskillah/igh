@@ -21,6 +21,8 @@
 
 #define MAX_HUMIDITY (3300)
 
+uint8_t fw_ver[3] = {0,0,16};
+
 unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
 extern uint8_t igh_msg_buffer[MESSAGE_SIZE]; 
@@ -44,18 +46,19 @@ void igh_app_get_temperature_and_humidity( uint8_t * incoming_data );
 void igh_app_send_button_and_valve_events( void );
 uint16_t igh_app_calculate_humidity( uint16_t temperature, uint16_t humidity );
 void igh_app_print_valid_settings( void );
+void update_fw_version( void );
 
 void igh_app_setup( void )
 {
     Serial.begin(19200);
     
     igh_boron_setup();
-
-    // setup hardwar
-    igh_hardware_setup();
     
     // get settings from eeprom
     igh_eeprom_init();
+
+    // setup hardwar
+    igh_hardware_setup();
     
     // starte the radio
     igh_rfm69_setup();
@@ -65,6 +68,9 @@ void igh_app_setup( void )
 
     // setup the SD card
     igh_sd_log_setup();
+
+    // update fw version
+    update_fw_version();
 }
 
 void igh_main_application( void )
@@ -99,6 +105,18 @@ void igh_main_application( void )
     // send button and valve events 
     igh_app_send_button_and_valve_events();
 
+}
+
+void update_fw_version( void )
+{
+    uint8_t read_fw_ver[3];
+    EEPROM.get( SYSTEM_FW_VERSION, read_fw_ver );
+    if( read_fw_ver[0] != fw_ver[0] ||
+        read_fw_ver[1] != fw_ver[1] ||
+        read_fw_ver[2] != fw_ver[2] )
+    {
+        EEPROM.put( SYSTEM_FW_VERSION, fw_ver);
+    }
 }
 
 void igh_app_send_button_and_valve_events( void )
@@ -457,7 +475,10 @@ void igh_app_commit_new_settings( void )
 
 void igh_app_print_valid_settings( void )
 {
-    Serial.print("OP STATE:"); Serial.println(igh_current_system_settings.op_state);
+    uint8_t current_fw_ver[3];
+    EEPROM.get( SYSTEM_FW_VERSION, current_fw_ver);
+    Serial.print("FW VERSION: v"); Serial.print(current_fw_ver[0]); Serial.print("."); Serial.print(current_fw_ver[1]); Serial.print("."); Serial.print(current_fw_ver[2]);
+    Serial.print("OP STATE: "); Serial.println(igh_current_system_settings.op_state);
     Serial.print("REPORTING INTERVAL: "); Serial.println(igh_current_system_settings.reporting_interval);
     Serial.print("DATA RESOLUTION: "); Serial.println(igh_current_system_settings.data_resolution);
     Serial.print("SERIAL NUMBER: ");

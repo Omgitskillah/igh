@@ -10,6 +10,9 @@ uname = "shields"
 pword = "940610b43b1"
 topic1 = "55e00fce680f88ae453f7fbc4a"
 topic2 = "55e00fce684666bdddcaa57021"
+topic3 = "55e00fce682c5cb31007bc431"
+topic4 = "55e00fce68e9d014125add3e8e"
+
 
 # Temp Humidity constants
 SOIL_TEMPERATURE_MULTIPLIER_D1 = -39.66
@@ -21,7 +24,9 @@ SOIL_HUMIDITY_MULTIPLIER_T1    = 0.01
 SOIL_HUMIDITY_MULTIPLIER_T2    = 0.00008
 ROOM_TEMPERATURE               = 25.0
 
-TOPICS = [(topic1,0),(topic2,0)]
+# TOPICS = [(topic3,0)]
+# TOPICS = [(topic3,0),(topic2,0)]
+TOPICS = [(topic3,0),(topic2,0),(topic1,0),(topic4,0)]
 
 def get_random_string(length):
     letters = string.ascii_lowercase
@@ -136,6 +141,7 @@ client= paho.Client(new_client_id)
 client.username_pw_set( uname, pword)
 client.on_message=on_message
 print("connecting to broker ",broker, " client id:", new_client_id)
+print("topics ", TOPICS)
 client.connect(broker)#connect
 
 client.loop_start() #start loop to process received messages
