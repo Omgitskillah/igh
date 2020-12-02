@@ -54,11 +54,11 @@ void igh_app_setup( void )
     
     igh_boron_setup();
     
-    // get settings from eeprom
-    igh_eeprom_init();
-
     // setup hardwar
     igh_hardware_setup();
+    
+    // get settings from eeprom
+    igh_eeprom_init();
     
     // starte the radio
     igh_rfm69_setup();

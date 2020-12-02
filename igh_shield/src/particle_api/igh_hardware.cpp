@@ -25,6 +25,8 @@ uint16_t soil_humidity = 0;
 uint16_t soil_temperature = 0;
 uint8_t  refreshed_soil_data = INVALID_SOIL_DATA;
 
+bool irrigation_params_updated = false;
+
 
 // temp 
 uint8_t hour_counter = 0;
@@ -76,8 +78,6 @@ void igh_hardware_valve_open_timer_service( void );
 void idle_valve( void );
 void open_valve( void );
 void close_valve( void );
-
-irrigation_params_str irrigation_parameters;
 
 Timer water_flow_timer(ONE_SECOND, igh_hardware_litres_service);
 
@@ -211,7 +211,6 @@ void igh_boron_button_press_duration(void)
 
 void igh_hardware_water_flow_setup( void )
 {
-    EEPROM.get( SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
     attach_flow_meter_interrupt();
     water_flow_timer.start();
 }
@@ -303,6 +302,8 @@ uint8_t igh_get_local_time_hour( void )
 
 void igh_hardware_manage_time_to_irrigate( void )
 {
+    irrigation_params_str irrigation_parameters;
+
     current_hr = igh_get_local_time_hour();
 
     if( current_hr != previous_hr )
@@ -310,9 +311,13 @@ void igh_hardware_manage_time_to_irrigate( void )
         if( current_hr == igh_current_system_settings.irrigation_hr )
         {
             // it is ok to irrigat if it hits the irrigation hour
+            EEPROM.get(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+
             irrigation_parameters.irrigation_state = OK_TO_IRRIGATE;
             // update the flags
             EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+
+            irrigation_params_updated = false;
 
             time_t time = Time.now();
             Serial.print("IRRIGATION TIME STARTED, FLAG SET: ");
@@ -336,10 +341,14 @@ void igh_hardware_manage_time_to_irrigate( void )
 
 void reset_irrigation_params( void )
 {
+    irrigation_params_str irrigation_parameters;
+
     irrigation_parameters.irrigation_state = NOT_OK_TO_IRRIGATE;
     irrigation_parameters.min_amount_of_water_dispens_status = MIN_AMOUNT_OF_WATER_NOT_DISPENSED;
     // update the flags
     EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+
+    irrigation_params_updated = false;
 }
 
 void igh_hardware_water_management_service( void )
@@ -359,6 +368,13 @@ void igh_hardware_water_management_service( void )
     }
     else
     {
+        irrigation_params_str irrigation_parameters;
+        if( false == irrigation_params_updated )
+        {
+            EEPROM.get(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+            irrigation_params_updated = true;
+        }
+
         if( OK_TO_IRRIGATE == irrigation_parameters.irrigation_state &&
             total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_high &&
             true == automatic_irrigation_mode )
