@@ -21,7 +21,7 @@
 
 #define MAX_HUMIDITY (3300)
 
-uint8_t fw_ver[3] = {0,0,16};
+uint8_t fw_ver[3] = {0,0,17};
 
 unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
@@ -477,7 +477,7 @@ void igh_app_print_valid_settings( void )
 {
     uint8_t current_fw_ver[3];
     EEPROM.get( SYSTEM_FW_VERSION, current_fw_ver);
-    Serial.print("FW VERSION: v"); Serial.print(current_fw_ver[0]); Serial.print("."); Serial.print(current_fw_ver[1]); Serial.print("."); Serial.print(current_fw_ver[2]);
+    Serial.print("FW VERSION: v"); Serial.print(current_fw_ver[0]); Serial.print("."); Serial.print(current_fw_ver[1]); Serial.print("."); Serial.println(current_fw_ver[2]);
     Serial.print("OP STATE: "); Serial.println(igh_current_system_settings.op_state);
     Serial.print("REPORTING INTERVAL: "); Serial.println(igh_current_system_settings.reporting_interval);
     Serial.print("DATA RESOLUTION: "); Serial.println(igh_current_system_settings.data_resolution);
