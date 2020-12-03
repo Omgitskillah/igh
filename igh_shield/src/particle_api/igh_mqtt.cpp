@@ -79,52 +79,55 @@ void igh_mqtt_service( void )
         mqtt_set_broker = false;
     }
 
-    if (client.isConnected())
+    if( true == Cellular.ready() )
     {
-        client.loop();
-        mqtt_connected = 1;
-
-        if( false == mqtt_subscribed )
+        if (client.isConnected())
         {
-            client.subscribe( (const char *)inbound_topic );
-            mqtt_subscribed = true;
+            client.loop();
+            mqtt_connected = 1;
+
+            if( false == mqtt_subscribed )
+            {
+                client.subscribe( (const char *)inbound_topic );
+                mqtt_subscribed = true;
+            }
         }
-    }
-    else
-    {
-        /* try to connect */
-        mqtt_connected = 0;
-
-        if( (millis() - reconnect_interval) > 10000 )
+        else
         {
-            // try to reconnect only once every 10 seconds
-            uint8_t broker_uname_len = 0;
-            uint8_t broker_password_len = 0;
+            /* try to connect */
+            mqtt_connected = 0;
 
-            while( igh_current_system_settings.mqtt_username[broker_uname_len] )
+            if( (millis() - reconnect_interval) > 10000 )
             {
-                if( '\0' == igh_current_system_settings.mqtt_username[broker_uname_len] ) break;
-                broker_uname_len++;
-            }
+                // try to reconnect only once every 10 seconds
+                uint8_t broker_uname_len = 0;
+                uint8_t broker_password_len = 0;
 
-            while( igh_current_system_settings.mqtt_password[broker_password_len] )
-            {
-                if( '\0' == igh_current_system_settings.mqtt_password[broker_password_len] ) break;
-                broker_password_len++;
-            }
+                while( igh_current_system_settings.mqtt_username[broker_uname_len] )
+                {
+                    if( '\0' == igh_current_system_settings.mqtt_username[broker_uname_len] ) break;
+                    broker_uname_len++;
+                }
 
-            char new_uname[broker_uname_len + 1];
-            char new_password[broker_password_len + 1];
-            
-            memcpy( new_uname, igh_current_system_settings.mqtt_username, sizeof(new_uname) );
-            memcpy( new_password, igh_current_system_settings.mqtt_password, sizeof(new_password) );
-            
-            // Serial.print("CLIENT NAME: "); Serial.print((const char *)device_name);
-            // Serial.print(" USERNAME: "); Serial.print(new_uname);
-            // Serial.print(" PASSWORD: "); Serial.println(new_password);
-            
-            client.connect( (const char *)device_name, (const char *)new_uname, (const char *)new_password );
-            reconnect_interval = millis();
+                while( igh_current_system_settings.mqtt_password[broker_password_len] )
+                {
+                    if( '\0' == igh_current_system_settings.mqtt_password[broker_password_len] ) break;
+                    broker_password_len++;
+                }
+
+                char new_uname[broker_uname_len + 1];
+                char new_password[broker_password_len + 1];
+                
+                memcpy( new_uname, igh_current_system_settings.mqtt_username, sizeof(new_uname) );
+                memcpy( new_password, igh_current_system_settings.mqtt_password, sizeof(new_password) );
+                
+                Serial.print("CLIENT NAME: "); Serial.print((const char *)device_name);
+                Serial.print(" USERNAME: "); Serial.print(new_uname);
+                Serial.print(" PASSWORD: "); Serial.println(new_password);
+                
+                client.connect( (const char *)device_name, (const char *)new_uname, (const char *)new_password );
+                reconnect_interval = millis();
+            }
         }
     }
 }

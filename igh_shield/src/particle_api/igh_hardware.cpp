@@ -302,14 +302,13 @@ uint8_t igh_get_local_time_hour( void )
 
 void igh_hardware_manage_time_to_irrigate( void )
 {
-    irrigation_params_str irrigation_parameters;
-
     current_hr = igh_get_local_time_hour();
 
     if( current_hr != previous_hr )
     {
         if( current_hr == igh_current_system_settings.irrigation_hr )
         {
+            irrigation_params_str irrigation_parameters;
             // it is ok to irrigat if it hits the irrigation hour
             EEPROM.get(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
 
@@ -320,8 +319,8 @@ void igh_hardware_manage_time_to_irrigate( void )
             irrigation_params_updated = false;
 
             time_t time = Time.now();
-            Serial.print("IRRIGATION TIME STARTED, FLAG SET: ");
-            Serial.println( Time.format(time, TIME_FORMAT_DEFAULT) );
+            // Serial.print("IRRIGATION TIME STARTED, FLAG SET: ");
+            // Serial.println( Time.format(time, TIME_FORMAT_DEFAULT) );
         }
         else if( MIDNIGHT == current_hr )
         {
@@ -331,11 +330,32 @@ void igh_hardware_manage_time_to_irrigate( void )
             total_water_dispensed_Liters = 0;
             
             time_t time = Time.now();
-            Serial.print("RESETTING WATER PARAMS: ");
-            Serial.println( Time.format(time, TIME_FORMAT_DEFAULT) );
+            // Serial.print("RESETTING WATER PARAMS: ");
+            // Serial.println( Time.format(time, TIME_FORMAT_DEFAULT) );
         }
 
         previous_hr = current_hr;
+    }
+
+    if( current_hr >= igh_current_system_settings.irrigation_hr &&
+        ( true == Cellular.ready()) ) // only if we have valid time
+    {
+        // if we find ourselves here, there has been a reset, check the flag, 
+        // if the flag is not set, start irrigation
+        irrigation_params_str irrigation_parameters;
+        EEPROM.get(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+
+        if( MIN_AMOUNT_OF_WATER_WAS_DISPENSED != irrigation_parameters.min_amount_of_water_dispens_status &&
+            OK_TO_IRRIGATE != irrigation_parameters.irrigation_state )
+        {
+            // say that it is ok to irrigate, the rest of the system should take care of it
+            irrigation_parameters.irrigation_state = OK_TO_IRRIGATE;
+
+            // update the flags
+            EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+
+            // Serial.println("SYSTEM SET TO IRRIGATION OK TO CATCH UP");
+        }
     }
 }
 
@@ -359,81 +379,90 @@ void igh_hardware_water_management_service( void )
             (valve_open_seconds_counter < igh_current_system_settings.water_dispenser_period) )
         {
             current_valve_position = VALVE_OPEN;
+            // Serial.println("--------------------------------------------------> 1");
         }
         else
         {
             button_irrigate = false;
             current_valve_position = VALVE_CLOSE;
+            // Serial.println("--------------------------------------------------> 2");
         }
     }
     else
     {
         irrigation_params_str irrigation_parameters;
-        if( false == irrigation_params_updated )
-        {
-            EEPROM.get(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
-            irrigation_params_updated = true;
-        }
+        EEPROM.get(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
 
-        if( OK_TO_IRRIGATE == irrigation_parameters.irrigation_state &&
-            total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_high &&
-            true == automatic_irrigation_mode )
+        if( OK_TO_IRRIGATE == irrigation_parameters.irrigation_state )
         {
-            if( MIN_AMOUNT_OF_WATER_WAS_DISPENSED != irrigation_parameters.min_amount_of_water_dispens_status )
+            if( total_water_dispensed_Liters < (float)igh_current_threshold_settings.water_dispensed_period_high &&
+                true == automatic_irrigation_mode )
             {
-                // if we have not dispensed all the water needed in the morning, open the valve till we do
-                current_valve_position = VALVE_OPEN;
-                if( total_water_dispensed_Liters >= igh_current_threshold_settings.water_dispensed_period_low )
-                {
-                    // if we have now dispensed all the water, set the flag the close the valve
-                    irrigation_parameters.min_amount_of_water_dispens_status = MIN_AMOUNT_OF_WATER_WAS_DISPENSED;
-                    EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
-                    Serial.print("MIN WATER DISPENSED FLAG SET AFTER "); Serial.print(total_water_dispensed_Liters); Serial.println("L");
-                    // then close the valve
-                    current_valve_position = VALVE_CLOSE;
-                }
-            }
-            else
-            {
-                // if all the water was dispensed in the morning, start using sensor data to maintain the valve
-                if( VALID_SOIL_DATA == refreshed_soil_data )
-                {
-                    /**
-                     * run the irrigation if we are within the dispensor window
-                     * and if we have valid sensor data
-                     * */
-                    if( (soil_humidity < igh_current_threshold_settings.soil_humidity_low) &&
-                        (soil_humidity < igh_current_threshold_settings.soil_humidity_high) &&
-                        (water_dispensed_by_sensors < (float)igh_current_system_settings.water_amount_by_button_press) &&
-                        (valve_open_seconds_counter < igh_current_system_settings.water_dispenser_period) )
+                    if( MIN_AMOUNT_OF_WATER_WAS_DISPENSED != irrigation_parameters.min_amount_of_water_dispens_status )
                     {
-                        /**
-                         * Dispense water only if
-                         * 1. the soil moisture is too low
-                         * 2. The soil moisture is not too high
-                         * 3. We have not dispensed too much water 
-                         * */
-                        sensor_irrigation = true;
-                        current_valve_position = VALVE_OPEN;
+                        // if we have not dispensed all the water needed in the morning, open the valve till we do
+                        if( total_water_dispensed_Liters >= igh_current_threshold_settings.water_dispensed_period_low )
+                        {
+                            // if we have now dispensed all the water, set the flag the close the valve
+                            irrigation_parameters.min_amount_of_water_dispens_status = MIN_AMOUNT_OF_WATER_WAS_DISPENSED;
+                            EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+                            // Serial.print("MIN WATER DISPENSED FLAG SET AFTER "); Serial.print(total_water_dispensed_Liters); Serial.println("L");
+                            // then close the valve
+                            current_valve_position = VALVE_CLOSE;
+                            // Serial.println("--------------------------------------------------> 3");
+                        }
+                        else
+                        {
+                            current_valve_position = VALVE_OPEN;
+                            // Serial.print("*");
+                        }
+                        
                     }
                     else
                     {
-                        /**
-                         * close valve if even one of these conditions is not met
-                         * 1. That is, if we have dispensed enough water till the next time we get a reading,
-                         * 2. If the sensor readings are outside the irrigation window
-                         * */
-                        refreshed_soil_data = INVALID_SOIL_DATA;
-                        sensor_irrigation = false;
-                        current_valve_position = VALVE_CLOSE;
+                        // if all the water was dispensed in the morning, start using sensor data to maintain the valve
+                        if( VALID_SOIL_DATA == refreshed_soil_data )
+                        {
+                            /**
+                             * run the irrigation if we are within the dispensor window
+                             * and if we have valid sensor data
+                             * */
+                            if( (soil_humidity < igh_current_threshold_settings.soil_humidity_low) &&
+                                (soil_humidity < igh_current_threshold_settings.soil_humidity_high) &&
+                                (water_dispensed_by_sensors < (float)igh_current_system_settings.water_amount_by_button_press) &&
+                                (valve_open_seconds_counter < igh_current_system_settings.water_dispenser_period) )
+                            {
+                                /**
+                                 * Dispense water only if
+                                 * 1. the soil moisture is too low
+                                 * 2. The soil moisture is not too high
+                                 * 3. We have not dispensed too much water 
+                                 * */
+                                sensor_irrigation = true;
+                                current_valve_position = VALVE_OPEN;
+                                // Serial.println("--------------------------------------------------> 5");
+                            }
+                            else
+                            {
+                                /**
+                                 * close valve if even one of these conditions is not met
+                                 * 1. That is, if we have dispensed enough water till the next time we get a reading,
+                                 * 2. If the sensor readings are outside the irrigation window
+                                 * */
+                                refreshed_soil_data = INVALID_SOIL_DATA;
+                                sensor_irrigation = false;
+                                current_valve_position = VALVE_CLOSE;
+                                // Serial.println("--------------------------------------------------> 6");
+                            }
+                        }
                     }
-                }
             }
         }
         else
         {
             // close the valve if it is not ok to irrigate
             current_valve_position = VALVE_CLOSE;
+            // Serial.print(".");
         }
     }
 }

@@ -226,7 +226,7 @@ void igh_app_receive_and_stage_sensor_data( void )
 
         igh_msg_buffer[1] = i; // add length
 
-        Serial.print("\nTIME: "); Serial.println(igh_boron_unix_time(), HEX);
+        // Serial.print("\nTIME: "); Serial.println(igh_boron_unix_time(), HEX);
 
         // Serial.print("{");
         // for( uint8_t k = 0; k < i; k++ )
@@ -654,18 +654,18 @@ void igh_app_get_temperature_and_humidity( uint8_t * incoming_data )
         {
             // only use valid sensor data
             refreshed_soil_data = VALID_SOIL_DATA;
-            Serial.println("VALID HUMIDITY DATA");
+            // Serial.println("VALID HUMIDITY DATA");
         }
         else
         {
             refreshed_soil_data = VALID_SOIL_DATA;
-            Serial.println("SATURATED HUMIDITY DATA");
+            // Serial.println("SATURATED HUMIDITY DATA");
         }
     }
     else
     {
         refreshed_soil_data = INVALID_SOIL_DATA;
-        Serial.println("INVALID HUMIDITY DATA");
+        // Serial.println("INVALID HUMIDITY DATA");
     }   
 }
 
@@ -690,7 +690,7 @@ uint16_t igh_app_calculate_humidity( uint16_t new_temperature, uint16_t new_humi
 */
 
 /* RAW */
-    Serial.print("RAW TEMPERATURE: "); Serial.print(new_temperature);
+    Serial.print("\nRAW TEMPERATURE: "); Serial.print(new_temperature);
     Serial.print(" RAW HUMIDITY: "); Serial.println(new_humidity);
 
     // offload the decimal places
