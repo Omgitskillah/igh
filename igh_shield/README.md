@@ -211,3 +211,11 @@ The Messages published over MQTT must be in the format expressed above.
   **SUBID_DAILY_WATER_DISPENSED_MAX**_  
   _***0600Hrs**_ - _Default value, can be changed using settings 
   **SUBID_IRRIGATION_HR**_ 
+
+# OTA Firmware Update for the IGH Shield
+1. Open PowerShell or CMD from the folder with the new binary image
+2. Type in ```particle flash device_name igh_shield_v17.bin``` then press enter
+
+_**Note:** The device name can be found on the device cosole as part of the device information next to the ID. This is the name given to the device during registration process of the Boron. Before sending an OTA image, check that the device is online from the device console. Sending this command when the device is offline may sometimes be unreliable as the image is not stored permanently on the server._
+
+
