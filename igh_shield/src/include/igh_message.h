@@ -39,6 +39,17 @@ extern "C" {
 #define PUT32_LI(val, buf)  {(buf)[0]=((val)&0xff);(buf)[1]=(((val)>>8)&0xff);(buf)[2]=(((val)>>16)&0xff);(buf)[3]=(((val)>>24)&0xff);}
 
 // all possible message identifiers
+
+typedef enum _igh_event_id_e
+{
+    // start error ID from 50
+    EVENT_DEVICE_RESTART = 0x50,
+    EVENT_SD_CARD_ERROR = 0x51,
+    EVENT_TWO_SECONDS_BUTTON_PRESS = 0x52,
+    EVENT_FIVE_SECONDS_BUTTON_PRESS = 0x53,
+    EVENT_VAVLE_OPENED = 0x54,
+    EVENT_VAVLE_CLOSED = 0x55
+} igh_event_id_e;
 typedef enum igh_pkt_id
 {
     MSG_ACK_TUPLE             = 0x00,
@@ -68,6 +79,7 @@ typedef enum igh_pkt_id
     SPEAR_BATT_LOW_THRESHOLD  = 0x18,
     SHIELD_BATT_LOW_THRESHOLD = 0x19,
     BUTTON_PRESS              = 0x1A,
+    EVENT                     = 0xFC,
     RESTART                   = 0xFD,
     DATA_PKT                  = 0xFE,
     END_OF_PKT_ID             = 0xFF
@@ -91,6 +103,7 @@ typedef enum igh_pkt_id
 #define SIZE_OF_SHIELD_BATTERY_LEVEL    4
 #define SIZE_OF_SPEAR_BATTERY_LEVEL     2
 #define SIZE_OF_RESTART                 1
+#define SIZE_OF_ERROR                   1
 #define SIZE_OF_VALVE_POSITION          1
 #define SIZE_OF_BUTTON_PRESS            1
 

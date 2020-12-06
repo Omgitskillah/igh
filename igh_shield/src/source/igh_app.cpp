@@ -21,7 +21,7 @@
 
 #define MAX_HUMIDITY (3300)
 
-uint8_t fw_ver[3] = {0,0,17};
+uint8_t fw_ver[3] = {0,0,18};
 
 unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
@@ -47,6 +47,7 @@ void igh_app_send_button_and_valve_events( void );
 uint16_t igh_app_calculate_humidity( uint16_t temperature, uint16_t humidity );
 void igh_app_print_valid_settings( void );
 void update_fw_version( void );
+void igh_app_send_event_pkt( igh_event_id_e event );
 
 void igh_app_setup( void )
 {
@@ -128,35 +129,13 @@ void igh_app_send_button_and_valve_events( void )
         if( current_valve_position == VALVE_OPEN )
         {
             Serial.print("OPEN ");
+            igh_app_send_event_pkt(EVENT_VAVLE_OPENED);
         }
         else
         {
             Serial.println("CLOSED ");
+            igh_app_send_event_pkt(EVENT_VAVLE_CLOSED);
         }
-        uint32_t current_time = igh_boron_unix_time();
-
-        uint8_t i = 0; // keep track of pkt data
-        uint8_t valve_state_msg[3];
-
-        memset( igh_msg_buffer, 0, sizeof(igh_msg_buffer) );
-
-        valve_state_msg[0] = VALVE_POSITION;
-        valve_state_msg[1] = SIZE_OF_VALVE_POSITION;
-        valve_state_msg[2] = current_valve_position;
-
-        // Add frame start
-        igh_msg_buffer[i++] = FRAME_START;
-        i++; // leave room for pkg length
-
-        i = igh_app_add_message_header( igh_msg_buffer, i, ERROR_MSG, IGH_UPLOAD );
-        i = igh_app_add_payload( igh_msg_buffer, i, valve_state_msg, sizeof(valve_state_msg) );
-
-        // Add Frame End 
-        igh_msg_buffer[i++] = FRAME_END;
-
-        igh_msg_buffer[1] = i; // add length
-
-        igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
 
         previous_valve_position = current_valve_position;
     }
@@ -164,31 +143,14 @@ void igh_app_send_button_and_valve_events( void )
     if( previous_button_irrigate != button_irrigate ||
         previous_automatic_irrigation_mode != automatic_irrigation_mode )
     {
-        // send packet with button press event
-        uint32_t current_time = igh_boron_unix_time();
-
-        uint8_t i = 0; // keep track of pkt data
-        uint8_t button_press_msg[3];
-
-        memset( igh_msg_buffer, 0, sizeof(igh_msg_buffer) );
-
-        button_press_msg[0] = BUTTON_PRESS;
-        button_press_msg[1] = SIZE_OF_BUTTON_PRESS;
-        button_press_msg[2] = igh_button_sec_counter_to_send;
-
-        // Add frame start
-        igh_msg_buffer[i++] = FRAME_START;
-        i++; // leave room for pkg length
-
-        i = igh_app_add_message_header( igh_msg_buffer, i, ERROR_MSG, IGH_UPLOAD );
-        i = igh_app_add_payload( igh_msg_buffer, i, button_press_msg, sizeof(button_press_msg) );
-
-        // Add Frame End 
-        igh_msg_buffer[i++] = FRAME_END;
-
-        igh_msg_buffer[1] = i; // add length
-
-        igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
+        if( igh_button_sec_counter_to_send == TWO_SECONDS )
+        {
+            igh_app_send_event_pkt(EVENT_TWO_SECONDS_BUTTON_PRESS);
+        }
+        else if( igh_button_sec_counter_to_send == FIVE_SECONDS )
+        {
+            igh_app_send_event_pkt(EVENT_FIVE_SECONDS_BUTTON_PRESS);
+        }
 
         previous_button_irrigate = button_irrigate;
         previous_automatic_irrigation_mode = automatic_irrigation_mode;
@@ -218,7 +180,7 @@ void igh_app_receive_and_stage_sensor_data( void )
         igh_msg_buffer[i++] = FRAME_START;
         i++; // leave room for pkg length
 
-        i = igh_app_add_message_header( igh_msg_buffer, i, ERROR_MSG, IGH_UPLOAD );
+        i = igh_app_add_message_header( igh_msg_buffer, i, SENSOR_DATA, IGH_UPLOAD );
         i = igh_app_add_payload( igh_msg_buffer, i, rx_buffer, data_rx_len );
 
         // Add Frame End 
@@ -226,22 +188,29 @@ void igh_app_receive_and_stage_sensor_data( void )
 
         igh_msg_buffer[1] = i; // add length
 
-        // Serial.print("\nTIME: "); Serial.println(igh_boron_unix_time(), HEX);
-
-        // Serial.print("{");
-        // for( uint8_t k = 0; k < i; k++ )
-        // {
-        //     if( igh_msg_buffer[k] <= 0x0F ) Serial.print("0");
-        //     Serial.print(igh_msg_buffer[k], HEX);
-        // }
-        // Serial.print("}\n");
-
         // publish the data or store it if the publish fails
         uint32_t current_time = igh_boron_unix_time();
         
         // Log data only if the time is synced
         if( JAN_01_2020 < current_time )
-        igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
+        {
+            if( true == mqtt_connected )
+            {
+                if( false == igh_mqtt_publish_data(igh_msg_buffer, i) )
+                {
+                    igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
+                }
+                else
+                {
+                    Serial.print("Uploading: "); Serial.print(current_time, HEX); Serial.println(".LOG success");
+                }
+            }
+            else
+            {
+                igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
+            }
+        }
+
 
         // rpint water dispensed data along with incoming sensor data
         Serial.print("\nWATER DISPENSED: "); Serial.print(total_water_dispensed_Liters); Serial.println("L");
@@ -258,41 +227,57 @@ void igh_app_send_device_restart( void )
     if( (true == device_restart)
         && (JAN_01_2020 < current_time) )
     {
-        uint8_t i = 0; // keep track of pkt data
-        uint8_t restart_msg[3];
-
-        // first clear the buffer
-        memset( igh_msg_buffer, 0, sizeof(igh_msg_buffer) );
-
-        // Add Retart Message
-        restart_msg[0] = RESTART;
-        restart_msg[1] = SIZE_OF_RESTART;
-        restart_msg[2] = true;
-
-        // Add frame start
-        igh_msg_buffer[i++] = FRAME_START;
-        i++; // leave room for pkg length
-
-        i = igh_app_add_message_header( igh_msg_buffer, i, ERROR_MSG, IGH_UPLOAD );
-        i = igh_app_add_payload( igh_msg_buffer, i, restart_msg, sizeof(restart_msg) );
-
-        // Add Frame End 
-        igh_msg_buffer[i++] = FRAME_END;
-
-        igh_msg_buffer[1] = i; // add length
-
-        // Serial.print("{");
-        // for( uint8_t k = 0; k < i; k++ )
-        // {
-        //     if( igh_msg_buffer[k] <= 0x0F ) Serial.print("0");
-        //     Serial.print(igh_msg_buffer[k], HEX);
-        // }
-        // Serial.print("}\n");
-
-        // save restart message
-        igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
-
+        igh_app_send_event_pkt(EVENT_DEVICE_RESTART);
         device_restart = false;
+    }
+}
+
+void igh_app_send_event_pkt( igh_event_id_e event )
+{
+    uint32_t current_time = igh_boron_unix_time();
+
+    uint8_t i = 0; // keep track of pkt data
+    uint8_t event_msg[3];
+
+    // first clear the buffer
+    memset( igh_msg_buffer, 0, sizeof(igh_msg_buffer) );
+
+    // Add Retart Message
+    event_msg[0] = EVENT;
+    event_msg[1] = SIZE_OF_ERROR;
+    event_msg[2] = (uint8_t)event;
+
+    // Add frame start
+    igh_msg_buffer[i++] = FRAME_START;
+    i++; // leave room for pkg length
+
+    i = igh_app_add_message_header( igh_msg_buffer, i, ERROR_MSG, IGH_UPLOAD );
+    i = igh_app_add_payload( igh_msg_buffer, i, event_msg, sizeof(event_msg) );
+
+    // Add Frame End 
+    igh_msg_buffer[i++] = FRAME_END;
+
+    igh_msg_buffer[1] = i; // add length
+
+    // save restart message
+    if( true == mqtt_connected )
+    {
+        if( false == igh_mqtt_publish_data(igh_msg_buffer, i) &&
+          event != EVENT_SD_CARD_ERROR )
+        {
+            igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
+        }
+        else
+        {
+            Serial.print("Uploading: "); Serial.print(current_time, HEX); Serial.println(".LOG success");
+        }
+    }
+    else
+    {   
+        if( event != EVENT_SD_CARD_ERROR )
+        {
+            igh_sd_log_save_data_point( (unsigned long)current_time, igh_msg_buffer, i );
+        }
     }
 }
 
@@ -301,10 +286,10 @@ uint8_t igh_app_add_message_header( uint8_t *_buffer, uint8_t start, igh_msg_typ
     uint8_t i = start;
 
     // Add Message type
-    _buffer[i++] = ERROR_MSG;
+    _buffer[i++] = msg_type;
 
     // Add direction
-    _buffer[i++] = IGH_UPLOAD;
+    _buffer[i++] = dir;
 
     // Add shield serial number
     memcpy( &_buffer[i], 
@@ -566,6 +551,7 @@ void igh_app_log_service( void )
                         else
                         {
                             Serial.println(" DEL ERROR");
+                            igh_app_send_event_pkt(EVENT_SD_CARD_ERROR);
                         }
                     }
                     else

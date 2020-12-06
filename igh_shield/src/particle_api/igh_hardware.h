@@ -23,6 +23,13 @@
 
 #define IGH_WATER_FLOW_PIN      D5
 
+// time constants
+#define TWENTY_FOUR_HOURS      (24)
+#define MIDNIGHT               (0)
+#define TWO_SECONDS            (2)
+#define THREE_SECONDS          (3)
+#define FIVE_SECONDS           (5)
+
 // extern variables
 extern uint8_t igh_button_sec_counter;
 

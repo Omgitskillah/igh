@@ -49,13 +49,6 @@ typedef struct _irrigation_params_str
     uint32_t min_amount_of_water_dispens_status;
 }irrigation_params_str;
 
-// time constants
-#define TWENTY_FOUR_HOURS      (24)
-#define MIDNIGHT               (0)
-#define TWO_SECONDS            (2)
-#define THREE_SECONDS          (3)
-#define FIVE_SECONDS           (5)
-
 
 // button global variables
 uint8_t igh_button_sec_counter;
@@ -292,7 +285,7 @@ uint8_t igh_get_local_time_hour( void )
     {
         local_hour += TWENTY_FOUR_HOURS;
     }
-    else if( local_hour > TWENTY_FOUR_HOURS )
+    else if( local_hour >= TWENTY_FOUR_HOURS )
     {
         local_hour -= TWENTY_FOUR_HOURS;
     }
@@ -318,20 +311,13 @@ void igh_hardware_manage_time_to_irrigate( void )
 
             irrigation_params_updated = false;
 
-            time_t time = Time.now();
-            // Serial.print("IRRIGATION TIME STARTED, FLAG SET: ");
-            // Serial.println( Time.format(time, TIME_FORMAT_DEFAULT) );
+            Serial.println("IRRIGATION TIME STARTED");
         }
         else if( MIDNIGHT == current_hr )
         {
             // reset the system at midnight
+            Serial.println("RESETTING WATER PARAMS");
             reset_irrigation_params();
-
-            total_water_dispensed_Liters = 0;
-            
-            time_t time = Time.now();
-            // Serial.print("RESETTING WATER PARAMS: ");
-            // Serial.println( Time.format(time, TIME_FORMAT_DEFAULT) );
         }
 
         previous_hr = current_hr;
@@ -357,6 +343,24 @@ void igh_hardware_manage_time_to_irrigate( void )
             // Serial.println("SYSTEM SET TO IRRIGATION OK TO CATCH UP");
         }
     }
+
+    if( current_hr >= MIDNIGHT &&
+        current_hr < igh_current_system_settings.irrigation_hr &&
+        ( true == Cellular.ready()) )
+    {
+        // if we didn't have time at midnight, we might have missed resetting the system, 
+        // fix that here
+        irrigation_params_str irrigation_parameters;
+        EEPROM.get(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+
+        if( MIN_AMOUNT_OF_WATER_NOT_DISPENSED != irrigation_parameters.min_amount_of_water_dispens_status &&
+            NOT_OK_TO_IRRIGATE != irrigation_parameters.irrigation_state )
+        {
+            // if these two flags were not set, lets set them and reset irrigation
+            reset_irrigation_params();
+        }
+
+    }
 }
 
 void reset_irrigation_params( void )
@@ -367,6 +371,8 @@ void reset_irrigation_params( void )
     irrigation_parameters.min_amount_of_water_dispens_status = MIN_AMOUNT_OF_WATER_NOT_DISPENSED;
     // update the flags
     EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+
+    total_water_dispensed_Liters = 0;
 
     irrigation_params_updated = false;
 }
