@@ -15,7 +15,13 @@
 #include "src/igh_spear_sht10.h"
 #include "src/igh_spear_dht22.h"
 #include "src/igh_spear_mhz19.h"
+#include "src/igh_spear_npk.h"
 #include "src/igh_spear_payload.h"
+
+
+// these two cannot be both declared
+#define CO2_SENSOR
+// #define NPK_SENSOR
 
 unsigned long log_timer = 0;
 #define LOG_PERIOD 1000
@@ -64,7 +70,14 @@ void init_igh_spear( void )
     igh_spear_soil_moisture_sensor_setup();
     igh_spear_sht10_setup();
     igh_spear_dht22_setup();
+
+#ifdef CO2_SENSOR
     igh_spear_mhz19_setup();
+#endif
+
+#ifdef NPK_SENSOR
+    igh_spear_npk_setup();
+#endif
     igh_spear_rfm69_setup();
 }
 

@@ -16,7 +16,12 @@
 #include "igh_spear_sht10.h"
 #include "igh_spear_dht22.h"
 #include "igh_spear_mhz19.h"
+#include "igh_spear_npk.h"
 #include "igh_spear_payload.h"
+
+// these two cannot both be declared at the same time
+// #define NPK_SENSOR
+#define CO2_SENSOR
 
 /**
  *  this is limited by the maximum 
@@ -253,5 +258,10 @@ void igh_spear_payload_collect_sensor_data( void )
     igh_spear_soil_mousture_service();
     igh_spear_sht10_service();
     igh_spear_dht22_service();
+#ifdef CO2_SENSOR
     igh_spear_mhz19_service();
+#endif
+#ifdef NPK_SENSOR
+    igh_spear_npk_service();
+#endif
 }

@@ -23,7 +23,6 @@
  * Lux meter
  * Soil Moisture
  * */
-
 typedef enum igh_pkt_id
 {
     MSG_ACK_TUPLE             = 0x00,
@@ -37,7 +36,7 @@ typedef enum igh_pkt_id
     CARBON_DIOXIDE            = 0x08,
     AIR_TEMPERATURE           = 0x09,
     SOIL_TEMPERATURE          = 0x0A,
-    SOIL_NPK                  = 0x0B,
+    SOIL_NITROGEN             = 0x0B,
     LIGHT_INTENSITY           = 0x0C,
     SHIELD_BATTERY_LEVEL      = 0x0D,
     SPEAR_BATTERY_LEVEL       = 0x0E,
@@ -51,11 +50,17 @@ typedef enum igh_pkt_id
     OP_STATE                  = 0x16,
     SHIELD_ID                 = 0x17,
     SPEAR_BATT_LOW_THRESHOLD  = 0x18,
-    SHIELD_BATT_LOW_THRESHOLD = 0x18,
+    SHIELD_BATT_LOW_THRESHOLD = 0x19,
+    BUTTON_PRESS              = 0x1A,
+    SOIL_POTASSIUM            = 0x0B,
+    SOIL_PHOSPHOROUS          = 0x0B,
     RESTART                   = 0xFD,
     DATA_PKT                  = 0xFE,
     END_OF_PKT_ID             = 0xFF
 } pkt_id;
+
+
+
 
 enum sensors
 {
@@ -69,7 +74,9 @@ enum sensors
     SENSOR_CARBON_DIOXIDE,
 
     SENSOR_WATER_DISPENSED,
-    SENSOR_SOIL_NPK,
+    SENSOR_SOIL_NITROGEN,
+    SENSOR_SOIL_PHOSPHOROUS,
+    SENSOR_SOIL_POTASSIUM,
     // number of sensors
     NUM_OF_SENSORS
 };
