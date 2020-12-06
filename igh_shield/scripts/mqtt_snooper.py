@@ -10,7 +10,7 @@ uname = "shields"
 pword = "940610b43b1"
 topic1 = "55e00fce680f88ae453f7fbc4a"
 topic2 = "55e00fce684666bdddcaa57021"
-topic3 = "55e00fce682c5cb31007bc431"
+topic3 = "55e00fce682c5cb310079bc431"
 topic4 = "55e00fce68e9d014125add3e8e"
 topic5 = "55e00fce680e0cb67573fc4658"
 
@@ -112,7 +112,12 @@ def process_tuples( packet, start, stop ):
                 [current_unix_time] = struct.unpack('<I', tuple_data)
                 print( get_tuple_name(tuple_id), " : ", current_unix_time )
             elif tuple_id == 0x0F:
-                print( get_tuple_name(tuple_id), " : ", ("OPEN" if tuple_data == 0x01 else "CLOSED") )
+                valve_pos = ""
+                if tuple_data == 1:
+                    valve_pos = "OPEN"
+                else:
+                    valve_pos = "CLOSED"
+                print( get_tuple_name(tuple_id), " : ", valve_pos )
             elif tuple_id == 0x0D:
                 [shield_bat_level] = struct.unpack('<f', tuple_data)
                 print( get_tuple_name(tuple_id), " : ", "%.2f%%" % shield_bat_level)
