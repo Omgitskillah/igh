@@ -21,7 +21,7 @@
 
 #define MAX_HUMIDITY (3300)
 
-uint8_t fw_ver[3] = {0,0,18};
+uint8_t fw_ver[3] = {0,0,19};
 
 unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;

@@ -463,6 +463,10 @@ void igh_hardware_water_management_service( void )
                         }
                     }
             }
+            else
+            {
+                current_valve_position = VALVE_CLOSE;
+            }
         }
         else
         {
