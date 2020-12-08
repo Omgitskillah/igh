@@ -20,6 +20,7 @@
 #define LOG_IGH_SPEAR_RFM69
 #define LOG_IGH_SPEAR_SETTINGS
 #define LOG_IGH_SPEAR_SHT10
+#define LOG_IGH_SPEAR_NPK
 
 /* device type */
 

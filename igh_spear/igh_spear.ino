@@ -20,8 +20,8 @@
 
 
 // these two cannot be both declared
-#define CO2_SENSOR
-// #define NPK_SENSOR
+// #define CO2_SENSOR
+#define NPK_SENSOR
 
 unsigned long log_timer = 0;
 #define LOG_PERIOD 1000
