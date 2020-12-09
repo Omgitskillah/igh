@@ -10,11 +10,11 @@
 #include "igh_spear_log.h"
 
 // hardware baud rate, should not change
-#define NPK_BAUD      9600 
+#define NPK_BAUD      (9600)
 
-const uint8_t n_constants[] = {0x01,0x03, 0x00, 0x1e, 0x00, 0x01, 0xe4, 0x0c};
-const uint8_t p_constants[] = {0x01,0x03, 0x00, 0x1f, 0x00, 0x01, 0xb5, 0xcc};
-const uint8_t k_constants[] = {0x01,0x03, 0x00, 0x20, 0x00, 0x01, 0x85, 0xc0};
+const uint8_t nitro[] = {0x01,0x03, 0x00, 0x1e, 0x00, 0x01, 0xe4, 0x0c};
+const uint8_t phos[] = {0x01,0x03, 0x00, 0x1f, 0x00, 0x01, 0xb5, 0xcc};
+const uint8_t pota[] = {0x01,0x03, 0x00, 0x20, 0x00, 0x01, 0x85, 0xc0};
 
 uint8_t values[11];
 
@@ -34,36 +34,42 @@ void igh_spear_npk_setup( void )
 
 uint8_t nitrogen()
 {
-    if(Serial1.write(n_constants,sizeof(n_constants))==8)
+    if(Serial1.write(nitro,sizeof(nitro))==8)
     {
         for(uint8_t i=0;i<7;i++)
         {
             values[i] = Serial1.read();
+            // Serial.print(values[i],HEX);
         }
+        // Serial.println();
     }
     return values[4];
 }
  
 uint8_t phosphorous()
 {
-    if(Serial1.write(p_constants,sizeof(p_constants))==8)
+    if(Serial1.write(phos,sizeof(phos))==8)
     {
         for(uint8_t i=0;i<7;i++)
         {
             values[i] = Serial1.read();
+            // Serial.print(values[i],HEX);
         }
+        // Serial.println();
     }
     return values[4];
 }
  
 uint8_t potassium()
 {
-    if(Serial1.write(k_constants,sizeof(k_constants))==8)
+    if(Serial1.write(pota,sizeof(pota))==8)
     {
         for(uint8_t i=0;i<7;i++)
         {
             values[i] = Serial1.read();
+            // Serial.print(values[i],HEX);
         }
+        // Serial.println();
     }
     return values[4];
 }
@@ -71,9 +77,13 @@ uint8_t potassium()
 void igh_spear_npk_service( void ) 
 {
     uint8_t n, p, k;
+    delay(250);
     n = nitrogen();
+    delay(250);
     p = phosphorous();
+    delay(250);
     k = potassium();
+    delay(250);
 
     payload_data_store[SENSOR_SOIL_NITROGEN].bytes[0] = n;
     payload_data_store[SENSOR_SOIL_NITROGEN].bytes[1] = 0;
