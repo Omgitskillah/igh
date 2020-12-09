@@ -91,7 +91,9 @@ void igh_spear_peripheral_test( void )
     igh_spear_soil_mousture_test_service();
     igh_spear_sht10_test_service();
     igh_spear_dht22_test_service();
+#ifdef CO2_SENSOR
     igh_spear_mhz19_test_service();
+#endif
 }
 
 void igh_spear_service( void )

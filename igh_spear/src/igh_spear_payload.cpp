@@ -20,8 +20,8 @@
 #include "igh_spear_payload.h"
 
 // these two cannot both be declared at the same time
-// #define NPK_SENSOR
-#define CO2_SENSOR
+#define NPK_SENSOR
+// #define CO2_SENSOR
 
 /**
  *  this is limited by the maximum 
