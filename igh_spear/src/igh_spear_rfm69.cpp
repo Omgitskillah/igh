@@ -95,8 +95,30 @@ void igh_spear_rfm69_test_service(void)
 void igh_spear_rfm69_send_2_shield( uint16_t dest_id, uint8_t * ptk, uint8_t pkt_len )
 {
     // the shield ID should always be read from EEPROM and must be set during pproduction
-    radio.send( dest_id, ptk, pkt_len );
+    // radio.send( dest_id, ptk, pkt_len );
+    
+    if (radio.sendWithRetry(dest_id, ptk, pkt_len)) Serial.println("\nSEND SUCCESS!"); // wait for ACKs
+    else Serial.println("\nSEND FAILED...");
     // listening mode
+    radio.receiveDone();
+}
+
+void igh_spear_process_shield_message( void )
+{
+    if (radio.receiveDone())
+    {
+        Serial.print('[');Serial.print(radio.SENDERID, DEC);Serial.print("] ");
+        for (byte i = 0; i < radio.DATALEN; i++)
+            Serial.print((char)radio.DATA[i]);
+        Serial.print("   [RX_RSSI:");Serial.print(radio.RSSI);Serial.print("]");
+
+        if (radio.ACKRequested())
+        {
+            radio.sendACK();
+            Serial.print(" - ACK sent");
+        }
+        Serial.println();
+    }
     radio.receiveDone();
 }
 

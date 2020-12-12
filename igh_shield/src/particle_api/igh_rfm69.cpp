@@ -18,9 +18,13 @@ int16_t TEST_NODE   = 4;
 #define START_BYTE  0x3C
 #define END_BYTE    0x3E
 
+byte ackCount = 0;
+
 uint8_t rfm69_powerlevel  = 10; // default power level, about 100M line of site
 
 RFM69 igh_radio = RFM69(RFM69_CS, RFM69_IRQ, IS_RFM69HCW, RFM69_IRQN);
+
+void igh_rfm69_ack_service( void );
 
 void igh_rfm69_setup(void)
 {
@@ -145,13 +149,46 @@ uint8_t igh_rfm69_receive_raw_bytes( uint8_t *buffer, uint8_t len )
     uint8_t rx_len = 0;
     if ( igh_radio.receiveDone() )
     {
+        byte temperature =  igh_radio.readTemperature(-1);// -1 = user cal factor, adjust for correct ambient
+        byte fTemp = 1.8 * temperature + 32; // 9/5=1.8
+        Serial.print("NEW DATA FROM: "); Serial.print(igh_radio.SENDERID); Serial.print(" RFM TEMP: "); Serial.print(temperature); Serial.println("C");
         if( igh_radio.DATALEN <= len )
         {
             memcpy( buffer, (uint8_t *)igh_radio.DATA, igh_radio.DATALEN);
             rx_len = igh_radio.DATALEN;
         }
+        // service the ACK
+        igh_rfm69_ack_service();
+
+        igh_radio.receiveDone();
     }
     return rx_len;
+}
+
+void igh_rfm69_ack_service( void )
+{
+    if (igh_radio.ACKRequested())
+    {
+        byte theNodeID = igh_radio.SENDERID;
+        igh_radio.sendACK();
+        // Serial.print(" - ACK sent.");
+
+        // When a node requests an ACK, respond to the ACK
+        // and also send a packet requesting an ACK (every 3rd one only)
+        // This way both TX/RX NODE functions are tested on 1 end at the GATEWAY
+
+        // This might come in handy later
+        // if (ackCount++%3==0)
+        // {
+        // Serial.print(" Pinging node ");
+        // Serial.print(theNodeID);
+        // Serial.print(" - ACK...");
+        // delay(3); //need this when sending right after reception .. ?
+        // if (igh_radio.sendWithRetry(theNodeID, "ACK TEST", 8, 0))  // 0 = only 1 attempt, no retries
+        //     Serial.print("ok!");
+        // else Serial.print("nothing");
+        // }
+    }
 }
 
 void igh_rfm69_service( void )
