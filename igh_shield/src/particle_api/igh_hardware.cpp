@@ -434,25 +434,26 @@ void igh_hourly_irrigation( void )
         current_valve_position = VALVE_OPEN;
         // set it false so we only open again after an hour
         sensor_irrigation = true;
-        irrigate_by_the_hour = false;
     }
 }
 
 void igh_irrigation_by_sensor_data( void )
 {
-    if( VALID_SOIL_DATA == refreshed_soil_data &&
-        (soil_humidity < igh_current_threshold_settings.soil_humidity_low) &&
-        (soil_humidity < igh_current_threshold_settings.soil_humidity_high) )
+    if( VALID_SOIL_DATA == refreshed_soil_data )
     {
-        // open the valave till we reach the sweet spot
-        current_valve_position = VALVE_OPEN;
-        sensor_irrigation = true;
-    }
-    else
-    {
-        /* close the valave if the sensor data received is not valid and if we are already in the sweet spot */
-        current_valve_position = VALVE_CLOSE;
-        sensor_irrigation = false;
+        if( (soil_humidity < igh_current_threshold_settings.soil_humidity_low) &&
+            (soil_humidity < igh_current_threshold_settings.soil_humidity_high) )
+        {
+            // open the valave till we reach the sweet spot
+            current_valve_position = VALVE_OPEN;
+            sensor_irrigation = true;
+        }
+        else
+        {
+            /* close the valave if the sensor data received is not valid and if we are already in the sweet spot */
+            current_valve_position = VALVE_CLOSE;
+            sensor_irrigation = false;
+        }
     }
 }
 
@@ -493,6 +494,8 @@ void igh_automatic_irrigation_service( void )
                         water_dispensed_automatically >= (float)igh_current_system_settings.water_amount_by_button_press )
                     {
                         // close the valve if the valve has been open too long
+                        refreshed_soil_data = INVALID_SOIL_DATA;
+                        irrigate_by_the_hour = false;
                         current_valve_position = VALVE_CLOSE;
                         sensor_irrigation = true;
                     }
