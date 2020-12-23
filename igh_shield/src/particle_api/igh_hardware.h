@@ -30,6 +30,12 @@
 #define THREE_SECONDS          (3)
 #define FIVE_SECONDS           (5)
 
+typedef struct _irrigation_params_str
+{
+    uint32_t irrigation_state;
+    uint32_t min_amount_of_water_dispens_status;
+}irrigation_params_str;
+
 // extern variables
 extern uint8_t igh_button_sec_counter;
 

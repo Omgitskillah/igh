@@ -21,7 +21,7 @@
 
 #define MAX_HUMIDITY (3300)
 
-uint8_t fw_ver[3] = {0,0,20};
+uint8_t fw_ver[3] = {0,0,22};
 
 unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
@@ -227,6 +227,7 @@ void igh_app_send_device_restart( void )
     if( (true == device_restart)
         && (JAN_01_2020 < current_time) )
     {
+        Serial.println("*************** SYSTEM RESET ***************");
         igh_app_send_event_pkt(EVENT_DEVICE_RESTART);
         device_restart = false;
     }
@@ -347,7 +348,8 @@ uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload
 
     // Add water dispensed 
     uint32_t curr_water_L = 0;
-    memcpy( &curr_water_L, &total_water_dispensed_Liters, sizeof curr_water_L );
+    float total_water_dispensed_snapshot = total_water_dispensed_Liters;
+    memcpy( &curr_water_L, &total_water_dispensed_snapshot, sizeof curr_water_L );
     _buffer[i++] = WATER_DISPENSED;
     _buffer[i++] = SIZE_OF_WATER_DISPENSED;
     _buffer[i++] = (uint8_t)curr_water_L;
@@ -488,6 +490,12 @@ void igh_app_print_valid_settings( void )
     Serial.print("MIN WATER TO DISPENSE: "); Serial.print(igh_current_threshold_settings.water_dispensed_period_low); Serial.println("L");
     Serial.print("MAX WATER TO DISPENSE: "); Serial.print(igh_current_threshold_settings.water_dispensed_period_high); Serial.println("L");
     Serial.print("THRESHOLDS SETTINGS CHECKSUM: "); Serial.println(igh_current_threshold_settings.checksum);
+
+    irrigation_params_str irrigation_parameters;
+    EEPROM.get(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+    Serial.print("IRRIGATION STATE FLAG: "); Serial.println(irrigation_parameters.irrigation_state, HEX);
+    Serial.print("WATER DISPENSED STATE FLAG: "); Serial.println(irrigation_parameters.min_amount_of_water_dispens_status, HEX);
+    Serial.print("TOTAL WATER DISPENSED: "); Serial.print(total_water_dispensed_Liters); Serial.println("L");
 }
 
 uint8_t igh_app_get_serial_hex_data( uint8_t * buffer, uint8_t len )
