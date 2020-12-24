@@ -128,6 +128,7 @@ The device will respond with the requested settings in the next payload in the f
 |SUBID_MQTT_USERNAME                | 0x0A     | Variable   |
 |SUBID_MQTT_PASSWORD                | 0x0B     | Variable   |
 |SUBID_WATER_AMOUNT_BY_BUTTON       | 0x0C     | 4          |
+|SUBID_AUTO_IRRIGATION_TYPE         | 0x0D     | 1          |
 |SUBID_SOIL_MOISTURE_LOW            | 0x10     | 2          |   
 |SUBID_AIR_HUMIDITY_LOW             | 0x11     | 2          |   
 |SUBID_SOIL_HUMIDITY_LOW            | 0x12     | 2          |   
@@ -158,6 +159,14 @@ The **IGH_SETTINGS** tuple is used to send new settings down to the device in th
 <IGH_SEND_SETTINGS><total_length><Settings_subid><length><data><Settings_subid><length><data>...
 ``` 
 
+#### **SUBID_AUTO_IRRIGATION_TYPE**
+This tuple can be used to set a device to either irrigate by the hour or using data from the sensors. If hourly irrigation is chosen, the device will dispense the same amount of water dispensed by a button press or a sensor reading once every hour. When irrigating by sensor readings, the device will irrigate each time it gets valid soil humidity sensor data. there is a one hour cool down between sensor readings to give dispensed water enough time to sip into the soil before adding more water. Water will stop flowing if the total amount of water hits the upper limit of water to dispense in a day.
+
+To change the auto irrigation type, send the following hex bytes array;
+**10,03,0D,01,01** for *Sensor irrigation*
+**10,03,0D,01,02** for *Hourly irrigation*
+
+hourly irrigation is set as the default type of auto irrigation
 
 # MQTT Protocol
 Each IGH device shall connect to the MQTT broker ```farmshield.illuminumgreenhouses.com``` at port ```1883```. 
@@ -184,6 +193,11 @@ for device with serial number ```e00fce689a754705e79a0e37```.
 All messages sent to the device must be channeled throu the respective download topic and the device must send any payload through its respective  
 Upload topic.  
 The Messages published over MQTT must be in the format expressed above. 
+
+# UPDATE SETTINGS VIA PARTICLE CLOUD
+On particle cloud functions API presented on each device's dashboard, it is possible to update the device settings. To do this, enter a string qith the equivalent hex numbers in ascii string format. For isntacne. to change the auto irrigation type, it is required that you send the following bytes via USB **10,03,0D,01,01**, to send the same via the Particle cloud, send **"10030D0101"** while ignoring the quotes.  
+
+The result should be **0** for a successful settings change and **-1** if it fails
 
 # ERRORS/EVENTS TO CONSIDER
 

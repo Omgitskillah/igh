@@ -55,6 +55,7 @@ LOCAL void igh_settings_get_defaults(void) // Total bytes
     igh_default_system_settings.water_dispenser_period       = DEFAULT_WATER_DISP_PERIOD;
     igh_default_system_settings.water_amount_by_button_press = DEFAULT_WATER_BY_BUTTON;
     igh_default_system_settings.op_state                     = DEFAULT_NEW_OPSTATE;
+    igh_default_system_settings.auto_irrigation_type         = DEFAULT_AUTO_IRRIGATION_TYPE;
     igh_default_system_settings.reporting_interval           = DEFAULT_REPORTING_INTERVAL;
     igh_default_system_settings.data_resolution              = DEFAULT_DATA_RESOLUTION;
     igh_default_system_settings.broker_port                  = DEFAULT_MQTT_BROKER_PORT;
@@ -124,6 +125,29 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                     )
                     {
                         igh_current_system_settings.op_state = (device_op_state)settings[current_data_index];
+                    }  
+                    else
+                    {
+                        // do nothing
+                    }
+                    
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+            
+            case SUBID_AUTO_IRRIGATION_TYPE:
+                if(LENGTH_SUBID_AUTO_IRRIGATION_TYPE == current_tuple_length)
+                {
+                    // check if new state is valid
+                    if( (SENSOR_IRRIGATION == (settings[current_data_index]))|| 
+                        (HOURLY_IRRIGATION == (settings[current_data_index]))
+                    )
+                    {
+                        igh_current_system_settings.auto_irrigation_type = settings[current_data_index];
                     }  
                     else
                     {

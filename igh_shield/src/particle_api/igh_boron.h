@@ -33,4 +33,6 @@ void igh_boron_test_device(void);
 void igh_boron_service(void);
 void igh_boron_setup(void);
 
+uint8_t get_int_from_str( uint8_t num );
+
 #endif

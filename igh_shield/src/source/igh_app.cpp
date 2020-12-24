@@ -21,7 +21,7 @@
 
 #define MAX_HUMIDITY (3300)
 
-uint8_t fw_ver[3] = {0,0,22};
+uint8_t fw_ver[3] = {0,0,23};
 
 unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
@@ -48,6 +48,10 @@ uint16_t igh_app_calculate_humidity( uint16_t temperature, uint16_t humidity );
 void igh_app_print_valid_settings( void );
 void update_fw_version( void );
 void igh_app_send_event_pkt( igh_event_id_e event );
+void igh_app_publish_to_particle( void );
+int igh_app_particle_io_settings( String new_settings );
+
+Timer publish_to_particle( 1800000, igh_app_publish_to_particle ); // publish data every 30 mins
 
 void igh_app_setup( void )
 {
@@ -72,6 +76,9 @@ void igh_app_setup( void )
 
     // update fw version
     update_fw_version();
+
+    // setup cloud function
+    Particle.function("updateSettings", igh_app_particle_io_settings);
 }
 
 void igh_main_application( void )
@@ -130,11 +137,13 @@ void igh_app_send_button_and_valve_events( void )
         {
             Serial.print("OPEN ");
             igh_app_send_event_pkt(EVENT_VAVLE_OPENED);
+            igh_app_publish_to_particle();
         }
         else
         {
             Serial.println("CLOSED ");
             igh_app_send_event_pkt(EVENT_VAVLE_CLOSED);
+            igh_app_publish_to_particle();
         }
 
         previous_valve_position = current_valve_position;
@@ -146,10 +155,12 @@ void igh_app_send_button_and_valve_events( void )
         if( igh_button_sec_counter_to_send == TWO_SECONDS )
         {
             igh_app_send_event_pkt(EVENT_TWO_SECONDS_BUTTON_PRESS);
+            if( true == Particle.connected() ) Particle.publish("igh_payload", "{\"event\":\"button press 2 seconds\"}", NO_ACK );
         }
         else if( igh_button_sec_counter_to_send == FIVE_SECONDS )
         {
             igh_app_send_event_pkt(EVENT_FIVE_SECONDS_BUTTON_PRESS);
+            if( true == Particle.connected() ) Particle.publish("igh_payload", "{\"event\":\"button press 5 seconds\"}", NO_ACK );
         }
 
         previous_button_irrigate = button_irrigate;
@@ -229,6 +240,9 @@ void igh_app_send_device_restart( void )
     {
         Serial.println("*************** SYSTEM RESET ***************");
         igh_app_send_event_pkt(EVENT_DEVICE_RESTART);
+
+        if( true == Particle.connected() ) Particle.publish("igh_payload", "{\"event\":\"restart\"}", NO_ACK );
+
         device_restart = false;
     }
 }
@@ -370,6 +384,55 @@ uint8_t igh_app_add_payload( uint8_t *_buffer, uint8_t start, uint8_t * _payload
     return i;
 }
 
+int igh_app_particle_io_settings( String new_settings )
+{
+    int settings_status = -1; 
+    uint8_t size_of_string = 0;
+    uint8_t size_of_settings_array = 0;
+
+    size_of_string = new_settings.length(); // does not include trailing null
+
+    if( size_of_string >= 10 ) // 10 is minimum paket with settings
+    {
+        size_of_settings_array = size_of_string / 2; // half the settings string
+
+        uint8_t incoming_settings_string_arr[size_of_string]; // dynamically create this array
+        uint8_t new_settings_arr[size_of_settings_array]; // dynamically create this array
+
+        memcpy( incoming_settings_string_arr, new_settings, size_of_string );
+
+        uint8_t k = 0; uint8_t j = 0;
+        while( k < size_of_string )
+        {
+            new_settings_arr[j] = get_int_from_str(incoming_settings_string_arr[k]) << 4;
+            k++;
+            new_settings_arr[j] |= get_int_from_str(incoming_settings_string_arr[k]);
+            k++; j++;
+        }
+
+        if( IGH_SEND_SETTINGS == new_settings_arr[0] )
+        {
+            if( true == igh_settings_process_settings_tuples( new_settings_arr, 2, size_of_settings_array) )
+            {
+                new_settings_available = 1;
+                // update the checksum of the system settings
+                igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
+                // update the checksum for the threshold settings
+                igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
+
+                settings_status = 0;
+            }
+            else
+            {
+                Serial.println("SETTINGS FAILED");
+            }
+            
+        }
+    }
+
+    return settings_status;
+}
+
 void igh_app_get_new_settings( void )
 {
     memset( igh_msg_buffer, 0, sizeof(igh_msg_buffer) );
@@ -440,6 +503,8 @@ void igh_app_get_new_settings( void )
     }
 }
 
+
+
 void igh_app_commit_new_settings( void )
 {
     if( 1 == new_settings_available )
@@ -482,6 +547,7 @@ void igh_app_print_valid_settings( void )
     Serial.print("TIMEZONE: "); Serial.println(igh_current_system_settings.timezone);
     Serial.print("IRRIGATION HOUR: "); Serial.println(igh_current_system_settings.irrigation_hr);
     Serial.print("WATER DISPENSER PERIOD: "); Serial.println(igh_current_system_settings.water_dispenser_period);
+    Serial.print("IRRIGATION TYPE: "); Serial.println(igh_current_system_settings.auto_irrigation_type);
     Serial.print("AMOUNT BUTTON CAN DISPENSE: "); Serial.print(igh_current_system_settings.water_amount_by_button_press); Serial.println("L");
     Serial.print("SYSTEM SETTINGS CHECKSUM: "); Serial.println(igh_current_system_settings.checksum);
 
@@ -526,6 +592,21 @@ uint8_t igh_app_get_serial_hex_data( uint8_t * buffer, uint8_t len )
     return ret;
 }
 
+void igh_app_publish_to_particle( void )
+{
+    String particle_payload = String::format("{\"id\":\"%s\",\"ts\":%ul,\"bv\":%.2lf,\"vp\":%d,\"twd\":%.2lf,\"sh\":%d,\"st\":%d}",
+         System.deviceID(),
+         igh_boron_unix_time(),
+         igh_boron_SoC(),
+         current_valve_position,
+         total_water_dispensed_Liters,
+         soil_humidity,
+         soil_temperature
+    );
+
+    Particle.publish( "igh_payload", particle_payload, NO_ACK );
+}
+
 void igh_app_log_service( void )
 {
     if( (millis() - log_service_timer) > ONE_SECOND )
@@ -560,6 +641,8 @@ void igh_app_log_service( void )
                         {
                             Serial.println(" DEL ERROR");
                             igh_app_send_event_pkt(EVENT_SD_CARD_ERROR);
+                            if( true == Particle.connected() ) Particle.publish("igh_payload", "{\"event\":\"sd card error\"}", NO_ACK );
+
                         }
                     }
                     else
@@ -644,16 +727,12 @@ void igh_app_get_temperature_and_humidity( uint8_t * incoming_data )
         true == valid_temerature )
     {
         soil_humidity = igh_app_calculate_humidity(new_temperature, new_humidity);
-        if( soil_humidity <= MAX_HUMIDITY )
+        if( soil_humidity <= MAX_HUMIDITY &&
+            soil_humidity > 0 )
         {
             // only use valid sensor data
             refreshed_soil_data = VALID_SOIL_DATA;
             // Serial.println("VALID HUMIDITY DATA");
-        }
-        else
-        {
-            refreshed_soil_data = VALID_SOIL_DATA;
-            // Serial.println("SATURATED HUMIDITY DATA");
         }
     }
     else

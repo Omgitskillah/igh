@@ -19,6 +19,7 @@ extern "C" {
 #define DEFAULT_IRRIGATION_HR                   7 // 7 AM
 #define DEFAULT_WATER_DISP_PERIOD               1800 // 30 mins
 #define DEFAULT_NEW_OPSTATE                     OP_INACTIVE
+#define DEFAULT_AUTO_IRRIGATION_TYPE            HOURLY_IRRIGATION
 #define DEFAULT_REPORTING_INTERVAL              1800 // 30 mins   
 #define DEFAULT_WATER_BY_BUTTON                 100 // 100 Litres   
 #define DEFAULT_DATA_RESOLUTION                 600  // 10 mins

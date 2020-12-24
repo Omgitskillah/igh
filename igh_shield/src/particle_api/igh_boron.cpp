@@ -25,9 +25,6 @@ bool print_serial = true;
 
 char hex_digits_LC[] = "0123456789abcdef";
 
-/* Local function prototypes */
-uint8_t get_int_from_str( uint8_t num );
-
 /* Functions */
 void igh_boron_sync_time(void)
 {

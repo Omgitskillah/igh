@@ -30,6 +30,13 @@ enum valve_position
 };
 typedef enum valve_position valve_position;
 
+enum _auto_irrigation_type_e
+{
+    UNKNOWN,
+    SENSOR_IRRIGATION,
+    HOURLY_IRRIGATION
+};
+
 // Should be moved to system file
 struct thresholds
 {
@@ -67,6 +74,7 @@ struct system_settings
     uint8_t checksum; // should always start so that it is always buffered
     int timezone; // timezone in which the device is installed
     uint8_t irrigation_hr; // at what hour should we irrigate?
+    uint8_t auto_irrigation_type; // hourly or using sensor data?
     device_op_state op_state; // inactive, basic, standard, premium
     uint32_t water_dispenser_period; // tracks time in seconds
     uint32_t water_amount_by_button_press; // how much water we will get when we press the button
@@ -106,6 +114,7 @@ enum igh_settings_subid
     SUBID_MQTT_USERNAME,
     SUBID_MQTT_PASSWORD,
     SUBID_WATER_AMOUNT_BY_BUTTON,
+    SUBID_AUTO_IRRIGATION_TYPE,
     
     //High Threshold tirggers
     SUBID_SOIL_MOISTURE_LOW = 0x10,          
@@ -141,6 +150,7 @@ enum igh_settings_subid
 #define LENGTH_SUBID_SET_SERIAL_NUMBER              12
 #define LENGTH_SUBID_MQTT_PORT                      2
 #define LENGTH_SUBID_SUBID_TIMEZONE                 2
+#define LENGTH_SUBID_AUTO_IRRIGATION_TYPE           1
 #define MAX_TIMEZONE                                12
 #define NEGATIVE_TIME_ZONE                          0x00
 #define POSITIVE_TIME_ZONE                          0xFF
