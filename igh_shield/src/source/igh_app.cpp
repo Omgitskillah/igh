@@ -21,7 +21,7 @@
 
 #define MAX_HUMIDITY (3300)
 
-uint8_t fw_ver[3] = {0,0,23};
+uint8_t fw_ver[3] = {0,0,24};
 
 unsigned long log_service_timer = 0;
 uint8_t device_restart = 1;
@@ -141,6 +141,11 @@ void igh_app_send_button_and_valve_events( void )
         }
         else
         {
+            irrigation_params_str irrigation_parameters;
+            EEPROM.get(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+            irrigation_parameters.water_dispensed_store = total_water_dispensed_Liters;
+            EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
+
             Serial.println("CLOSED ");
             igh_app_send_event_pkt(EVENT_VAVLE_CLOSED);
             igh_app_publish_to_particle();

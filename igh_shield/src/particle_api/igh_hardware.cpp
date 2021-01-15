@@ -386,6 +386,7 @@ void reset_irrigation_params( void )
     irrigation_parameters.irrigation_state = NOT_OK_TO_IRRIGATE;
     irrigation_parameters.min_amount_of_water_dispens_status = MIN_AMOUNT_OF_WATER_NOT_DISPENSED;
     irrigation_parameters.max_amount_of_water_dispens_status = MAX_AMOUNT_OF_WATER_NOT_DISPENSED;
+    irrigation_parameters.water_dispensed_store = 0;
     // update the flags
     EEPROM.put(SYSTEM_IRRIGATION_FLAGS, irrigation_parameters);
 
@@ -436,6 +437,7 @@ void igh_irrigiation_by_button_service( void )
 
 void igh_hourly_irrigation_timer( void )
 {
+    if( true == Particle.connected() ) Particle.publish("igh_payload", "{\"event\":\"next irrigation hour by the hour\"}", NO_ACK );
     irrigate_by_the_hour = true;
 }
 
@@ -443,6 +445,7 @@ void igh_hourly_irrigation( void )
 {
     if( true == irrigate_by_the_hour )
     {
+        if( true == Particle.connected() ) Particle.publish("igh_payload", "{\"event\":\"hourly irrigation started\"}", NO_ACK );
         // open the valve if one hour has passed
         current_valve_position = VALVE_OPEN;
         // set it false so we only open again after an hour
@@ -458,6 +461,7 @@ void igh_irrigation_by_sensor_data( void )
         if( (soil_humidity < igh_current_threshold_settings.soil_humidity_low) &&
             (soil_humidity < igh_current_threshold_settings.soil_humidity_high) )
         {
+            if( true == Particle.connected() ) Particle.publish("igh_payload", "{\"event\":\"sensor irrigation started\"}", NO_ACK );
             // open the valave till we reach the sweet spot
             current_valve_position = VALVE_OPEN;
             sensor_irrigation = true;
@@ -465,6 +469,7 @@ void igh_irrigation_by_sensor_data( void )
         else
         {
             /* close the valave if the sensor data received is not valid and if we are already in the sweet spot */
+            if( true == Particle.connected() ) Particle.publish("igh_payload", "{\"event\":\"unused soil data\"}", NO_ACK );
             current_valve_position = VALVE_CLOSE;
             sensor_irrigation = false;
         }
@@ -494,7 +499,8 @@ void igh_automatic_irrigation_service( void )
                     {
                         // if this happens, a system reset must have happened or an overflow
                         // correct the total water dispensed
-                        total_water_dispensed_Liters += (float)igh_current_threshold_settings.water_dispensed_period_low;
+                        if( true == Particle.connected() ) Particle.publish("igh_payload", "{\"event\":\"update water dispensed on reset\"}", NO_ACK );
+                        total_water_dispensed_Liters += irrigation_parameters.water_dispensed_store;
                     }
                     else
                     {
@@ -518,7 +524,7 @@ void igh_automatic_irrigation_service( void )
                             refreshed_soil_data = INVALID_SOIL_DATA;
                             irrigate_by_the_hour = false;
                             current_valve_position = VALVE_CLOSE;
-                            sensor_irrigation = true;
+                            sensor_irrigation = false;
                         }
                     }
                 }

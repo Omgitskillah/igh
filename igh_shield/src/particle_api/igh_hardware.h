@@ -35,6 +35,7 @@ typedef struct _irrigation_params_str
     uint32_t irrigation_state;
     uint32_t min_amount_of_water_dispens_status;
     uint32_t max_amount_of_water_dispens_status;
+    float water_dispensed_store;
 }irrigation_params_str;
 
 // extern variables
