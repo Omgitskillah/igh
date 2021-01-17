@@ -233,3 +233,16 @@ The result should be **0** for a successful settings change and **-1** if it fai
 _**Note:** The device name can be found on the device cosole as part of the device information next to the ID. This is the name given to the device during registration process of the Boron. Before sending an OTA image, check that the device is online from the device console. Sending this command when the device is offline may sometimes be unreliable as the image is not stored permanently on the server._
 
 
+# Running the InitialState Application
+## Prerequisites
+- Python3 installed on machine
+- install paho-mqtt module
+- install ISStreamer module
+
+1. Download mqtt_snooper.py from the scripts colder of this repositofy
+2. Run the python script, running it on a dedicated machine like a raspberry pi and get it to run every time on bootup would be ideal. 
+3. Log onto initialstate using company credentials to view data. 
+   
+### NOTE: every new device will automatically start sending data to initialstate each time a new message is published to MQTT
+
+

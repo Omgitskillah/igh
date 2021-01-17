@@ -3,31 +3,19 @@ import random
 import string
 import datetime
 import struct
-import paho.mqtt.client as paho
+import paho.mqtt.client as mqtt
+from ISStreamer.Streamer import Streamer
 
 broker="farmshield.illuminumgreenhouses.com"
 uname = "shields"
 pword = "940610b43b1"
-topic1 = "55e00fce680f88ae453f7fbc4a"
-topic2 = "55e00fce684666bdddcaa57021"
-topic3 = "55e00fce682c5cb310079bc431"
-topic4 = "55e00fce68e9d014125add3e8e"
-topic5 = "55e00fce680e0cb67573fc4658"
 
+initial_state_access_key = "ist_-CHds1XSG3enuWZeYXe2jWbr0wl6gW7j"
 
-# Temp Humidity constants
-SOIL_TEMPERATURE_MULTIPLIER_D1 = -39.66
-SOIL_TEMPERATURE_MULTIPLIER_D2 = 0.01
-SOIL_HUMIDITY_MULTIPLIER_C1    = -2.0468
-SOIL_HUMIDITY_MULTIPLIER_C2    = 0.0367
-SOIL_HUMIDITY_MULTIPLIER_C3    = (-1.59955) * (10**(-6))
-SOIL_HUMIDITY_MULTIPLIER_T1    = 0.01
-SOIL_HUMIDITY_MULTIPLIER_T2    = 0.00008
-ROOM_TEMPERATURE               = 25.0
+application_topic = "#"
+application_qos = 0
 
-# TOPICS = [(topic3,0)]
-# TOPICS = [(topic3,0),(topic2,0)]
-TOPICS = [(topic3,0),(topic2,0),(topic1,0),(topic4,0),(topic5,0)]
+TOPICS = [(application_topic,application_qos)]
 
 def get_random_string(length):
     letters = string.ascii_lowercase
@@ -36,97 +24,94 @@ def get_random_string(length):
 
 def get_tuple_name( tuple_id ):
     switcher = {
-        0x00 : "MSG_ACK_TUPLE             ",
-        0x01 : "SPEAR_ID                  ",
-        0x02 : "STORE_TIMESTAMP           ",
-        0x03 : "SEND_TIMESTAMP            ",
-        0x04 : "SOIL_MOISTURE             ",
-        0x05 : "AIR_HUMIDITY              ",
-        0x06 : "SOIL_HUMIDITY             ",
-        0x07 : "WATER_DISPENSED           ",
-        0x08 : "CARBON_DIOXIDE            ",
-        0x09 : "AIR_TEMPERATURE           ",
-        0x0A : "SOIL_TEMPERATURE          ",
-        0x0B : "SOIL_NPK                  ",
-        0x0C : "LIGHT_INTENSITY           ",
-        0x0D : "SHIELD_BATTERY_LEVEL      ",
-        0x0E : "SPEAR_BATTERY_LEVEL       ",
-        0x0F : "VALVE_POSITION            ",
-        0x10 : "IGH_SEND_SETTINGS         ",
-        0x11 : "IGH_READ_SETTINGS         ",
-        0x12 : "SPEAR_DATA                ",
-        0x13 : "SPEAR_RF_ID               ",
-        0x14 : "SHIELD_RF_ID              ",
-        0x15 : "SEND_INTERVAL             ",
-        0x16 : "OP_STATE                  ",
-        0x17 : "SHIELD_ID                 ",
-        0x18 : "SPEAR_BATT_LOW_THRESHOLD  ",
-        0x19 : "SHIELD_BATT_LOW_THRESHOLD ",
-        0x1A : "BUTTON_PRESS              ",
-        0xFD : "RESTART                   ",
-        0xFE : "DATA_PKT                  ",
-        0xFF : "END_OF_PKT_ID             "
+        0x00 : "MSG_ACK_TUPLE",
+        0x01 : "SPEAR_ID",
+        0x02 : "STORE_TIMESTAMP",
+        0x03 : "SEND_TIMESTAMP",
+        0x04 : "SOIL_MOISTURE",
+        0x05 : "AIR_HUMIDITY",
+        0x06 : "SOIL_HUMIDITY",
+        0x07 : "WATER_DISPENSED",
+        0x08 : "CARBON_DIOXIDE",
+        0x09 : "AIR_TEMPERATURE",
+        0x0A : "SOIL_TEMPERATURE",
+        0x0B : "SOIL_NPK",
+        0x0C : "LIGHT_INTENSITY",
+        0x0D : "SHIELD_BATTERY_LEVEL",
+        0x0E : "SPEAR_BATTERY_LEVEL",
+        0x0F : "VALVE_POSITION",
+        0x10 : "IGH_SEND_SETTINGS",
+        0x11 : "IGH_READ_SETTINGS",
+        0x12 : "SPEAR_DATA",
+        0x13 : "SPEAR_RF_ID",
+        0x14 : "SHIELD_RF_ID",
+        0x15 : "SEND_INTERVAL",
+        0x16 : "OP_STATE",
+        0x17 : "SHIELD_ID",
+        0x18 : "SPEAR_BATT_LOW_THRESHOLD",
+        0x19 : "SHIELD_BATT_LOW_THRESHOLD",
+        0x1A : "BUTTON_PRESS",
+        0xFD : "RESTART",
+        0xFE : "DATA_PKT",
+        0xFF : "END_OF_PKT_ID"
         }
-    return switcher.get( tuple_id ,"UNKNOWN")
+    return switcher.get( tuple_id , "UNKNOWN" )
 
-def process_spear_tuples( packet, start, stop ):
-    byte_tracker = start
-    soil_humidity = 0
-    soil_temperature = 0
-    while byte_tracker < stop:
-        tuple_id = packet[byte_tracker]
-        if 0x3e == tuple_id:
-            break
-        tuple_len = packet[(byte_tracker + 1)]
-        tuple_data = packet[ (byte_tracker + 2) : (byte_tracker + 2 + tuple_len) ]
-        if tuple_id == 0x01:
-            print( get_tuple_name(tuple_id), " : ", str(tuple_data.hex()) )
-        elif tuple_id == 0x06:
-            # this assumes that the humidity tuple will always appear first in the packet
-            [soil_humidity] = struct.unpack('<H', tuple_data)
-        elif tuple_id == 0x0A:
-            [soil_temperature] = struct.unpack('<H', tuple_data)
-            linearHumidity = SOIL_HUMIDITY_MULTIPLIER_C1 + SOIL_HUMIDITY_MULTIPLIER_C2 * soil_humidity + SOIL_HUMIDITY_MULTIPLIER_C3 * soil_humidity * soil_humidity
-            temperature = SOIL_TEMPERATURE_MULTIPLIER_D1 + SOIL_TEMPERATURE_MULTIPLIER_D2 * soil_temperature
-            correctedHumidity = (temperature - ROOM_TEMPERATURE) * (SOIL_HUMIDITY_MULTIPLIER_T1 + SOIL_HUMIDITY_MULTIPLIER_T2 * soil_humidity) + linearHumidity
-            print( "SOIL_HUMIDITY               : ", "%.2f%%" % correctedHumidity )
-            print( "SOIL_TEMPERATURE            : ", "%.2fC" % temperature )
-        else:
-            [value] = struct.unpack('<H', tuple_data)
-            print( get_tuple_name(tuple_id), " : ", value )
-        byte_tracker += tuple_len + 2
+def process_and_upload_tuples( packet, start, stop, _boron_id ):
 
-def process_tuples( packet, start, stop ):
+    local_bucket_name = _boron_id
+    local_bucket_key  = "55"+_boron_id
+
+    streamer = Streamer(bucket_name=local_bucket_name, bucket_key=local_bucket_key, access_key=initial_state_access_key)
+
+    print("\nbucket: " + local_bucket_name + " bucket key: " + local_bucket_key + " access key: " + initial_state_access_key + "\n")
+    
     byte_tracker = start
     current_unix_time = 0
+
     while byte_tracker < stop:
+
         tuple_id = packet[byte_tracker]
-        if 0x3e == tuple_id:
+
+        if 0x3e == tuple_id: # Break if end of message
             break
+
         tuple_len = packet[(byte_tracker + 1)]
         tuple_data = packet[ (byte_tracker + 2) : (byte_tracker + 2 + tuple_len) ]
+        tuple_name = get_tuple_name(tuple_id)
+        print( tuple_name, end = ' : ' )
+
         if tuple_id == 18:
-            process_spear_tuples( tuple_data, 0, tuple_len )
-        else:
-            if tuple_id == 0x02:
-                [current_unix_time] = struct.unpack('<I', tuple_data)
-                print( get_tuple_name(tuple_id), " : ", current_unix_time )
-            elif tuple_id == 0x0F:
-                valve_pos = ""
-                if tuple_data == 1:
-                    valve_pos = "OPEN"
-                else:
-                    valve_pos = "CLOSED"
-                print( get_tuple_name(tuple_id), " : ", valve_pos )
-            elif tuple_id == 0x0D:
-                [shield_bat_level] = struct.unpack('<f', tuple_data)
-                print( get_tuple_name(tuple_id), " : ", "%.2f%%" % shield_bat_level)
-            elif tuple_id == 0x07:
-                [total_water_dispensed] = struct.unpack('<f', tuple_data)
-                print( get_tuple_name(tuple_id), " : ", total_water_dispensed )
-            else:
-                print( get_tuple_name(tuple_id), " : ", str(tuple_data.hex()) )
-        byte_tracker += tuple_len + 2
+            streamer.log( tuple_name, str(tuple_data.hex()) )
+            print( str(tuple_data.hex()) )
+            byte_tracker += 2
+        else: 
+            if tuple_len == 0x01:
+                streamer.log(tuple_name, tuple_data[0])
+                print( tuple_data[0] )
+            elif tuple_len == 0x02:
+                [uint16_var] = struct.unpack('<H', tuple_data)
+                streamer.log(tuple_name, uint16_var)
+                print( uint16_var )
+            elif tuple_len == 0x04:
+                if (tuple_id == 0x0D) or (tuple_id == 0x07):
+                    [float_var] = struct.unpack('<f', tuple_data)
+                    streamer.log(tuple_name, float_var)
+                    print( "%.2f" % float_var )
+                else: #assume it is a uint32, timestamps
+                    [uint32_var] = struct.unpack('<I', tuple_data)
+                    streamer.log(tuple_name, uint32_var)
+                    print( uint32_var )
+                    if tuple_id == 0x02:
+                        current_unix_time = uint32_var
+            else: # print out the bytes for longer data
+                streamer.log( tuple_name, str(tuple_data.hex()) )
+                print( str(tuple_data.hex()) )
+            byte_tracker += tuple_len + 2
+
+    streamer.flush()
+    streamer.close()
+
     timestamp = datetime.datetime.fromtimestamp(current_unix_time)
     print("***********************************************************" )
     print("STORED TIME STAMP: ", timestamp.strftime('%Y-%m-%d_%H-%M-%S'))
@@ -135,26 +120,31 @@ def process_tuples( packet, start, stop ):
 #define callback
 def on_message(client, userdata, message):
     time.sleep(1)
-    print("\n\n\n***********************************************************" )
+    print("\n***********************************************************" )
+    print(message.payload.hex())
+    print("***********************************************************" )
+    print("len in packet: " + str(message.payload[1]) + " --- total length: " + str(len(message.payload)))
     if message.payload[1] == len(message.payload):
-        print("BORON_ID                    : ", str(message.payload[4:16].hex()) )
-        print("MSG_COUNTER                 : ", str(message.payload[16]) )
+        boron_id = str(message.payload[4:16].hex())
+        print("BORON_ID : ", boron_id )
+        print("MSG_COUNTER : ", str(message.payload[16]) )
         payload_len = message.payload[18]
-        process_tuples( message.payload, 19, payload_len + 18 )
+        process_and_upload_tuples( message.payload, 19, payload_len + 18, boron_id )
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected with result code "+str(rc))
+    client.subscribe(TOPICS)#subscribe
 
 new_client_id = get_random_string(12)
-client= paho.Client(new_client_id)
+
+client= mqtt.Client(new_client_id)
+
 client.username_pw_set( uname, pword)
-client.on_message=on_message
+client.on_connect = on_connect
+client.on_message = on_message
+
 print("connecting to broker ",broker, " client id:", new_client_id)
 print("topics ", TOPICS)
 client.connect(broker)#connect
 
-client.loop_start() #start loop to process received messages
-print("subscribing ")
-client.subscribe(TOPICS)#subscribe
-
-while True:
-    time.sleep(1)
-client.disconnect() #disconnect
-client.loop_stop() #stop loop
+client.loop_forever()
