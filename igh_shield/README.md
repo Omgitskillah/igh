@@ -236,8 +236,7 @@ _**Note:** The device name can be found on the device cosole as part of the devi
 # Running the InitialState Application
 ## Prerequisites
 - Python3 installed on machine
-- install paho-mqtt module
-- install ISStreamer module
+- run `pip install -r requirements.txt` on your command line
 
 1. Download mqtt_snooper.py from the scripts colder of this repositofy
 2. Run the python script, running it on a dedicated machine like a raspberry pi and get it to run every time on bootup would be ideal. 
