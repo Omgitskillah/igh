@@ -10,7 +10,7 @@ broker="farmshield.illuminumgreenhouses.com"
 uname = "shields"
 pword = "940610b43b1"
 
-initial_state_access_key = "ist_-CHds1XSG3enuWZeYXe2jWbr0wl6gW7j"
+initial_state_access_key = "ist_JILmv8kZlwpR0TUk_7b0ZVlv9QAMsQr2"
 
 application_topic = "#"
 application_qos = 0
