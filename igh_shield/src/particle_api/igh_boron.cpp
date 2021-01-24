@@ -113,7 +113,9 @@ void igh_boron_sim_select( void )
     {
         Cellular.setActiveSim(INTERNAL_SIM);
 	    Cellular.clearCredentials();
+#ifdef IGH_DEBUG
         Serial.print("USING INTERNAL SIM");
+#endif
     }
     else if( CURRENT_SIMTYPE == EXTERNAL_SIM )
     {
@@ -135,6 +137,7 @@ void igh_boron_service(void)
 
 void igh_boron_test_device(void)
 {
+#ifdef IGH_DEBUG
     Serial.print("\nDevice ID:       "); 
     for( uint8_t i = 0; i < sizeof(boron_serial_number); i++ )
     {
@@ -149,4 +152,5 @@ void igh_boron_test_device(void)
     Serial.print("signal quality:   "); Serial.println(igh_boron_sq());
     Serial.print("Battery Voltage:  "); Serial.println(igh_boron_voltage());
     Serial.print("Battery SOC:      "); Serial.println(igh_boron_SoC());
+#endif
 }

@@ -6,7 +6,6 @@
  *******************************************************************************/
 
 #include "Particle.h"
-
 #include "include/igh_application.h"
 
 /* Run Application routine */

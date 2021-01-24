@@ -34,10 +34,11 @@ void igh_rfm69_setup(void)
     igh_rfm69_reset();
     
     if( false == igh_radio.initialize( FREQUENCY, RFM69_NODE_ID, RFM69_NETWORK_ID) )
+#ifdef IGH_DEBUG
     Serial.println("RFM69 INIT ERROR");
-
     Serial.print( "NEW SHIELD RF ID: " ); Serial.println( RFM69_NODE_ID);
     Serial.print( "NEW NETWORK ID: " ); Serial.println( RFM69_NETWORK_ID);
+#endif
 
     igh_radio.setHighPower(); // This should only be called for RFM69HCW & HW
 
@@ -150,7 +151,9 @@ uint8_t igh_rfm69_receive_raw_bytes( uint8_t *buffer, uint8_t len )
     if ( igh_radio.receiveDone() )
     {
         byte temperature =  igh_radio.readTemperature(-1);// -1 = user cal factor, adjust for correct ambient
+#ifdef IGH_DEBUG
         Serial.print("NEW DATA FROM: "); Serial.print(igh_radio.SENDERID); Serial.print(" RFM TEMP: "); Serial.print(temperature); Serial.println("C");
+#endif
         if( igh_radio.DATALEN <= len )
         {
             memcpy( buffer, (uint8_t *)igh_radio.DATA, igh_radio.DATALEN);

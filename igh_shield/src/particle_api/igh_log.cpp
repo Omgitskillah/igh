@@ -75,7 +75,9 @@ static uint8_t igh_log_read(char * _ch)
 
 void igh_log_print(String _str)
 {
+#ifdef IGH_DEBUG
     Serial.print(_str);
+#endif
 }
 
 void igh_log_begin(void)

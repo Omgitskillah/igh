@@ -50,17 +50,16 @@ uint8_t igh_sd_log_save_data_point(unsigned long _unix_time, uint8_t * data, uin
     igh_sd_log_get_file_name(_unix_time, name);
     igh_file = igh_sd.open((const char *)name, FILE_WRITE);
 
-    // Serial.print("Saving: "); Serial.print(name); Serial.print(" Size: "); Serial.print(size);
-
     if(igh_file)
     {
         igh_file.write( data, size);
-        // Serial.println(" OK");
         ret = 1;
     }
     else
     {
+#ifdef IGH_DEBUG
         // Serial.println(" ERROR");
+#endif
     }
 
     igh_file.close();

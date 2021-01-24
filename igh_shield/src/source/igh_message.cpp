@@ -155,7 +155,9 @@ void igh_message_publish_built_payload( uint32_t current_time, uint8_t * buffer,
             // store data
             if( false == igh_sd_log_save_data_point( (unsigned long)current_time, buffer, msg_len ) )
             {
+#ifdef IGH_DEBUG
                 Serial.println("SD WRITE ERROR");
+#endif
                 igh_message_event(EVENT_SD_CARD_ERROR, false);
             }
         }
@@ -259,7 +261,7 @@ void igh_message_get_new_settings( void )
     uint8_t rx_bytes = igh_message_get_serial_hex_data(igh_msg_buffer, sizeof(igh_msg_buffer));
     if ( 0 < rx_bytes ) // via Serial
     {
-
+#ifdef IGH_DEBUG
         Serial.print("SERIAL DATA SETTINGS --> {");
         for( uint8_t k = 0; k < rx_bytes; k++ )
         {
@@ -267,6 +269,7 @@ void igh_message_get_new_settings( void )
             Serial.print(igh_msg_buffer[k], HEX);
         }
         Serial.print("}\n");
+#endif
 
         if( IGH_SEND_SETTINGS == igh_msg_buffer[0] )
         {
@@ -281,7 +284,9 @@ void igh_message_get_new_settings( void )
             }
             else
             {
+#ifdef IGH_DEBUG
                 Serial.println("SETTINGS FAILED");
+#endif
                 igh_message_event( EVENT_SETTINGS_UPDATE_FAIL, true );
             }
             
@@ -304,7 +309,9 @@ void igh_message_get_new_settings( void )
         {
             // reset irrigation
             igh_water_flow_meter_reset_nv();
+#ifdef IGH_DEBUG
             Serial.println("IRRIGATION RESET SUCCESSFUL");
+#endif
             igh_message_event( EVENT_RESET_IRRIGATION, true );
         }
         else if( (igh_msg_buffer[0] == 'R') &&
@@ -335,12 +342,16 @@ void igh_message_commit_new_settings( void )
 
         if ( true == igh_eeprom_save_system_settings( &igh_current_system_settings) )
         {
+#ifdef IGH_DEBUG
             Serial.println("System Settings Saved successfully");
+#endif
         }
 
         if ( true == igh_eeprom_save_threshold_settings( &igh_current_threshold_settings) )
         {
+#ifdef IGH_DEBUG
             Serial.println("Threshold Settings Saved successfully");
+#endif
         }
 
         new_settings_available = 0;
@@ -349,6 +360,7 @@ void igh_message_commit_new_settings( void )
 
 void igh_message_print_valid_settings( void )
 {
+#ifdef IGH_DEBUG
     Serial.print("FW VERSION: v"); Serial.print(fw_ver[0]); Serial.print("."); Serial.print(fw_ver[1]); Serial.print("."); Serial.println(fw_ver[2]);
     Serial.print("OP STATE: "); Serial.println(igh_current_system_settings.op_state);
     Serial.print("REPORTING INTERVAL: "); Serial.println(igh_current_system_settings.reporting_interval);
@@ -379,6 +391,7 @@ void igh_message_print_valid_settings( void )
     Serial.print("THRESHOLDS SETTINGS CHECKSUM: "); Serial.println(igh_current_threshold_settings.checksum);
 
     Serial.print("TOTAL WATER DISPENSED: "); Serial.print(total_water_dispensed_Liters); Serial.println("L");
+#endif
 }
 
 void igh_message_receive_and_stage_sensor_data( void )
@@ -457,35 +470,47 @@ void igh_message_process_sd_data( void )
             uint8_t sd_data_point[MAX_FILE_SIZE];
             if( true == igh_sd_log_read_data_point(next_file, sd_data_point, MAX_FILE_SIZE) )
             {
+#ifdef IGH_DEBUG
                 Serial.print("Uploading: "); Serial.print((String)next_file);
+#endif
 
                 if( true == igh_mqtt_publish_data(sd_data_point, sd_data_point[1]) )
                 {
                     if( true == igh_sd_log_remove_data_point(next_file) ) 
                     {
+#ifdef IGH_DEBUG
                         Serial.println(" OK");
+#endif
                     }
                     else
                     {
+#ifdef IGH_DEBUG
                         Serial.println("SD DEL ERROR");
+#endif
                         igh_message_event(EVENT_SD_CARD_ERROR, false);
                     }
                 }
                 else
                 {
+#ifdef IGH_DEBUG
                     Serial.println(" MQTT ERROR");
+#endif
                     igh_message_event(EVENT_MQTT_ERROR, true);
                 }   
             }
             else
             {
+#ifdef IGH_DEBUG
                 Serial.println("SD OPEN ERROR");
+#endif
                 igh_message_event(EVENT_SD_CARD_ERROR, false);
             }
         }
         else
         {
+#ifdef IGH_DEBUG
             // Serial.println("No new file to send");
+#endif
         }
     }
 }

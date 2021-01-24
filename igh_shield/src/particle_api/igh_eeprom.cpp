@@ -22,13 +22,17 @@ void igh_eeprom_init( void )
       ( 0 == settings_in_memory.checksum) )
   {
     // if we can't get valid settings from memory at all, use default settings
+#ifdef IGH_DEBUG
     Serial.println("USING DEFAULT SETTINGS");
+#endif
     igh_settings_reset_system_to_default();
     new_settings_available = 1;
   }
   else
   {
+#ifdef IGH_DEBUG
     Serial.println("USING SETTINGS FROM MEMORY");
+#endif
     igh_current_system_settings = settings_in_memory;
   }
 
@@ -40,13 +44,17 @@ void igh_eeprom_init( void )
       ( 0 == thresholds_in_memory.checksum) )
   {
     // if we can't get valid settings from memory at all, use default settings
+#ifdef IGH_DEBUG
     Serial.println("USING DEFAULT THRESHOLDS");
+#endif
     igh_settings_reset_system_to_default();
     new_settings_available = 1;
   }
   else
   {
+#ifdef IGH_DEBUG
     Serial.println("USING THRESHOLDS FROM MEMORY");
+#endif
     igh_current_threshold_settings = thresholds_in_memory;
   }
 }

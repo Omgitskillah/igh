@@ -32,17 +32,21 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
     uint8_t p[length];
     memcpy(p, payload, length);
 
+#ifdef IGH_DEBUG
     Serial.print("RECEIVED MSG: ");
     for( uint8_t i = 0; i < length; i++ )
     {
         if( p[i] <= 0x0F ) Serial.print("0");
         Serial.print(p[i], HEX);
     }
+#endif
 
     msg_type = (igh_msg_type)igh_message_process_mqtt_data( p , length );
 
+#ifdef IGH_DEBUG
     Serial.print("\nMESSAGE TYPE: ");
     Serial.println((int)msg_type);
+#endif
 }
 
 void igh_mqtt_setup( void )
@@ -71,8 +75,10 @@ void igh_mqtt_service( void )
         
         memcpy( new_broker, igh_current_system_settings.broker, sizeof(new_broker) );
 
+#ifdef IGH_DEBUG
         Serial.print("BROKER: "); Serial.print(new_broker);
         Serial.print(" PORT: "); Serial.println(igh_current_system_settings.broker_port);
+#endif
         
         client.setBroker(new_broker, igh_current_system_settings.broker_port);
 
@@ -121,9 +127,11 @@ void igh_mqtt_service( void )
                 memcpy( new_uname, igh_current_system_settings.mqtt_username, sizeof(new_uname) );
                 memcpy( new_password, igh_current_system_settings.mqtt_password, sizeof(new_password) );
                 
+#ifdef IGH_DEBUG
                 Serial.print("CLIENT NAME: "); Serial.print((const char *)device_name);
                 Serial.print(" USERNAME: "); Serial.print(new_uname);
                 Serial.print(" PASSWORD: "); Serial.println(new_password);
+#endif
                 
                 client.connect( (const char *)device_name, (const char *)new_uname, (const char *)new_password );
                 reconnect_interval = millis();
@@ -143,7 +151,9 @@ bool igh_mqtt_publish_data( uint8_t *payload, unsigned int len )
     }
     else
     {
+#ifdef IGH_DEBUG
         Serial.println("PUBLISH FAILED");
+#endif
     }
     return ret;
 }
