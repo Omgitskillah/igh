@@ -1,6 +1,6 @@
 /*******************************************************************************
- * @file igh_air.h
- * @brief manage air sensor data
+ * @file igh_message.h
+ * @brief manage messages on the platform
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
@@ -8,9 +8,7 @@
 #ifndef IGH_MESSAGE
 #define IGH_MESSAGE
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <stdbool.h> 
 
 #define MESSAGE_SIZE 255
 #define SIZE_OF_HEADER 2
@@ -39,17 +37,6 @@ extern "C" {
 #define PUT32_LI(val, buf)  {(buf)[0]=((val)&0xff);(buf)[1]=(((val)>>8)&0xff);(buf)[2]=(((val)>>16)&0xff);(buf)[3]=(((val)>>24)&0xff);}
 
 // all possible message identifiers
-
-typedef enum _igh_event_id_e
-{
-    // start error ID from 50
-    EVENT_DEVICE_RESTART = 0x50,
-    EVENT_SD_CARD_ERROR = 0x51,
-    EVENT_TWO_SECONDS_BUTTON_PRESS = 0x52,
-    EVENT_FIVE_SECONDS_BUTTON_PRESS = 0x53,
-    EVENT_VAVLE_OPENED = 0x54,
-    EVENT_VAVLE_CLOSED = 0x55
-} igh_event_id_e;
 typedef enum igh_pkt_id
 {
     MSG_ACK_TUPLE             = 0x00,
@@ -79,6 +66,7 @@ typedef enum igh_pkt_id
     SPEAR_BATT_LOW_THRESHOLD  = 0x18,
     SHIELD_BATT_LOW_THRESHOLD = 0x19,
     BUTTON_PRESS              = 0x1A,
+    FW_VERSION                = 0x1B,
     EVENT                     = 0xFC,
     RESTART                   = 0xFD,
     DATA_PKT                  = 0xFE,
@@ -103,9 +91,10 @@ typedef enum igh_pkt_id
 #define SIZE_OF_SHIELD_BATTERY_LEVEL    4
 #define SIZE_OF_SPEAR_BATTERY_LEVEL     2
 #define SIZE_OF_RESTART                 1
-#define SIZE_OF_ERROR                   1
+#define SIZE_OF_EVENT                   1
 #define SIZE_OF_VALVE_POSITION          1
 #define SIZE_OF_BUTTON_PRESS            1
+#define SIZE_OF_FW_VERSION              3
 
 typedef enum igh_pkt_id igh_pkt_id;
 
@@ -114,7 +103,7 @@ enum igh_msg_type
     UNKNOWN_MSG = 0x00,
     MSG_ACK = 0x41,
     SENSOR_DATA = 0x44,
-    ERROR_MSG = 0x45,
+    EVENT_MSG = 0x45,
     SETTINGS_MSG = 0x53  
 };
 typedef enum igh_msg_type igh_msg_type;
@@ -126,36 +115,39 @@ enum igh_msg_dir
 };
 typedef enum igh_msg_dir igh_msg_dir;
 
-#ifdef TEST
-#define LOCAL 
-#else
-#define LOCAL static
-#endif
+typedef enum _igh_event_id_e
+{
+    // start error ID from 50
+    EVENT_DEVICE_RESTART = 0x50,
+    EVENT_SD_CARD_ERROR,
+    EVANT_BUTTON_IRRIGATION_ON,
+    EVANT_BUTTON_IRRIGATION_OFF,
+    EVENT_VAVLE_OPENED,
+    EVENT_VAVLE_CLOSED,
+    EVENT_IRRIGATION_SUSPENDED,
+    EVENT_IRRIGATION_RESUMED,
+    EVENT_IRRIGATION_ENABLED,
+    EVENT_IRRIGATION_DISABLED,
+    EVENT_MQTT_ERROR,
+    EVENT_UNKNOWN_MQTT_CMD,
+    EVENT_CMD_SENT_TO_WRONG_DEVICE,
+    EVENT_SETTINGS_UPDATE_SUCCESS,
+    EVENT_SETTINGS_UPDATE_FAIL,
+    EVENT_CALL_HOME,
+    EVENT_RESET_IRRIGATION,
+    EVENT_SYSTEM_RESET,
+    EVENT_INVALID_SOIL_DATA
+} igh_event_id_e;
 
-extern uint8_t mqtt_connected;
+#define EVENT_PAYLOAD_LEN 3
 
-
-// function APIs
-#ifdef TEST
-LOCAL uint8_t igh_message_reset_buffer(void);
-LOCAL uint8_t igh_message_add_frame_end(void);
-LOCAL uint8_t igh_message_add_length(void);
-LOCAL igh_msg_type igh_message_add_msg_type(igh_msg_type msg_type);
-LOCAL igh_msg_dir igh_message_add_direction(igh_msg_dir msg_dir);
-LOCAL uint8_t igh_message_add_serial_number(uint8_t * serial_number);
-LOCAL uint8_t igh_message_add_msg_id(void);
-LOCAL uint8_t igh_message_check_tuple_fits(uint8_t length);
-LOCAL uint8_t igh_message_process_ACK(uint8_t * ack_msg);
-LOCAL uint8_t igh_message_build_ACK_payload(void);
-#endif
-
-uint8_t igh_message_process_incoming_msg(uint8_t * buffer);
-uint8_t igh_message_add_tuple(igh_pkt_id _pkt_id, uint8_t * data);
-uint8_t igh_message_process_incoming_msg(uint8_t * buffer);
+void igh_message_setup( void );
+void igh_message_ping_home( void );
+void igh_message_build_payload( igh_msg_type msg_type, uint8_t * payload, uint8_t payload_len, bool store_data_point );
+void igh_message_event( igh_event_id_e event, bool store_data_point );
+void igh_message_get_new_settings( void );
+void igh_message_commit_new_settings( void );
 void igh_message_receive_and_stage_sensor_data( void );
-
-#ifdef __cplusplus
-}
-#endif
+uint8_t igh_message_process_mqtt_data( uint8_t * buffer, uint8_t incoming_len );
 
 #endif

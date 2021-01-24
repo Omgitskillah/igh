@@ -150,7 +150,6 @@ uint8_t igh_rfm69_receive_raw_bytes( uint8_t *buffer, uint8_t len )
     if ( igh_radio.receiveDone() )
     {
         byte temperature =  igh_radio.readTemperature(-1);// -1 = user cal factor, adjust for correct ambient
-        byte fTemp = 1.8 * temperature + 32; // 9/5=1.8
         Serial.print("NEW DATA FROM: "); Serial.print(igh_radio.SENDERID); Serial.print(" RFM TEMP: "); Serial.print(temperature); Serial.println("C");
         if( igh_radio.DATALEN <= len )
         {
@@ -169,25 +168,7 @@ void igh_rfm69_ack_service( void )
 {
     if (igh_radio.ACKRequested())
     {
-        byte theNodeID = igh_radio.SENDERID;
         igh_radio.sendACK();
-        // Serial.print(" - ACK sent.");
-
-        // When a node requests an ACK, respond to the ACK
-        // and also send a packet requesting an ACK (every 3rd one only)
-        // This way both TX/RX NODE functions are tested on 1 end at the GATEWAY
-
-        // This might come in handy later
-        // if (ackCount++%3==0)
-        // {
-        // Serial.print(" Pinging node ");
-        // Serial.print(theNodeID);
-        // Serial.print(" - ACK...");
-        // delay(3); //need this when sending right after reception .. ?
-        // if (igh_radio.sendWithRetry(theNodeID, "ACK TEST", 8, 0))  // 0 = only 1 attempt, no retries
-        //     Serial.print("ok!");
-        // else Serial.print("nothing");
-        // }
     }
 }
 

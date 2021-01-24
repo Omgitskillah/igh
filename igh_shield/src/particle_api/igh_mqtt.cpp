@@ -39,7 +39,7 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
         Serial.print(p[i], HEX);
     }
 
-    msg_type = (igh_msg_type)igh_message_process_incoming_msg( p );
+    msg_type = (igh_msg_type)igh_message_process_mqtt_data( p , length );
 
     Serial.print("\nMESSAGE TYPE: ");
     Serial.println((int)msg_type);

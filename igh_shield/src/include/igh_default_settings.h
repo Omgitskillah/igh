@@ -17,7 +17,7 @@ extern "C" {
 // System settings
 #define DEFAULT_TIMEZONE                        3 // +3 Kenya
 #define DEFAULT_IRRIGATION_HR                   7 // 7 AM
-#define DEFAULT_WATER_DISP_PERIOD               1800 // 30 mins
+#define DEFAULT_WATER_DISP_PERIOD               1800000 // 30 mins, how long the valve should stay open in milliseconds
 #define DEFAULT_NEW_OPSTATE                     OP_INACTIVE
 #define DEFAULT_AUTO_IRRIGATION_TYPE            HOURLY_IRRIGATION
 #define DEFAULT_REPORTING_INTERVAL              1800 // 30 mins   
@@ -28,6 +28,7 @@ extern "C" {
 #define DEFAULT_MQTT_BROKER_PORT                1883
 #define DEFAULT_MQTT_USERNAME                   "shields"
 #define DEFAULT_MQTT_PASSWORD                   "940610b43b1"
+#define DEFAULT_CLOCK_IRRIGATION_INTERVAL        7200000// clock irrigation interval in milliseconds, 2 hours
 //High Threshold tirggers       
 #define DEFAULT_SOIL_MOISTURE_LOW               0            
 #define DEFAULT_AIR_HUMIDITY_LOW                0            
@@ -39,7 +40,7 @@ extern "C" {
 #define DEFAULT_LIGHT_INTENSITY_LOW             0            
 #define DEFAULT_SHIELD_BATTERY_LEVEL_LOW        0            
 #define DEFAULT_SPEAR_BATTERY_LEVEL_LOW         0           
-#define DEFAULT_WATER_DISPENSED_PERIOD_LOW      300              
+#define DEFAULT_WATER_DISPENSED_PERIOD_LOW      300  //300 Litres            
 // Low Threshold Trigger        
 #define DEFAULT_SOIL_MOISTURE_HIGH              255             
 #define DEFAULT_AIR_HUMIDITY_HIGH               255          

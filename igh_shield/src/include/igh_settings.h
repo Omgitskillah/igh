@@ -1,6 +1,6 @@
 /*******************************************************************************
- * @file igh_air.h
- * @brief manage air sensor data
+ * @file igh_settings.h
+ * @brief manage settings on the system
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
@@ -22,20 +22,12 @@ enum device_op_state
 };
 typedef enum device_op_state device_op_state;
 
-// should be moved to valve control file
-enum valve_position
-{
-    VALVE_CLOSE,
-    VALVE_OPEN
-};
-typedef enum valve_position valve_position;
-
-enum _auto_irrigation_type_e
+typedef enum _auto_irrigation_type_e
 {
     UNKNOWN,
     SENSOR_IRRIGATION,
     HOURLY_IRRIGATION
-};
+}auto_irrigation_type_e;
 
 // Should be moved to system file
 struct thresholds
@@ -75,6 +67,7 @@ struct system_settings
     int timezone; // timezone in which the device is installed
     uint8_t irrigation_hr; // at what hour should we irrigate?
     uint8_t auto_irrigation_type; // hourly or using sensor data?
+    uint32_t clock_irrigation_interval; // how often should clock irrigation occur
     device_op_state op_state; // inactive, basic, standard, premium
     uint32_t water_dispenser_period; // tracks time in seconds
     uint32_t water_amount_by_button_press; // how much water we will get when we press the button
@@ -98,6 +91,7 @@ extern uint8_t deviceID_string[24];
 #define INDEX_RFM69_NODE_ID     11 // 11th byte of the Serial number is the Node ID
 extern uint8_t initialize_rfm69;
 extern uint8_t mqtt_set_broker;
+extern uint8_t timezone_updated;
 
 enum igh_settings_subid
 {
@@ -115,6 +109,7 @@ enum igh_settings_subid
     SUBID_MQTT_PASSWORD,
     SUBID_WATER_AMOUNT_BY_BUTTON,
     SUBID_AUTO_IRRIGATION_TYPE,
+    SUBID_CLOCK_IRRIGATION_INTERVAL,
     
     //High Threshold tirggers
     SUBID_SOIL_MOISTURE_LOW = 0x10,          
@@ -155,10 +150,11 @@ enum igh_settings_subid
 #define NEGATIVE_TIME_ZONE                          0x00
 #define POSITIVE_TIME_ZONE                          0xFF
 #define LENGTH_SUBID_SUBID_IRRIGATION_HR            1
-#define MAX_HOUR                                    24
+#define MAX_HOUR                                    23
 #define MIN_HOUR                                    0
 #define LENGTH_SUBID_WATER_DISP_PERIOD              4
 #define LENGTH_SUBID_SUBID_WATER_AMOUNT_BY_BUTTON   4
+#define LENGTH_SUBID_CLOCK_IRRIGATION_INTERVAL      4
 //High Threshold tirggers
 #define LENGTH_SUBID_SOIL_MOISTURE_LOW              2          
 #define LENGTH_SUBID_AIR_HUMIDITY_LOW               2           
@@ -202,7 +198,6 @@ extern system_settings igh_current_system_settings;
 extern thresholds igh_default_thresholds;
 extern thresholds igh_current_threshold_settings;
 
-extern valve_position current_valve_position;
 extern uint8_t default_serial_number[];
 extern uint8_t default_broker_url[];
 
@@ -230,7 +225,6 @@ uint8_t igh_settings_calculate_checksum(void * p_struct, size_t total_bytes);
 // Data Collection interval
 extern thresholds igh_current_threshold_settings;
 extern system_settings igh_current_system_settings;
-extern valve_position current_valve_position;
 extern uint8_t new_settings_available;
 
 #ifdef __cplusplus

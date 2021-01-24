@@ -100,10 +100,37 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 | SHIELD_ID                   | 0x17    | 12         |                                                     |
 | SPEAR_BATT_LOW_THRESHOLD    | 0x18    | 2          |                                                     |
 | SHIELD_BATT_LOW_THRESHOLD   | 0x19    | 2          |                                                     |
-| BUTTON_PRESS                | 0x19    | 1          | How long button was pressed in seconds              |
+| BUTTON_PRESS                | 0x1A    | 1          | How long button was pressed in seconds              |
+| FW_VERSION                  | 0x1B    | 3          |                                                     |
+| EVENT                       | 0xFC    | 1          |                                                     |
 | RESTART                     | 0xFD    | 1          |                                                     |
 | DATA_PKT                    | 0xFE    | Variable   |                                                     |
 | END_OF_PKT_ID               | 0xFF    | -          |                                                     |
+
+### **EVENTS**
+Here is a list of supported events and their values. Events are packaged in tuples with the `EVENT` tuple ID, a length of `one` followed by the event id that occured.
+
+| Event Name                     | Event ID|
+| :---                           | :---    |
+| EVENT_DEVICE_RESTART           | 0x50    |
+| EVENT_SD_CARD_ERROR            | 0x51    |
+| EVANT_BUTTON_IRRIGATION_ON     | 0x52    |
+| EVANT_BUTTON_IRRIGATION_OFF    | 0x53    |
+| EVENT_VAVLE_OPENED             | 0x54    |
+| EVENT_VAVLE_CLOSED             | 0x55    |
+| EVENT_IRRIGATION_SUSPENDED     | 0x56    |
+| EVENT_IRRIGATION_RESUMED       | 0x57    |
+| EVENT_IRRIGATION_ENABLED       | 0x58    |
+| EVENT_IRRIGATION_DISABLED      | 0x59    |
+| EVENT_MQTT_ERROR               | 0x5A    |
+| EVENT_UNKNOWN_MQTT_CMD         | 0x5B    |
+| EVENT_CMD_SENT_TO_WRONG_DEVICE | 0x5C    |
+| EVENT_SETTINGS_UPDATE_SUCCESS  | 0x5D    |
+| EVENT_SETTINGS_UPDATE_FAIL     | 0x5E    |
+| EVENT_CALL_HOME                | 0x5F    |
+| EVENT_RESET_IRRIGATION         | 0x60    |
+| EVENT_SYSTEM_RESET             | 0x61    |
+| EVENT_INVALID_SOIL_DAT         | 0x62    |
 
 ### **IGH_READ_SETTINGS**
 In order to get the current settings in a device, the cloud platform must send a message with and **IGH_READ_SETTINGS** tuple in the payload.  
@@ -243,5 +270,10 @@ _**Note:** The device name can be found on the device cosole as part of the devi
 3. Log onto initialstate using company credentials to view data. 
    
 ### NOTE: every new device will automatically start sending data to initialstate each time a new message is published to MQTT
+
+# EXTERNAL 3rd PARTY SIM Vs INTERNAL PARTICLE SIM
+It is not possible to dinamically switch between the internal and external sim cards on run time. 
+Choosing between the two sim cards can be done by editing the `simcard.inc` file in the `src` folder of this application by applying either the constant variable INTERNAL_SIM or EXTERNAL_SIM and triggering a build of the system.
+Switching between the two sims may require a full power cycle of the devices. 
 
 

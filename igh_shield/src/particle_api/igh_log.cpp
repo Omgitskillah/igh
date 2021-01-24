@@ -11,6 +11,8 @@
 #include "igh_hardware.h"
 #include "igh_sd_log.h"
 #include "igh_rfm69.h"
+#include "include/igh_button.h"
+#include "include/igh_valve.h"
 
 
 #define IGH_LOG_BAUD (long)19200
@@ -49,6 +51,8 @@ const char test_button      = '4';
 const char test_valve       = '5';
 const char test_sd          = '6';
 const char test_rfm69       = '7';
+
+extern uint32_t button_seconds_counter;
 
 static uint8_t igh_log_read(char * _ch);
 static void print_cmd_options(void);
@@ -186,7 +190,7 @@ uint8_t igh_process_serial_cmd(void)
     // Test button routine
     if(test_button_flag)
     {
-        if(igh_button_sec_counter >= button_test_duration)
+        if(button_seconds_counter >= button_test_duration)
         {
             ret = 1;
             igh_append_test_status(ret);
@@ -206,29 +210,32 @@ uint8_t igh_process_serial_cmd(void)
     {
         if(open_close)
         {
-            current_valve_position = VALVE_OPEN;
-        }
-        else
-        {
-            current_valve_position = VALVE_CLOSE;
+            igh_valve_change_state( VALVE_OPEN,
+                                    valve_transit_time, 
+                                    (float)igh_current_system_settings.water_amount_by_button_press );
+            open_close = false;
+            test_valve_counter = millis();
         }
         
+        if( (millis() - test_valve_counter) > (valve_transit_time/2) && 
+            (millis() - test_valve_counter) < valve_transit_time )
+        {
+            if( VALVE_OPEN == current_valve_ctrl.valve_state )
+            {
+                valve_closed_pass = true;
+            }
+        }
+
         if( (millis() - test_valve_counter) >= valve_transit_time )
         {
-            if(open_close)
+            if( VALVE_CLOSE == current_valve_ctrl.valve_state )
             {
-                valva_open_pass = igh_hardware_test_valve_state();
-                open_close = false;
-                test_valve_counter = millis();
+                valva_open_pass = true;
             }
-            else
-            {
-                valve_closed_pass = !igh_hardware_test_valve_state();
-
-                ret = (valve_closed_pass && valva_open_pass);
-                igh_append_test_status(ret);
-                test_valve_flag = false;
-            }   
+            
+            ret = (valve_closed_pass && valva_open_pass);
+            igh_append_test_status(ret);
+            test_valve_flag = false;
         }
     }
 

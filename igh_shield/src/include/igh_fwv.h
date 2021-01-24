@@ -1,15 +1,13 @@
 /*******************************************************************************
- * @file igh_app.h
- * @brief Main IGH application for the Shield board
+ * @file igh_message.h
+ * @brief manage messages on the platform
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 
-#ifndef IGH_APP
-#define IGH_APP
+#ifndef IGH_FWV
+#define IGH_FWV
 
-void igh_app_setup( void );
-void igh_main_application( void );
-
+extern const uint8_t fw_ver[]; 
 
 #endif

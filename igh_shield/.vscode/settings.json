@@ -20,7 +20,8 @@
         "tuple": "cpp",
         "utility": "cpp",
         "xtr1common": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "*.inc": "cpp"
     },
     "particle.targetPlatform": "boron",
     "particle.targetDevice": "chicken_chipotle",

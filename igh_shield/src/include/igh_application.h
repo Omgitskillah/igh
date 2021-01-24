@@ -1,23 +1,13 @@
 /*******************************************************************************
- * @file igh_shield.cpp
+ * @file igh_application.cpp
  * @brief Main IGH application for the Shield board
  * @auther Alucho C. Ayisi
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
+#ifndef IGH_APPLICATION
+#define IGH_APPLICATION
 
-#include "Particle.h"
+void igh_application_setup( void );
+void igh_application_churn( void );
 
-#include "include/igh_application.h"
-
-/* Run Application routine */
-void setup() 
-{
-    // setup application
-    igh_application_setup();
-}
-
-void loop() 
-{
-    // run main app
-    igh_application_churn();
-}
+#endif

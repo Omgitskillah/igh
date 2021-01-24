@@ -8,9 +8,12 @@
 #include "Particle.h"
 #include "igh_boron.h"
 #include "include/igh_settings.h"
+#include "dct.h"
+#include "./simcard.inc"
 
 // Local variable
 #define ONE_DAY_MILLIS (24 * 60 * 60 * 1000)
+#define KEEP_ALIVE_SECONDS (300) //keep alive connection to the cloud every 5 mins, may change based on sim carrier
 
 unsigned long lastSync;
 bool connected_to_cloud;
@@ -24,6 +27,10 @@ unsigned long unix_time;
 bool print_serial = true;
 
 char hex_digits_LC[] = "0123456789abcdef";
+
+SYSTEM_MODE(SEMI_AUTOMATIC);
+
+void igh_boron_sim_select( void );
 
 /* Functions */
 void igh_boron_sync_time(void)
@@ -77,6 +84,8 @@ uint8_t igh_boron_connected_to_cloud(void)
 
 void igh_boron_setup(void)
 {
+    igh_boron_sim_select(); 
+
     lastSync = millis();
     // get serial number 
     memcpy( deviceID_string, System.deviceID(), sizeof(deviceID_string) );
@@ -96,6 +105,24 @@ uint8_t get_int_from_str( uint8_t num )
     unsigned long location = (unsigned long)strchr(hex_digits_LC, num);
     unsigned long origin = (unsigned long)hex_digits_LC;
     return uint8_t(location - origin);
+}
+
+void igh_boron_sim_select( void )
+{
+    if( CURRENT_SIMTYPE == INTERNAL_SIM )
+    {
+        Cellular.setActiveSim(INTERNAL_SIM);
+	    Cellular.clearCredentials();
+        Serial.print("USING INTERNAL SIM");
+    }
+    else if( CURRENT_SIMTYPE == EXTERNAL_SIM )
+    {
+        Cellular.setActiveSim(EXTERNAL_SIM);
+	    Cellular.setCredentials(APN_CREDENTIALS);
+        const uint8_t val = 0x01;
+        dct_write_app_data(&val, DCT_SETUP_DONE_OFFSET, 1);
+        Particle.keepAlive(KEEP_ALIVE_SECONDS); 
+    }
 }
 
 void igh_boron_service(void)

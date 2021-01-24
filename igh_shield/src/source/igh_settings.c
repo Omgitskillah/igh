@@ -9,7 +9,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "include/igh_message.h"
+#include "include/igh_valve.h"
 #include "include/igh_settings.h"
+#include "include/igh_irrigation.h"
 #include "include/igh_default_settings.h"
 
 #define PAYLOAD_LEN_INDEX (PAYLOAD_INDEX + 1)
@@ -30,9 +32,10 @@ uint8_t default_broker_pword[] = DEFAULT_MQTT_PASSWORD;
 
 thresholds igh_current_threshold_settings;
 system_settings igh_current_system_settings;
-valve_position current_valve_position;
 
 // flags to re-initialize various modules in case of settings change
+uint8_t timezone_updated = 0;
+uint8_t irrigation_settings_updated = 0;
 uint8_t initialize_rfm69 = 0;
 uint8_t mqtt_set_broker = 1; // make sure we set the broker on init
 uint8_t new_settings_available = 0;
@@ -59,6 +62,7 @@ LOCAL void igh_settings_get_defaults(void) // Total bytes
     igh_default_system_settings.reporting_interval           = DEFAULT_REPORTING_INTERVAL;
     igh_default_system_settings.data_resolution              = DEFAULT_DATA_RESOLUTION;
     igh_default_system_settings.broker_port                  = DEFAULT_MQTT_BROKER_PORT;
+    igh_default_system_settings.clock_irrigation_interval    = DEFAULT_CLOCK_IRRIGATION_INTERVAL;
 
     memcpy(igh_default_system_settings.serial_number, default_serial_number, LENGTH_SUBID_SET_SERIAL_NUMBER);
     memcpy(igh_default_system_settings.broker, default_broker_url, sizeof(default_broker_url));
@@ -148,6 +152,7 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                     )
                     {
                         igh_current_system_settings.auto_irrigation_type = settings[current_data_index];
+                        irrigation_settings_updated = 1;
                     }  
                     else
                     {
@@ -176,6 +181,7 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                     {
                         igh_current_system_settings.timezone = -1 * settings[current_data_index + 1];
                     }
+                    timezone_updated = 1;
                 }
                 else
                 {
@@ -192,6 +198,7 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                         MIN_HOUR <= (settings[current_data_index]) )
                     {
                         igh_current_system_settings.irrigation_hr = settings[current_data_index];
+                        irrigation_settings_updated = 1;
                     }  
                     else
                     {
@@ -211,6 +218,22 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                     uint8_t new_water_dispensed_period[LENGTH_SUBID_WATER_DISP_PERIOD]; 
                     memcpy(new_water_dispensed_period, &settings[current_data_index], LENGTH_SUBID_WATER_DISP_PERIOD);
                     igh_current_system_settings.water_dispenser_period = GET32_LI(new_water_dispensed_period);
+                    irrigation_settings_updated = 1;
+                }
+                else
+                {
+                    // stop processing any more settings as they may be corrupt
+                    return 0;
+                }
+                break;
+
+            case SUBID_CLOCK_IRRIGATION_INTERVAL:
+                if(LENGTH_SUBID_CLOCK_IRRIGATION_INTERVAL == current_tuple_length)
+                {
+                    uint8_t new_clock_irrigation_interval[LENGTH_SUBID_CLOCK_IRRIGATION_INTERVAL]; 
+                    memcpy(new_clock_irrigation_interval, &settings[current_data_index], LENGTH_SUBID_CLOCK_IRRIGATION_INTERVAL);
+                    igh_current_system_settings.clock_irrigation_interval = GET32_LI(new_clock_irrigation_interval);
+                    irrigation_settings_updated = 1;
                 }
                 else
                 {
@@ -225,6 +248,7 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                     uint8_t new_water_amount_by_button[LENGTH_SUBID_SUBID_WATER_AMOUNT_BY_BUTTON]; 
                     memcpy(new_water_amount_by_button, &settings[current_data_index], LENGTH_SUBID_WATER_DISP_PERIOD);
                     igh_current_system_settings.water_amount_by_button_press = GET32_LI(new_water_amount_by_button);
+                    irrigation_settings_updated = 1;
                 }
                 else
                 {
@@ -725,17 +749,12 @@ LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req
             case SUBID_MQTT_BROKER:
                 buffer[buffer_index_tracker++] = SUBID_MQTT_BROKER;
                 uint8_t _len = 0;
-                for( _len; _len < sizeof(igh_current_system_settings.broker); _len++)
+
+                while( igh_current_system_settings.broker[_len] )
                 {
-                    if(igh_current_system_settings.broker[_len] == '\0')
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        // run through the buffer till you find the first null byte or wait till the end
-                    }  
-                } // new _len will be the length of valid string in buffer
+                    if( '\0' == igh_current_system_settings.broker[_len] ) break;
+                    _len++;
+                }
                 buffer[buffer_index_tracker++] = _len;
                 memcpy(&buffer[buffer_index_tracker], igh_current_system_settings.broker, _len);
                 buffer_index_tracker += _len;
@@ -917,10 +936,11 @@ LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req
 
 LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings)
 {
-    if( ((valve_position)settings[FIRST_TUPLE_INDEX] == VALVE_CLOSE) ||
-        ((valve_position)settings[FIRST_TUPLE_INDEX] == VALVE_OPEN) )
+    if( ((valve_position_e)settings[FIRST_TUPLE_INDEX] == VALVE_CLOSE) ||
+        ((valve_position_e)settings[FIRST_TUPLE_INDEX] == VALVE_OPEN) )
     {
-        current_valve_position =  (valve_position)settings[FIRST_TUPLE_INDEX];
+        remote_valve_command = true;
+        remote_valve_state = (valve_position_e)settings[FIRST_TUPLE_INDEX];
         return 1;
     }
 
