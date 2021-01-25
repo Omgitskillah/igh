@@ -6,10 +6,12 @@
  *******************************************************************************/
 
 #include "Particle.h"
+#include "include/igh_shield.h"
 #include "include/igh_button.h"
 #include "include/igh_valve.h"
 #include "include/igh_irrigation.h"
 #include "include/igh_settings.h"
+#include "include/igh_message.h"
 #include "particle_api/igh_hardware.h"
 
 uint32_t button_seconds_counter = 0;
@@ -63,7 +65,7 @@ void igh_button_mngr( void )
         else if ( button_seconds_counter >= BUTTON_PRESS_TOGGLE_SYS )
         {
             /* disable/enable irrigation */
-            irrigation_suspended = !irrigation_suspended; 
+            igh_irrigation_toggle();
         }
         else
         {

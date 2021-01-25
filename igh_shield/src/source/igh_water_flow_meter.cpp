@@ -5,9 +5,11 @@
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 #include "Particle.h"
+#include "include/igh_shield.h"
 #include "particle_api/igh_hardware.h"
 #include "particle_api/igh_eeprom.h"
 #include "include/igh_valve.h"
+#include "include/igh_message.h"
 #include "include/igh_water_flow_meter.h"
 
 #define FLOW_METER_CAL_FACTOR  (4.5)
@@ -82,6 +84,10 @@ void igh_water_flow_meter_reset_nv( void )
     update_water_flow_nv = true;
     total_water_dispensed_Liters = 0;
     igh_water_flow_meter_update_nv( total_water_dispensed_Liters );
+#ifdef IGH_DEBUG
+    Serial.println("IRRIGATION SYSTEM RESET");
+#endif
+    igh_message_event(EVENT_RESET_IRRIGATION, true);
 }
 
 void igh_water_flow_meter_update_nv( float _total_water_dispensed_Liters )

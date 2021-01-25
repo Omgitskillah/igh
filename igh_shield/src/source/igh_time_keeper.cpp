@@ -6,15 +6,18 @@
  *******************************************************************************/
 
 #include "Particle.h"
+#include "include/igh_shield.h"
 #include "include/igh_settings.h"
 #include "include/igh_valve.h"
 #include "include/igh_irrigation.h"
+#include "include/igh_message.h"
 #include "include/igh_water_flow_meter.h"
 #include "include/igh_time_keeper.h"
 
 #define MIDNIGHT 0
 
 bool midnight_reset_done = false; 
+bool enable_irrigation_flag = false; 
 
 void igh_time_keeper_init( void )
 {
@@ -43,14 +46,30 @@ void igh_time_keeper_churn( void )
             {
                 igh_water_flow_meter_reset_nv();
                 midnight_reset_done = true;
-            }
-            
+            }            
             igh_irrigation_enabled = false;
+            if( true == enable_irrigation_flag )
+            {
+#ifdef IGH_DEBUG
+                Serial.println("IRRIGATION DISABLED");
+#endif
+                igh_message_event(EVENT_IRRIGATION_DISABLED, true);
+                enable_irrigation_flag = false;
+            }
         }
         else
         {
             midnight_reset_done = false;
             igh_irrigation_enabled = true;
+
+            if( false == enable_irrigation_flag )
+            {
+#ifdef IGH_DEBUG
+                Serial.println("IRRIGATION ENABLED");
+#endif
+                igh_message_event(EVENT_IRRIGATION_ENABLED, true);
+                enable_irrigation_flag = true;
+            }
         }
     }
     else

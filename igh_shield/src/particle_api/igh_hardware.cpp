@@ -6,6 +6,7 @@
  *******************************************************************************/
 
 #include "Particle.h"
+#include "include/igh_shield.h"
 #include "igh_hardware.h"
 #include "include/igh_settings.h"
 

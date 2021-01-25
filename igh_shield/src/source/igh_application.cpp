@@ -6,6 +6,7 @@
  *******************************************************************************/
 
 #include "Particle.h"
+#include "include/igh_shield.h"
 #include "particle_api/igh_boron.h"
 #include "particle_api/igh_eeprom.h"
 #include "particle_api/igh_hardware.h"
@@ -62,6 +63,9 @@ void igh_application_publish_restart( void )
     if( (true == Time.isValid()) &&
         (true == system_reset) )
     {
+#ifdef IGH_DEBUG
+        Serial.println("DEVICE RESTART");
+#endif        
         igh_message_event(EVENT_DEVICE_RESTART, true);
         system_reset = false;
     }

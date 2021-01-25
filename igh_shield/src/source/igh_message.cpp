@@ -6,6 +6,7 @@
  *******************************************************************************/
 
 #include "Particle.h"
+#include "include/igh_shield.h"
 #include "include/igh_fwv.h"
 #include "include/igh_settings.h"
 #include "include/igh_message.h"
@@ -176,6 +177,9 @@ void igh_message_event( igh_event_id_e event, bool store_data_point )
 
 void igh_message_ping_home( void )
 {
+#ifdef IGH_DEBUG
+    Serial.println("PING HOME");
+#endif
     igh_message_event( EVENT_CALL_HOME, true );
 }
 
@@ -223,6 +227,9 @@ uint8_t igh_message_process_mqtt_data( uint8_t * buffer, uint8_t incoming_len )
             {
                 // if the serial number does not match, do nothing as this message wasn't meant for this device,
                 // This ideally should never happen
+#ifdef IGH_DEBUG
+                Serial.println("WRONG MQTT DEVICE COMMAND");
+#endif
                 igh_message_event(EVENT_CMD_SENT_TO_WRONG_DEVICE, true);
             }
             else
@@ -237,18 +244,27 @@ uint8_t igh_message_process_mqtt_data( uint8_t * buffer, uint8_t incoming_len )
                 }
                 else
                 {
+#ifdef IGH_DEBUG
+                    Serial.println("UNKNOWN MQTT COMMAND");
+#endif                    
                     igh_message_event(EVENT_UNKNOWN_MQTT_CMD, true);
                 }
             }
         }
         else
         {
+#ifdef IGH_DEBUG
+            Serial.println("UNKNOWN MQTT COMMAND");
+#endif 
             igh_message_event(EVENT_UNKNOWN_MQTT_CMD, true);
         }
         
     }
     else
     {
+#ifdef IGH_DEBUG
+        Serial.println("UNKNOWN MQTT COMMAND");
+#endif 
         igh_message_event(EVENT_UNKNOWN_MQTT_CMD, true);
     }
 
@@ -280,6 +296,9 @@ void igh_message_get_new_settings( void )
                 igh_current_system_settings.checksum = igh_settings_calculate_checksum(&igh_current_system_settings, sizeof(igh_current_system_settings));
                 // update the checksum for the threshold settings
                 igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
+#ifdef IGH_DEBUG
+                Serial.println("SETTINGS UPDATED SUCCESSFULY");
+#endif 
                 igh_message_event( EVENT_SETTINGS_UPDATE_SUCCESS, true );
             }
             else
@@ -309,10 +328,6 @@ void igh_message_get_new_settings( void )
         {
             // reset irrigation
             igh_water_flow_meter_reset_nv();
-#ifdef IGH_DEBUG
-            Serial.println("IRRIGATION RESET SUCCESSFUL");
-#endif
-            igh_message_event( EVENT_RESET_IRRIGATION, true );
         }
         else if( (igh_msg_buffer[0] == 'R') &&
                  (igh_msg_buffer[1] == 'E') &&
@@ -329,6 +344,9 @@ void igh_message_get_new_settings( void )
             new_settings_available = 1;
             mqtt_set_broker = 1;
             initialize_rfm69 = 1;
+#ifdef IGH_DEBUG
+            Serial.println("SYSTEM SETTINGS RESET");
+#endif             
             igh_message_event( EVENT_SYSTEM_RESET, true );
         }
     }
@@ -451,6 +469,9 @@ void igh_message_parse_current_humidity( uint8_t * incoming_data )
             else
             {
                 /* Do nothing */
+#ifdef IGH_DEBUG
+                Serial.println("INVALID SOIL DATA");
+#endif 
                 igh_message_event( EVENT_INVALID_SOIL_DATA, true );
             }
         }

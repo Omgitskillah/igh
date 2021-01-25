@@ -6,9 +6,11 @@
  *******************************************************************************/
 
 #include "Particle.h"
+#include "include/igh_shield.h"
 #include "include/igh_settings.h"
 #include "include/igh_valve.h"
 #include "include/igh_water_flow_meter.h"
+#include "include/igh_message.h"
 #include "include/igh_irrigation.h"
 
 #define ONE_HOUR                    3600000
@@ -100,6 +102,25 @@ void igh_irrigation_by_sensor_data( void )
     }
 }
 
+void igh_irrigation_toggle( void )
+{
+    irrigation_suspended = !irrigation_suspended;
+if( true == irrigation_suspended )
+    {
+#ifdef IGH_DEBUG
+        Serial.println("IRRIGATION SUSPENDED");
+#endif      
+        igh_message_event(EVENT_IRRIGATION_SUSPENDED, true);
+    }
+    else
+    {
+#ifdef IGH_DEBUG
+        Serial.println("IRRIGATION RESUMED");
+#endif      
+        igh_message_event(EVENT_IRRIGATION_RESUMED, true);
+    }
+}
+
 void igh_irrigation_by_button( void )
 {
     if( VALVE_CLOSE == current_valve_ctrl.valve_state )
@@ -109,6 +130,10 @@ void igh_irrigation_by_button( void )
             igh_current_system_settings.water_dispenser_period, 
             (float)igh_current_system_settings.water_amount_by_button_press
         );
+#ifdef IGH_DEBUG
+        Serial.println("IRRIGATION STARTED BY BUTTON");
+#endif      
+        igh_message_event(EVANT_BUTTON_IRRIGATION_ON, true);
     }
     else
     {
@@ -118,6 +143,10 @@ void igh_irrigation_by_button( void )
             igh_current_system_settings.water_dispenser_period, 
             (float)igh_current_system_settings.water_amount_by_button_press
         );
+#ifdef IGH_DEBUG
+        Serial.println("IRRIGATION STOPPED BY BUTTON");
+#endif      
+        igh_message_event(EVANT_BUTTON_IRRIGATION_OFF, true);
     }
 }
 
@@ -141,6 +170,11 @@ void igh_irrigation_mngr( void )
     {
         igh_irrigation_disable_unused_timers();
         irrigation_settings_updated = false;
+    }
+    if( total_water_dispensed_Liters < igh_current_threshold_settings.water_dispensed_period_low )
+    {
+        // this will keep trying till it works
+        igh_irrigation_minimum_water_to_dispense();
     }
     
     /* avoid going over the upper limit */

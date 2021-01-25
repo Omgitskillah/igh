@@ -5,6 +5,7 @@
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 #include "Particle.h"
+#include "include/igh_shield.h"
 #include "MQTT.h"
 #include "igh_mqtt.h"
 #include "igh_boron.h"

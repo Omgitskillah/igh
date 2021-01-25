@@ -15,5 +15,6 @@ extern valve_position_e remote_valve_state;
 void igh_irrigation_by_button( void );
 void igh_irrigation_mngr( void );
 void igh_irrigation_update_sensor_data( uint16_t sensor_data );
+void igh_irrigation_toggle( void );
 
 #endif

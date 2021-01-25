@@ -5,6 +5,7 @@
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 #include "Particle.h"
+#include "include/igh_shield.h"
 #include "igh_log.h"
 #include "igh_eeprom.h"
 #include "igh_boron.h"

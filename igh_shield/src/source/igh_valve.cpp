@@ -6,6 +6,8 @@
  *******************************************************************************/
 
 #include "Particle.h"
+#include "include/igh_shield.h"
+#include "include/igh_message.h"
 #include "particle_api/igh_hardware.h"
 #include "include/igh_valve.h"
 
@@ -163,12 +165,20 @@ void igh_valve_change_state( valve_position_e _valve_state, uint32_t _open_durat
         {
             // if someone wants to close the valve, reset the state
             igh_valve_reset_state();
+#ifdef IGH_DEBUG
+            Serial.println("VALVE CLOSE REQUEST");
+#endif
+            igh_message_event(EVENT_VAVLE_CLOSED, true);
         }
         else
         {
             current_valve_ctrl.valve_state = _valve_state;
             current_valve_ctrl.open_duration = _open_duration;
             current_valve_ctrl.open_litres = _open_flow;
+#ifdef IGH_DEBUG
+            Serial.println("VALVE OPEN REQUEST");
+#endif
+            igh_message_event(EVENT_VAVLE_OPENED, true);
         }
     }
     else

@@ -5,6 +5,7 @@
  * Copyright (C), Synnefa Green Ltd. All rights reserved.
  *******************************************************************************/
 #include "Particle.h"
+#include "include/igh_shield.h"
 #include <SPI.h>
 #include "SdFat.h"
 #include "igh_sd_log.h"

@@ -6,9 +6,10 @@
  *******************************************************************************/
 #include "igh_rfm69.h"
 #include "include/igh_settings.h"
+#include "include/igh_shield.h"
 
 int16_t NETWORKID   = 100;
-int16_t NODEID      = 7;   
+int16_t NODEID      = 7;
 int16_t TEST_NODE   = 4;
 
 // derived settings
@@ -150,8 +151,8 @@ uint8_t igh_rfm69_receive_raw_bytes( uint8_t *buffer, uint8_t len )
     uint8_t rx_len = 0;
     if ( igh_radio.receiveDone() )
     {
-        byte temperature =  igh_radio.readTemperature(-1);// -1 = user cal factor, adjust for correct ambient
 #ifdef IGH_DEBUG
+        byte temperature =  igh_radio.readTemperature(-1);// -1 = user cal factor, adjust for correct ambient
         Serial.print("NEW DATA FROM: "); Serial.print(igh_radio.SENDERID); Serial.print(" RFM TEMP: "); Serial.print(temperature); Serial.println("C");
 #endif
         if( igh_radio.DATALEN <= len )

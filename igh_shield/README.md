@@ -237,10 +237,7 @@ The result should be **0** for a successful settings change and **-1** if it fai
 7. Button Press
 # WATER IRRIGATION LOGIC
 ## Button Control Logic
-- Holding the button down for at least _**FIVE SECONDS**_ will open the valve. If _***100 litres of water**_ pass through the meter **OR** if _***30 minutes**_ elapse since the valve opened, the valve will automatically close. Opening the valve via the button automatically disables anu form of automatica irrigation
-- During Normal operation, the system will wait for _***0600Hrs**_ before irrigation can start. At this hour, the system will first dispense _***300 litres of water**_ after which the system moves into **SENSOR DISPENSE MODE**. The soil humidity data is then used to open and close the vlave. If the humidity readings are between _***60%**_ and _***90%**_, the valve will open and if _***100 litres of water**_ pass through the meter **OR** if _***30 minutes**_ elapse since the valve opened, the valve will automatically close.
-- Holding the button for _**TWO SECONDS**_ will disable **SENSOR DISPENSE MODE** and hodling the button down for  _**TWO SECONDS**_ once more re enables **SENSOR DISPENSE MODE**. 
-- If the total water dispensed in a single day is above _***800 litres of water**_, **SENSOR DISPENSE MODE** is disabled but water can still be dispensed via a _**FIVE SECONDS**_ button press. 
+The button will now open or close the valve if pressed for 3 seconds or more. Pressing and holding the button for longer than ten seconds will disable or enable auto irrigation. 
 
 ***NOTES:***  
   _***100 litres of water**_ - _Default value, can be changed using settings 
