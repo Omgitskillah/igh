@@ -12,6 +12,9 @@
 #include "dct.h"
 #include "./simcard.inc"
 
+SYSTEM_MODE(CURRENT_SYSTEM_MODE);
+SYSTEM_THREAD(ENABLED);
+
 // Local variable
 #define ONE_DAY_MILLIS (24 * 60 * 60 * 1000)
 #define KEEP_ALIVE_SECONDS (300) //keep alive connection to the cloud every 5 mins, may change based on sim carrier
@@ -28,8 +31,6 @@ unsigned long unix_time;
 bool print_serial = true;
 
 char hex_digits_LC[] = "0123456789abcdef";
-
-SYSTEM_MODE(SEMI_AUTOMATIC);
 
 void igh_boron_sim_select( void );
 
@@ -147,11 +148,14 @@ void igh_boron_test_device(void)
     }
     Serial.print("\n");
     Serial.print("Unix Time:        "); Serial.println(igh_boron_unix_time());
+    Serial.print("modem status:     "); Serial.println(igh_boron_connected_to_cloud());
     Serial.print("cloud status:     "); Serial.println(igh_boron_connected_to_cloud());
     Serial.print("network status:   "); Serial.println(igh_boron_connecetd_to_network());
     Serial.print("signal strength:  "); Serial.println(igh_boron_ss());
     Serial.print("signal quality:   "); Serial.println(igh_boron_sq());
     Serial.print("Battery Voltage:  "); Serial.println(igh_boron_voltage());
     Serial.print("Battery SOC:      "); Serial.println(igh_boron_SoC());
+    Serial.print("Sim type:         "); if( CURRENT_SIMTYPE == INTERNAL_SIM ){ Serial.println("INTERNAL");} else { Serial.println("EXTERNAL");}
+    Serial.print("System mode:      "); if( CURRENT_SYSTEM_MODE == AUTOMATIC ){ Serial.println("AUTOMATIC");} else { Serial.println("SEMI_AUTOMATIC");}
 #endif
 }

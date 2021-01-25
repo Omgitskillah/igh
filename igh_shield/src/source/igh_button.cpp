@@ -60,7 +60,11 @@ void igh_button_mngr( void )
             (button_seconds_counter < BUTTON_PRESS_TOGGLE_SYS) )
         {
             /* close or open valve */ 
-            igh_irrigation_by_button();
+            if( true == Time.isValid() )
+            {
+                // only enable button irrigation if time is valid
+                igh_irrigation_by_button();
+            }
         }
         else if ( button_seconds_counter >= BUTTON_PRESS_TOGGLE_SYS )
         {

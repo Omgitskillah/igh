@@ -191,18 +191,21 @@ void igh_irrigation_mngr( void )
         igh_irrigation_disable_unused_timers();
         irrigation_settings_updated = false;
     }
+
+    /* avoid going over the upper limit */
+    if( total_water_dispensed_Liters >= igh_current_threshold_settings.water_dispensed_period_high )
+    {
+        max_water_threshold_reached = true;
+    }
+
+    if( false == Time.isValid() ){ return; } // avoid doing anything here if the time is not yet valid
+
     if( (total_water_dispensed_Liters < igh_current_threshold_settings.water_dispensed_period_low) &&
         (false == minimum_daily_water_request_flag) )
     {
         /** if we are yet to irrigate the minimum water, request only once */
         igh_irrigation_minimum_water_to_dispense();
         minimum_daily_water_request_flag = true;
-    }
-    
-    /* avoid going over the upper limit */
-    if( total_water_dispensed_Liters >= igh_current_threshold_settings.water_dispensed_period_high )
-    {
-        max_water_threshold_reached = true;
     }
 
     if( (true == igh_irrigation_enabled) &&

@@ -161,7 +161,7 @@ void igh_valve_change_state( valve_position_e _valve_state, uint32_t _open_durat
         /**only change things if things if there is a difference in valve state
          * otherwise keep system as is
          */
-        if( VALVE_CLOSE == current_valve_ctrl.valve_state )
+        if( VALVE_CLOSE == _valve_state )
         {
             // if someone wants to close the valve, reset the state
             igh_valve_reset_state();
