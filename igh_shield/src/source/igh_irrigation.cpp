@@ -20,6 +20,7 @@ bool irrigation_suspended = false;
 bool igh_irrigation_enabled = false;
 bool max_water_threshold_reached = false;
 bool remote_valve_command = false;
+bool minimum_daily_water_request_flag = false;
 valve_position_e remote_valve_state = VALVE_CLOSE;
 
 typedef struct _irrigation_sensor_data_str
@@ -41,6 +42,13 @@ void igh_irrigation_disable_unused_timers( void );
 Timer igh_irrigation_by_the_clock_timer(ONE_HOUR, igh_irrigation_by_the_clock);
 Timer igh_irrigation_by_sensor_data_timer(SENSOR_IRRIGATION_COOLDOWN, igh_irrigation_by_sensor_data);
 
+void igh_irrigation_init( void )
+{
+    current_irrigation_data.updated = false;
+    current_irrigation_data.upper_threshold = igh_current_threshold_settings.soil_humidity_high;
+    current_irrigation_data.lower_threshold = igh_current_threshold_settings.soil_humidity_low;
+}
+
 void igh_irrigation_update_sensor_data( uint16_t sensor_data )
 {
     current_irrigation_data.reading = sensor_data;
@@ -51,6 +59,9 @@ void igh_irrigation_update_sensor_data( uint16_t sensor_data )
 
 void igh_irrigation_minimum_water_to_dispense( void )
 {
+#ifdef IGH_DEBUG
+    Serial.println("MINIMUM DAILY AMOUNT REQUESTED");
+#endif
     igh_valve_change_state(
         VALVE_OPEN,
         ONE_HOUR, 
@@ -60,6 +71,9 @@ void igh_irrigation_minimum_water_to_dispense( void )
 
 void igh_irrigation_by_the_clock( void )
 {
+#ifdef IGH_DEBUG
+    Serial.println("CLOCK IRRIGATION REQUESTED");
+#endif
     igh_valve_change_state(
         VALVE_OPEN,
         igh_current_system_settings.water_dispenser_period, 
@@ -71,6 +85,9 @@ void igh_irrigation_over_mqtt( void )
 {
     if( true == remote_valve_command )
     {
+#ifdef IGH_DEBUG
+        Serial.println("MQTT IRRIGATION REQUESTED");
+#endif
         igh_valve_change_state(
             remote_valve_state,
             igh_current_system_settings.water_dispenser_period, 
@@ -90,6 +107,9 @@ void igh_irrigation_by_sensor_data( void )
         if( (current_irrigation_data.reading < current_irrigation_data.upper_threshold) &&
             (current_irrigation_data.reading < current_irrigation_data.lower_threshold) )
         {
+#ifdef IGH_DEBUG
+            Serial.println("SENSOR IRRIGATION REQUESTED");
+#endif   
             igh_valve_change_state(
                 VALVE_OPEN,
                 igh_current_system_settings.water_dispenser_period, 
@@ -171,10 +191,12 @@ void igh_irrigation_mngr( void )
         igh_irrigation_disable_unused_timers();
         irrigation_settings_updated = false;
     }
-    if( total_water_dispensed_Liters < igh_current_threshold_settings.water_dispensed_period_low )
+    if( (total_water_dispensed_Liters < igh_current_threshold_settings.water_dispensed_period_low) &&
+        (false == minimum_daily_water_request_flag) )
     {
-        // this will keep trying till it works
+        /** if we are yet to irrigate the minimum water, request only once */
         igh_irrigation_minimum_water_to_dispense();
+        minimum_daily_water_request_flag = true;
     }
     
     /* avoid going over the upper limit */

@@ -38,6 +38,7 @@ void igh_application_setup( void )
     igh_sd_log_setup();
     igh_message_setup();
     igh_time_keeper_init();
+    igh_irrigation_init();
 }
 
 void igh_application_churn( void )

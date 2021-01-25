@@ -213,6 +213,9 @@ uint8_t igh_process_serial_cmd(void)
     {
         if(open_close)
         {
+#ifdef IGH_DEBUG
+            Serial.println("LOG IRRIGATION REQUESTED");
+#endif
             igh_valve_change_state( VALVE_OPEN,
                                     valve_transit_time, 
                                     (float)igh_current_system_settings.water_amount_by_button_press );
