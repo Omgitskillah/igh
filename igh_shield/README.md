@@ -156,6 +156,7 @@ The device will respond with the requested settings in the next payload in the f
 |SUBID_MQTT_PASSWORD                | 0x0B     | Variable   |
 |SUBID_WATER_AMOUNT_BY_BUTTON       | 0x0C     | 4          |
 |SUBID_AUTO_IRRIGATION_TYPE         | 0x0D     | 1          |
+|SUBID_CLOCK_IRRIGATION_INTERVAL    | 0x0E     | 4          |
 |SUBID_SOIL_MOISTURE_LOW            | 0x10     | 2          |   
 |SUBID_AIR_HUMIDITY_LOW             | 0x11     | 2          |   
 |SUBID_SOIL_HUMIDITY_LOW            | 0x12     | 2          |   
