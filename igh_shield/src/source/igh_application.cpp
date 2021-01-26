@@ -25,7 +25,7 @@ bool system_reset = true;
 
 void igh_application_publish_restart( void );
 
-Timer check_boron_status( 30000, igh_boron_test_device );
+// Timer check_boron_status( 30000, igh_boron_test_device );
 
 void igh_application_setup( void )
 {
@@ -42,7 +42,7 @@ void igh_application_setup( void )
     igh_time_keeper_init();
     igh_irrigation_init();
 
-    check_boron_status.start();
+    // check_boron_status.start();
 }
 
 void igh_application_churn( void )

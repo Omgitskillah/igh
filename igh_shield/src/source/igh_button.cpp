@@ -18,28 +18,14 @@ uint32_t button_seconds_counter = 0;
 
 void igh_button_setup(void);
 void igh_button_mngr_callback( void );
-void igh_button_timer_ctrl( void );
 
 Timer igh_button_timer(ONE_SECOND, igh_button_mngr_callback);
 
 void igh_button_setup(void)
 {
     pinMode(IGH_IRRIGATION_BUTTON, INPUT_PULLUP);
-    attachInterrupt( IGH_IRRIGATION_BUTTON , igh_button_timer_ctrl, CHANGE );
-}
-
-void igh_button_timer_ctrl( void )
-{
-    if( LOW == digitalRead(IGH_IRRIGATION_BUTTON) )
-    {
-        /* start a timer */
-        igh_button_timer.startFromISR();
-    }
-    else
-    {
-        /* stop timer */
-        igh_button_timer.stopFromISR();
-    }
+    button_seconds_counter = 0;
+    igh_button_timer.start();
 }
 
 void igh_button_mngr_callback( void )
@@ -47,6 +33,11 @@ void igh_button_mngr_callback( void )
     if( LOW == digitalRead(IGH_IRRIGATION_BUTTON) )
     {
         button_seconds_counter++;
+        // Serial.print("Button Pressed: "); Serial.print(button_seconds_counter); Serial.println(" Seconds");
+    }
+    else
+    {
+        button_seconds_counter = 0;
     }
 }
 
@@ -75,7 +66,6 @@ void igh_button_mngr( void )
         {
             /* do nothing */
         }
-        /* reset the seconds counter */
         button_seconds_counter = 0;
     }
 }

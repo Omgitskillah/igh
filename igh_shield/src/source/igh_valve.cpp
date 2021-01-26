@@ -45,7 +45,7 @@ void init_valve( void )
     pinMode(IGH_VALVE_BLUE, OUTPUT);
     pinMode(IGH_VALVE_CLOSE, INPUT_PULLUP);
     pinMode(IGH_VALVE_OPEN, INPUT_PULLUP);
-
+    igh_valve_idle();
     /* init valve ctrs struct */
     igh_valve_reset_state();
 }

@@ -140,7 +140,7 @@ void igh_boron_service(void)
 void igh_boron_test_device(void)
 {
 #ifdef IGH_DEBUG
-    Serial.print("\nDevice ID:       "); 
+    Serial.print("\nDevice ID:        "); 
     for( uint8_t i = 0; i < sizeof(boron_serial_number); i++ )
     {
         if( boron_serial_number[i] <= 0x0F ) Serial.print("0");
