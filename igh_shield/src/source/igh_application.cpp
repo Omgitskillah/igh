@@ -37,10 +37,11 @@ void igh_application_setup( void )
     igh_eeprom_init();
     igh_water_flow_meter_setup();
     igh_rfm69_setup();
+    igh_mqtt_setup();
     igh_sd_log_setup();
-    igh_message_setup();
     igh_time_keeper_init();
     igh_irrigation_init();
+    igh_message_setup();
 
     // check_boron_status.start();
 }

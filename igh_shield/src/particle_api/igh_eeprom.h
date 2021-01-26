@@ -14,7 +14,6 @@
 #define SYSTEM_THRESHOLDS_ADDRESS   (int)0x0200
 #define SYSTEM_ERRORS_ADDRESS       (int)0x0400
 #define SYSTEM_IRRIGATION_FLAGS     (int)0x0600
-#define SYSTEM_FW_VERSION           (int)0x0800
 
 uint8_t igh_eeproom_test(void);
 
