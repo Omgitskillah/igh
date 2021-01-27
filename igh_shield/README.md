@@ -274,4 +274,14 @@ It is not possible to dinamically switch between the internal and external sim c
 Choosing between the two sim cards can be done by editing the `simcard.inc` file in the `src` folder of this application by applying either the constant variable INTERNAL_SIM or EXTERNAL_SIM and triggering a build of the system.
 Switching between the two sims may require a full power cycle of the devices. 
 
+# Upgrading to later pre-release versions
+Settings between pre-release version before and after V0.0.30 are different in structure and may conflict.
+In order to switch from an older version to V0.0.30 and above, you must clear out the settings in memory manually
+You can clear the memory settings by doing the following:
+1. Hold down the irrigation button
+2. Reset the Boron via the reset button while still holding down the irrigation button
+3. The following prompt will show `HOLD DOWN BUTTON FOR 5 MORE SECONDS TO CLEAR EEPROM` followed by fullstops to help count the seconds
+4. After holding the button down for at least 5 seconds after the prompt, release the button.
+5. There will be a prompt stating `EEPROM CLEARED` if successful
 
+*This will result in the systm defaults being set as the running settings and will require sending of the required settings to update them. This means that the Device serial number will be lost along with connectivity settings for MQTT and RF module.*
