@@ -7,7 +7,8 @@
 #ifndef IGH_BUTTON
 #define IGH_BUTTON
 
-void igh_button_setup(void);
+void igh_button_setup( void );
 void igh_button_mngr( void );
+bool igh_button_pressed( void );
 
 #endif

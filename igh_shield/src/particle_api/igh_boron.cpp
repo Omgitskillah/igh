@@ -116,7 +116,7 @@ void igh_boron_sim_select( void )
         Cellular.setActiveSim(INTERNAL_SIM);
 	    Cellular.clearCredentials();
 #ifdef IGH_DEBUG
-        Serial.print("USING INTERNAL SIM");
+        Serial.println("USING INTERNAL SIM");
 #endif
     }
     else if( CURRENT_SIMTYPE == EXTERNAL_SIM )
@@ -126,6 +126,9 @@ void igh_boron_sim_select( void )
         const uint8_t val = 0x01;
         dct_write_app_data(&val, DCT_SETUP_DONE_OFFSET, 1);
         Particle.keepAlive(KEEP_ALIVE_SECONDS); 
+#ifdef IGH_DEBUG
+        Serial.println("USING INTERNAL SIM");
+#endif
     }
 }
 

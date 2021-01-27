@@ -41,7 +41,7 @@ void detach_flow_meter_interrupt( void )
 void igh_water_flow_meter_setup( void )
 {
     attach_flow_meter_interrupt();
-    EEPROM.get(SYSTEM_IRRIGATION_FLAGS, total_water_dispensed_Liters);
+    total_water_dispensed_Liters = igh_eeprom_get_water_flow_in_nv();
     water_flow_meter_timer.start();
 }
 
@@ -94,7 +94,7 @@ void igh_water_flow_meter_update_nv( float _total_water_dispensed_Liters )
 {
     if( true == update_water_flow_nv )
     {
-        EEPROM.put(SYSTEM_IRRIGATION_FLAGS, _total_water_dispensed_Liters);
+        igh_eeprom_update_water_flow_in_nv(_total_water_dispensed_Liters);
         update_water_flow_nv = false;
     }
 }

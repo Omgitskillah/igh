@@ -30,6 +30,8 @@ void igh_application_publish_restart( void );
 void igh_application_setup( void )
 {
     Serial.begin( 19200 );
+    delay(1000);
+    
     init_valve();
     igh_boron_setup();
     igh_button_setup();

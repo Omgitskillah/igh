@@ -14,6 +14,8 @@
 #include "include/igh_message.h"
 #include "particle_api/igh_hardware.h"
 
+#define PRESSED_STATE   LOW
+
 uint32_t button_seconds_counter = 0;
 
 void igh_button_setup(void);
@@ -30,7 +32,7 @@ void igh_button_setup(void)
 
 void igh_button_mngr_callback( void )
 {
-    if( LOW == digitalRead(IGH_IRRIGATION_BUTTON) )
+    if( true == igh_button_pressed() )
     {
         button_seconds_counter++;
         // Serial.print("Button Pressed: "); Serial.print(button_seconds_counter); Serial.println(" Seconds");
@@ -45,7 +47,7 @@ void igh_button_mngr( void )
 {
     // runs on system clock
     if( (button_seconds_counter != 0) &&
-        (HIGH == digitalRead(IGH_IRRIGATION_BUTTON)) )
+        (false == igh_button_pressed()) )
     {
         if( (button_seconds_counter >= BUTTON_PRESS_TOGGLE_VALVE) &&
             (button_seconds_counter < BUTTON_PRESS_TOGGLE_SYS) )
@@ -68,4 +70,14 @@ void igh_button_mngr( void )
         }
         button_seconds_counter = 0;
     }
+}
+
+bool igh_button_pressed( void )
+{
+    bool ret = false;
+    if( PRESSED_STATE == digitalRead(IGH_IRRIGATION_BUTTON) )
+    {
+        ret = true;
+    }
+    return ret;
 }

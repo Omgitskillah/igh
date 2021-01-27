@@ -7,13 +7,31 @@
 
 #include "Particle.h"
 #include "include/igh_shield.h"
+#include "include/igh_button.h"
 #include "igh_eeprom.h"
+
+// We only have 4KB for the Boron
+#define SYSTEM_SETTINGS_ADDRESS           (int)0x0000
+#define SYSTEM_THRESHOLDS_ADDRESS         (int)0x0200
+#define SYSTEM_ERRORS_ADDRESS             (int)0x0400
+#define SYSTEM_NV_WATER_STORE_ADDRESS     (int)0x0600
+
+#define ONE_SECOND_MS 1000 // one second in ms
+#define THREE_SECONDS 3 // 3 second in s
+
+void igh_eeprom_update_errors(uint32_t error_bit_field);
+uint8_t igh_eeprom_read_system_settings(system_settings * running_system_settings_buffer);
+uint8_t igh_eeprom_read_threshold_settings(thresholds * running_thresholds);
+void igh_eeprom_get_errors(uint32_t * error_bit_field);
+void igh_eeprom_check_to_clear( void );
 
 
 void igh_eeprom_init( void )
 {
   system_settings settings_in_memory;
   thresholds thresholds_in_memory;
+
+  igh_eeprom_check_to_clear();
 
   bool system_settings_read_successfully = igh_eeprom_read_system_settings(&settings_in_memory);
   uint8_t valid_system_checksum = igh_settings_calculate_checksum( &settings_in_memory, sizeof(settings_in_memory) );
@@ -60,7 +78,35 @@ void igh_eeprom_init( void )
   }
 }
 
-
+void igh_eeprom_check_to_clear( void )
+{
+  if( true == igh_button_pressed() )
+  {
+#ifdef IGH_DEBUG
+    Serial.println("HOLD DOWN BUTTON FOR 5 MORE SECONDS TO CLEAR EEPROM");
+#endif
+  }
+  unsigned long eeprom_reset_timer = millis();
+  uint8_t eeprom_reset_seconds_counter = 0;
+  while( true == igh_button_pressed() )
+  {
+    if( (millis() - eeprom_reset_timer) >= ONE_SECOND_MS )
+    {
+#ifdef IGH_DEBUG
+      Serial.print(".");
+#endif
+      eeprom_reset_seconds_counter++;
+      eeprom_reset_timer = millis();
+    }
+  }
+  if( eeprom_reset_seconds_counter >= THREE_SECONDS )
+  {
+    EEPROM.clear();
+#ifdef IGH_DEBUG
+    Serial.println("\nEEPROM CLEARED\n");
+#endif
+  }
+}
 
 /*******************************************************************************
  * igh_eeprom_save_system_settings
@@ -251,4 +297,16 @@ uint8_t igh_eeproom_test(void)
     return igh_eeprom_save_system_settings(&test_system_settings)
            && igh_eeprom_save_threshold_settings(&test_thresholds)
            && (ret_test_error == test_error);
+}
+
+void igh_eeprom_update_water_flow_in_nv( float nv_water )
+{
+  EEPROM.put(SYSTEM_NV_WATER_STORE_ADDRESS, nv_water);
+}
+
+float igh_eeprom_get_water_flow_in_nv( void )
+{
+  float nv_water = 0;
+  EEPROM.get(SYSTEM_NV_WATER_STORE_ADDRESS, nv_water);
+  return nv_water;
 }
