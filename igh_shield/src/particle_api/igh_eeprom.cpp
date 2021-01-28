@@ -45,6 +45,7 @@ void igh_eeprom_init( void )
     Serial.println("USING DEFAULT SETTINGS");
 #endif
     igh_settings_reset_system_to_default();
+    igh_eeprom_update_water_flow_in_nv(0); // reset water flow to zero
     new_settings_available = 1;
   }
   else

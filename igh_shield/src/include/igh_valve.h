@@ -20,7 +20,7 @@ typedef struct _valve_ctrl_str
     float open_litres;
 } valve_ctrl_str;
 
-extern float current_valve_open_water_flow;
+extern volatile float current_valve_open_water_flow;
 extern valve_ctrl_str current_valve_ctrl;
 
 void init_valve( void );

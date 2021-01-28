@@ -75,8 +75,11 @@ void igh_water_flow_meter_service( void )
     {
         // update the water flow nv once every time the valve closes
         igh_water_flow_meter_update_nv(total_water_dispensed_Liters);
-        current_valve_open_water_flow = 0;
     }
+
+#ifdef IGH_DEBUG
+    Serial.print(total_water_dispensed_Liters); Serial.print("L, "); Serial.print(current_valve_open_water_flow); Serial.println("L");
+#endif
 }
 
 void igh_water_flow_meter_reset_nv( void )

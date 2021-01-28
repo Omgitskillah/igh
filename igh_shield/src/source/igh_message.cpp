@@ -341,6 +341,7 @@ void igh_message_get_new_settings( void )
         {
             // reset system
             igh_settings_reset_system_to_default();
+            igh_water_flow_meter_reset_nv();
             new_settings_available = 1;
             mqtt_set_broker = 1;
             initialize_rfm69 = 1;

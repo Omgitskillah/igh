@@ -13,7 +13,7 @@
 
 bool valve_timer_expired = false;
 bool set_flow_expired = false;
-float current_valve_open_water_flow = 0;
+volatile float current_valve_open_water_flow = 0;
 valve_ctrl_str current_valve_ctrl;
 bool call_once = true;
 
@@ -36,6 +36,7 @@ void igh_valve_reset_state( void )
     current_valve_ctrl.valve_state = VALVE_CLOSE;
     current_valve_ctrl.open_litres = 0;
     current_valve_ctrl.open_duration = 0;
+    current_valve_open_water_flow = 0;
 }
 
 void init_valve( void )
@@ -72,14 +73,16 @@ void igh_valve_mngr( void )
              * if the water flowing has hit the set threshold,
              * close the valve and reset the params
              * */
-            igh_valve_reset_state();
+#ifdef IGH_DEBUG
+            Serial.print("RESETING VALVE, VALVE TIME: "); Serial.print(valve_timer_expired); Serial.print(" FLOW EXPIRED: "); Serial.println(set_flow_expired);
+#endif
             set_flow_expired = false;
-            
             if( true == igh_valve_timer.isActive() )
             {
                 /* stop the timer if it is still running, this should only happen if the flow flag is set */
                 igh_valve_timer.stop();
             }
+            igh_valve_reset_state();
         }
     }
 
@@ -94,8 +97,11 @@ void igh_valve_timer_action( void )
 
 void igh_valve_flow_action( void )
 {
-    if( current_valve_open_water_flow >= current_valve_ctrl.open_litres )
+    if( current_valve_open_water_flow > current_valve_ctrl.open_litres )
     {
+#ifdef IGH_DEBUG
+        Serial.print("CURRENT WATER: "); Serial.print(current_valve_open_water_flow); Serial.print("OPEN LTRS: "); Serial.println(current_valve_ctrl.open_litres);
+#endif
         set_flow_expired = true;
     }
 }
@@ -126,7 +132,7 @@ void igh_valve_close( void )
     }
     else
     {
-        igh_valve_close();
+        igh_valve_idle();
     }
 }
 
@@ -176,7 +182,8 @@ void igh_valve_change_state( valve_position_e _valve_state, uint32_t _open_durat
             current_valve_ctrl.open_duration = _open_duration;
             current_valve_ctrl.open_litres = _open_flow;
 #ifdef IGH_DEBUG
-            Serial.println("VALVE OPEN REQUEST");
+            Serial.println("VALVE OPEN REQUEST: "); Serial.print(_valve_state); Serial.print(", "); Serial.print(_open_duration); Serial.print(", "); Serial.println(_open_flow);
+            
 #endif
             igh_message_event(EVENT_VAVLE_OPENED, true);
         }
