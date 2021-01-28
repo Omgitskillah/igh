@@ -72,40 +72,66 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 
 ### *Currently supported tuple ids and their length*  
 
-| Tuple Name                  | Tuple ID| Length     | Description                                         |
-| :---                        | :---    | :---       | :---                                                |
-| MSG_ACK                     | 0x00    | 1          |                                                     |
-| SPEAR_ID                    | 0x01    | 12         |                                                     |
-| STORE_TIMESTAMP             | 0x02    | 4          |                                                     | 
-| SEND_TIMESTAMP              | 0x03    | 4          |                                                     | 
-| SOIL_MOISTURE               | 0x04    | 2          |                                                     | 
-| AIR_HUMIDITY                | 0x05    | 2          |                                                     | 
-| SOIL_HUMIDITY               | 0x06    | 2          |                                                     | 
-| WATER_DISPENSED             | 0x07    | 4          | floating point value of water dispensed in liters   |
-| CARBON_DIOXIDE              | 0x08    | 2          |                                                     | 
-| AIR_TEMPERATURE             | 0x09    | 2          |                                                     | 
-| SOIL_TEMPERATURE            | 0x0A    | 2          |                                                     | 
-| SOIL_NPK                    | 0x0B    | 2          |                                                     | 
-| LIGHT_INTENSITY             | 0x0C    | 2          |                                                     | 
-| SHIELD_BATTERY_LEVEL        | 0x0D    | 4          |                                                     | 
-| SPEAR_BATTERY_LEVEL         | 0x0E    | 2          | floating point value of % state of charge in shield | 
-| VALVE_POSITION              | 0x0F    | 1          |                                                     | 
-| IGH_SEND_SETTINGS           | 0x10    | Variable   |                                                     | 
-| IGH_READ_SETTINGS           | 0x11    | Variable   |                                                     |
-| SPEAR_DATA                  | 0x12    | Variable   |                                                     |
-| SPEAR_RF_ID                 | 0x13    | 2          |                                                     |
-| SHIELD_RF_ID                | 0x14    | 2          |                                                     |
-| SEND_INTERVAL               | 0x15    | 4          |                                                     |
-| OP_STATE                    | 0x16    | 1          |                                                     |
-| SHIELD_ID                   | 0x17    | 12         |                                                     |
-| SPEAR_BATT_LOW_THRESHOLD    | 0x18    | 2          |                                                     |
-| SHIELD_BATT_LOW_THRESHOLD   | 0x19    | 2          |                                                     |
-| BUTTON_PRESS                | 0x1A    | 1          | How long button was pressed in seconds              |
-| FW_VERSION                  | 0x1B    | 3          |                                                     |
-| EVENT                       | 0xFC    | 1          |                                                     |
-| RESTART                     | 0xFD    | 1          |                                                     |
-| DATA_PKT                    | 0xFE    | Variable   |                                                     |
-| END_OF_PKT_ID               | 0xFF    | -          |                                                     |
+| Tuple Name                  | Tuple ID| Length     | Data Type       | Data Multiplier | Description                                                              |
+| :---                        | :---    | :---       | :---            | :---            | :---                                                                     |
+| MSG_ACK                     | 0x00    | 1          | byte            |                 |                                                                          |
+| SPEAR_ID                    | 0x01    | 12         | hex sn number   | -               | Serial number expressed in hex string                                    |
+| STORE_TIMESTAMP             | 0x02    | 4          | unsigned int32  | -               | unix time stamp                                                          | 
+| SEND_TIMESTAMP              | 0x03    | 4          | unsigned int32  | -               | unix time stamp                                                          | 
+| SOIL_MOISTURE               | 0x04    | 2          | unisgned int16  | ****            | soil moisture                                                            | 
+| AIR_HUMIDITY                | 0x05    | 2          | unisgned int16  | 0.1             | Relative humidity in %                                                   | 
+| SOIL_HUMIDITY               | 0x06    | 2          | unisgned int16  | -               | See Topic --> calculating soil data                                      | 
+| WATER_DISPENSED             | 0x07    | 4          | float           | -               | floating point value of water dispensed in liters                        |
+| CARBON_DIOXIDE              | 0x08    | 2          | unisgned int16  | TBD             | reading in ppm                                                           | 
+| AIR_TEMPERATURE             | 0x09    | 2          | unisgned int16  | 0.1             | temperature in *C                                                        | 
+| SOIL_TEMPERATURE            | 0x0A    | 2          | unisgned int16  | -               | See Topic --> calculating soil data                                      | 
+| SOIL_NITROGEN               | 0x0B    | 2          | unisgned int16  | -               | in ppm                                                                   | 
+| SOIL_PHOSPHOROUS            | 0x1D    | 2          | unisgned int16  | -               | in ppm                                                                   | 
+| SOIL_POTASIUM               | 0x1C    | 2          | unisgned int16  | -               | in ppm                                                                   | 
+| LIGHT_INTENSITY             | 0x0C    | 2          | int16           | 0.83333         | Light intensity in Lux (if raw = -1, invalid, if raw = -2, sensor error) | 
+| SHIELD_BATTERY_LEVEL        | 0x0D    | 4          | float           | -               | floating point value of % state of charge in shield                      | 
+| SPEAR_BATTERY_LEVEL         | 0x0E    | 2          | unisgned int16  | 1.6117          | Spear battery in millivolts                                              | 
+| VALVE_POSITION              | 0x0F    | 1          | boolean         | -               | 1 = OPEN, 0 = CLOSED                                                     | 
+| IGH_SEND_SETTINGS           | 0x10    | Variable   | byte stream     | -               | Update device settings using this tuple ID                               | 
+| IGH_READ_SETTINGS           | 0x11    | Variable   | byte stream     | -               | Request settings on device using this tuple ID                           |
+| SPEAR_DATA                  | 0x12    | Variable   | byte stream     | -               | Data from spear is wrapped using this overal tuple ID                    |
+| SPEAR_RF_ID                 | 0x13    | 2          | unisgned int16  | -               | Tuple ID to change the Spear RF ID                                       |
+| SHIELD_RF_ID                | 0x14    | 2          | unisgned int16  | -               | Tuple ID to change the Shield RF ID                                      |
+| SEND_INTERVAL               | 0x15    | 4          | unisgned int16  | -               | Tuple ID to change the sendig interval                                   |
+| OP_STATE                    | 0x16    | 1          | byte            | -               | Tuple ID to change the Op state of the device                            |
+| SHIELD_ID                   | 0x17    | 12         | hex sn number   | -               | Serial number expressed in hex string                                    |
+| SPEAR_BATT_LOW_THRESHOLD    | 0x18    | 2          | unisgned int16  | -               | Tuple ID to change the spear battery low threshold                       |
+| SHIELD_BATT_LOW_THRESHOLD   | 0x19    | 2          | unisgned int16  | -               | Tuple ID to change the shield battery low threshold                      |
+| BUTTON_PRESS                | 0x1A    | 1          | boolean         | -               | How long button was pressed in seconds                                   |
+| FW_VERSION                  | 0x1B    | 3          | byte stream     | -               | FW version in device                                                     |
+| EVENT                       | 0xFC    | 1          | byte            | -               | Event data, see supported events                                         |
+| RESTART                     | 0xFD    | 1          | boolean         | -               | Restart event                                                            |
+| DATA_PKT                    | 0xFE    | Variable   | byte stream     | -               | Start of data packet                                                     |
+| END_OF_PKT_ID               | 0xFF    | -          | byte            | -               | End of packet                                                            |
+
+#### **CALCULATING SOIL DATA**
+To calculate soil data, use the following equations
+```
+temperature = D1 + D2 * raw_temperature_reading;
+linearHumidity = C1 + C2 * raw_humidity_reading + C3 * raw_humidity_reading * raw_humidity_reading;
+correctedHumidity = (temperature - ROOM_TEMPERATURE) * (T1 + T2 * raw_humidity_reading) + linearHumidity;
+
+Where:
+D1                      = -39.66
+D2                      = 0.01
+raw_temperature_reading = the integer value after processing the payload bytes
+C1                      = -2.0468
+C2                      = 0.0367
+C3                      = -1.5955e-6
+T1                      = 0.01
+T2                      = 0.00008
+ROOM_TEMPERATURE        = 25
+raw_humidity_reading    = the integer value after processing the payload bytes
+
+Temperature is in *C while corrected humidity is in %
+
+Any readings calculated above 98 should be considered as 100% humidity
+```
 
 ### **EVENTS**
 Here is a list of supported events and their values. Events are packaged in tuples with the `EVENT` tuple ID, a length of `one` followed by the event id that occured.

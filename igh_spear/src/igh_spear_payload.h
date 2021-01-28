@@ -52,8 +52,9 @@ typedef enum igh_pkt_id
     SPEAR_BATT_LOW_THRESHOLD  = 0x18,
     SHIELD_BATT_LOW_THRESHOLD = 0x19,
     BUTTON_PRESS              = 0x1A,
-    SOIL_POTASSIUM            = 0x0B,
-    SOIL_PHOSPHOROUS          = 0x0B,
+    SOIL_POTASSIUM            = 0x1C,
+    SOIL_PHOSPHOROUS          = 0x1D,
+    EVENT                     = 0xFC,
     RESTART                   = 0xFD,
     DATA_PKT                  = 0xFE,
     END_OF_PKT_ID             = 0xFF
