@@ -143,23 +143,23 @@ void igh_message_publish_built_payload( uint32_t current_time, uint8_t * buffer,
     if( true == Time.isValid() )
     {
         // only publish valid data
-        if( false == store_data_point )
+
+        if( true == mqtt_connected )
         {
-            if( true == mqtt_connected )
-            {
-                // push directly to mqtt if we are connected
-                igh_mqtt_publish_data(buffer, msg_len);
-            }
+            igh_mqtt_publish_data(buffer, msg_len);
         }
         else
         {
-            // store data
-            if( false == igh_sd_log_save_data_point( (unsigned long)current_time, buffer, msg_len ) )
+            if( true == store_data_point )
             {
+                // store data
+                if( false == igh_sd_log_save_data_point( (unsigned long)current_time, buffer, msg_len ) )
+                {
 #ifdef IGH_DEBUG
-                Serial.println("SD WRITE ERROR");
+                    Serial.println("SD WRITE ERROR");
 #endif
-                igh_message_event(EVENT_SD_CARD_ERROR, false);
+                    igh_message_event(EVENT_SD_CARD_ERROR, false);
+                }
             }
         }
     }
