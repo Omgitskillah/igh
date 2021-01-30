@@ -9,9 +9,6 @@
 
 extern uint16_t battery_voltage;
 
-// #define NPK_SENSOR
-#define CO2_SENSOR
-
 uint16_t igh_spear_get_raw_battery_voltage(void);
 uint16_t igh_spear_get_battery_mV( void );
 void igh_spear_hardware_heartbeat(void);

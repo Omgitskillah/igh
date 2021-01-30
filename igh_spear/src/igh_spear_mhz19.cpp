@@ -10,6 +10,7 @@
 #include "igh_spear_mhz19.h"
 #include "igh_spear_log.h"
 #include "igh_spear_payload.h"
+#include "igh_spear_settings.h"
 
 
 // hardware baud rate, should not change
@@ -25,17 +26,24 @@ unsigned long mhz19_read_interval = 2000; // minimum 2 seconds for accuracy
 
 void igh_spear_mhz19_setup(void)
 {
+    if( (SERIAL_SENSOR_CO2 != active_system_setting.serial_sensor_type) || (true == spear_serial_sensor_type_updated)  )
+    { return; } // do nothing if this sensor is not selected
+
+    payload_data_store[SENSOR_CARBON_DIOXIDE].id = CARBON_DIOXIDE;
+    payload_data_store[SENSOR_CARBON_DIOXIDE].new_data = false;
+    payload_data_store[SENSOR_CARBON_DIOXIDE].byte_count = 4;
+
     Serial1.begin(MHZ19_BAUD); 
     myMHZ19.begin(Serial1); 
 
     mhz19_timer = millis();
-    
-    payload_data_store[SENSOR_CARBON_DIOXIDE].id = CARBON_DIOXIDE;
-    payload_data_store[SENSOR_CARBON_DIOXIDE].new_data = false;
 }
 
 void igh_spear_mhz19_test_service(void)
 {
+    if( (SERIAL_SENSOR_CO2 != active_system_setting.serial_sensor_type) || (true == spear_serial_sensor_type_updated) )
+    { return; } // do nothing if this sensor is not selected
+
     delay(mhz19_read_interval);
 
     mhz19_co2 = 0;
@@ -57,15 +65,21 @@ void igh_spear_mhz19_test_service(void)
 
 void igh_spear_mhz19_service(void)
 {
-    mhz19_co2 = 0;
-    mhz19_co2 = (uint16_t)myMHZ19.getCO2Raw();
 
-    payload_data_store[SENSOR_CARBON_DIOXIDE].bytes[0] = mhz19_co2 & 0xFF;
-    payload_data_store[SENSOR_CARBON_DIOXIDE].bytes[1] = (mhz19_co2 >> 8);
+    if( (SERIAL_SENSOR_CO2 != active_system_setting.serial_sensor_type) || (true == spear_serial_sensor_type_updated) )
+    { return; } // do nothing if this sensor is not selected
+    
+    uint32_t mhz19_co2_ppm = 0;
+    mhz19_co2_ppm = (uint32_t)myMHZ19.getCO2();
+
+    payload_data_store[SENSOR_CARBON_DIOXIDE].bytes[0] = mhz19_co2_ppm & 0xFF;
+    payload_data_store[SENSOR_CARBON_DIOXIDE].bytes[1] = (mhz19_co2_ppm >> 8);
+    payload_data_store[SENSOR_CARBON_DIOXIDE].bytes[2] = (mhz19_co2_ppm >> 16);
+    payload_data_store[SENSOR_CARBON_DIOXIDE].bytes[3] = (mhz19_co2_ppm >> 24);
     payload_data_store[SENSOR_CARBON_DIOXIDE].new_data = true;
 
 #ifdef LOG_IGH_SPEAR_MHZ19
-    sprintf(debug_buff, "mhz19 raw co2: %d\n", mhz19_co2);
+    sprintf(debug_buff, "mhz19 raw co2: %d ppm\n", mhz19_co2_ppm);
     igh_spear_log(debug_buff);
 #endif
     mhz19_timer = millis();

@@ -90,7 +90,7 @@ void igh_message_build_payload( igh_msg_type msg_type, uint8_t * payload, uint8_
     igh_msg_buffer[i++] = (uint8_t)( timestamp_to_store >> 16);
     igh_msg_buffer[i++] = (uint8_t)( timestamp_to_store >> 24);
     // Add fw version
-    igh_msg_buffer[i++] = FW_VERSION;
+    igh_msg_buffer[i++] = SHIELD_FW_VERSION;
     igh_msg_buffer[i++] = SIZE_OF_FW_VERSION;
     igh_msg_buffer[i++] = fw_ver[0];
     igh_msg_buffer[i++] = fw_ver[1];

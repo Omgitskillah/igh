@@ -8,6 +8,7 @@
 #include "Arduino.h"
 #include "igh_spear_payload.h"
 #include "igh_spear_log.h"
+#include "igh_spear_settings.h"
 
 // hardware baud rate, should not change
 #define NPK_BAUD      (9600)
@@ -20,16 +21,22 @@ uint8_t values[11];
 
 void igh_spear_npk_setup( void )
 {
-    Serial1.begin(NPK_BAUD); 
+    if( (SERIAL_SENSOR_NPK != active_system_setting.serial_sensor_type) || (true == spear_serial_sensor_type_updated) )
+    { return; } // do nothing if this sensor is not selected
 
     payload_data_store[SENSOR_SOIL_NITROGEN].id = SOIL_NITROGEN;
     payload_data_store[SENSOR_SOIL_NITROGEN].new_data = false;
+    payload_data_store[SENSOR_SOIL_NITROGEN].byte_count = 2;
 
     payload_data_store[SENSOR_SOIL_POTASSIUM].id = SOIL_POTASSIUM;
     payload_data_store[SENSOR_SOIL_POTASSIUM].new_data = false;
+    payload_data_store[SENSOR_SOIL_POTASSIUM].byte_count = 2;
 
     payload_data_store[SENSOR_SOIL_PHOSPHOROUS].id = SOIL_PHOSPHOROUS;
     payload_data_store[SENSOR_SOIL_PHOSPHOROUS].new_data = false;
+    payload_data_store[SENSOR_SOIL_PHOSPHOROUS].byte_count = 2;
+
+    Serial1.begin(NPK_BAUD); 
 }
 
 uint8_t nitrogen()
@@ -76,6 +83,9 @@ uint8_t potassium()
 
 void igh_spear_npk_service( void ) 
 {
+    if( (SERIAL_SENSOR_NPK != active_system_setting.serial_sensor_type) || (true == spear_serial_sensor_type_updated) )
+    { return; } // do nothing if this sensor is not selected
+
     uint8_t n, p, k;
     delay(250);
     n = nitrogen();

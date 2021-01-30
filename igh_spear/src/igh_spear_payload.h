@@ -54,6 +54,8 @@ typedef enum igh_pkt_id
     BUTTON_PRESS              = 0x1A,
     SOIL_POTASSIUM            = 0x1C,
     SOIL_PHOSPHOROUS          = 0x1D,
+    SPEAR_SERIAL_SENSOR_TYPE  = 0x1E,
+    SPEAR_FW_VERSION          = 0x1F,
     EVENT                     = 0xFC,
     RESTART                   = 0xFD,
     DATA_PKT                  = 0xFE,
@@ -73,24 +75,23 @@ enum sensors
     SENSOR_AIR_HUMIDITY,
     SENSOR_AIR_TEMPERATURE,
     SENSOR_CARBON_DIOXIDE,
-
-    SENSOR_WATER_DISPENSED,
     SENSOR_SOIL_NITROGEN,
     SENSOR_SOIL_PHOSPHOROUS,
     SENSOR_SOIL_POTASSIUM,
-    // number of sensors
+    // number of supported sensors
     NUM_OF_SENSORS
 };
 
 typedef struct sensor_data
 {
     pkt_id id;
+    uint8_t byte_count; // min is one, max is 4
     uint8_t new_data;
-    uint8_t bytes[2]; // bytes in little endian
+    uint8_t bytes[4]; // bytes in little endian
 } igh_spear_sensor_data; 
 
 extern igh_spear_sensor_data  payload_data_store[NUM_OF_SENSORS];
-
+extern bool spear_serial_sensor_type_updated;
 
 void igh_spear_payload_tick( void );
 

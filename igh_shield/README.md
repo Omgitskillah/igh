@@ -78,16 +78,16 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 | SPEAR_ID                    | 0x01    | 12         | hex sn number   | -               | Serial number expressed in hex string                                    |
 | STORE_TIMESTAMP             | 0x02    | 4          | unsigned int32  | -               | unix time stamp                                                          | 
 | SEND_TIMESTAMP              | 0x03    | 4          | unsigned int32  | -               | unix time stamp                                                          | 
-| SOIL_MOISTURE               | 0x04    | 2          | unisgned int16  | ****            | soil moisture                                                            | 
+| SOIL_MOISTURE               | 0x04    | 2          | unisgned int16  | -               | soil moisture (Not in use)                                               | 
 | AIR_HUMIDITY                | 0x05    | 2          | unisgned int16  | 0.1             | Relative humidity in %                                                   | 
 | SOIL_HUMIDITY               | 0x06    | 2          | unisgned int16  | -               | See Topic --> calculating soil data                                      | 
 | WATER_DISPENSED             | 0x07    | 4          | float           | -               | floating point value of water dispensed in liters                        |
-| CARBON_DIOXIDE              | 0x08    | 2          | unisgned int16  | TBD             | reading in ppm                                                           | 
+| CARBON_DIOXIDE              | 0x08    | 4          | int32           | -               | reading in ppm                                                           | 
 | AIR_TEMPERATURE             | 0x09    | 2          | unisgned int16  | 0.1             | temperature in *C                                                        | 
 | SOIL_TEMPERATURE            | 0x0A    | 2          | unisgned int16  | -               | See Topic --> calculating soil data                                      | 
-| SOIL_NITROGEN               | 0x0B    | 2          | unisgned int16  | -               | in ppm                                                                   | 
-| SOIL_PHOSPHOROUS            | 0x1D    | 2          | unisgned int16  | -               | in ppm                                                                   | 
-| SOIL_POTASIUM               | 0x1C    | 2          | unisgned int16  | -               | in ppm                                                                   | 
+| SOIL_NITROGEN               | 0x0B    | 2          | unisgned int16  | -               | in ppm (mg/kg)                                                           | 
+| SOIL_PHOSPHOROUS            | 0x1D    | 2          | unisgned int16  | -               | in ppm (mg/kg)                                                           | 
+| SOIL_POTASIUM               | 0x1C    | 2          | unisgned int16  | -               | in ppm (mg/kg)                                                           | 
 | LIGHT_INTENSITY             | 0x0C    | 2          | int16           | 0.83333         | Light intensity in Lux (if raw = -1, invalid, if raw = -2, sensor error) | 
 | SHIELD_BATTERY_LEVEL        | 0x0D    | 4          | float           | -               | floating point value of % state of charge in shield                      | 
 | SPEAR_BATTERY_LEVEL         | 0x0E    | 2          | unisgned int16  | 1.6117          | Spear battery in millivolts                                              | 
@@ -103,7 +103,9 @@ Message payload is packaged in form of a string of tuples in the followinf forma
 | SPEAR_BATT_LOW_THRESHOLD    | 0x18    | 2          | unisgned int16  | -               | Tuple ID to change the spear battery low threshold                       |
 | SHIELD_BATT_LOW_THRESHOLD   | 0x19    | 2          | unisgned int16  | -               | Tuple ID to change the shield battery low threshold                      |
 | BUTTON_PRESS                | 0x1A    | 1          | boolean         | -               | How long button was pressed in seconds                                   |
-| FW_VERSION                  | 0x1B    | 3          | byte stream     | -               | FW version in device                                                     |
+| SHIELD_FW_VERSION           | 0x1B    | 3          | byte stream     | -               | FW version on each shield                                                |
+| SPEAR_FW_VERSION            | 0x1B    | 3          | byte stream     | -               | FW version on each spear                                                 |
+| SPEAR_SERIAL_SENSOR_TYPE    | 0x1E    | 1          | byte            | -               | Tuple to change the serial sensor type (CO2 or NPK)                      |
 | EVENT                       | 0xFC    | 1          | byte            | -               | Event data, see supported events                                         |
 | RESTART                     | 0xFD    | 1          | boolean         | -               | Restart event                                                            |
 | DATA_PKT                    | 0xFE    | Variable   | byte stream     | -               | Start of data packet                                                     |
@@ -132,7 +134,16 @@ Temperature is in *C while corrected humidity is in %
 
 Any readings calculated above 98 should be considered as 100% humidity
 ```
+#### **SPEAR_SERIAL_SENSOR_TYPE**
+To change the serial sensor type to either NPK or CO2 sensor, you will need to send this tuple to the spear. The default sensor type is the CO2 sensor.
+```
+SERIAL_SENSOR_NPK = 0x01
+SERIAL_SENSOR_CO2 = 0x02
+```
+Example tuple 
+1E0102 ---> will change the sensor type to CO2 type
 
+changing the serial sensor type requires a device reset to take effect
 ### **EVENTS**
 Here is a list of supported events and their values. Events are packaged in tuples with the `EVENT` tuple ID, a length of `one` followed by the event id that occured.
 
@@ -212,7 +223,6 @@ The **IGH_SETTINGS** tuple is used to send new settings down to the device in th
 ```
 <IGH_SEND_SETTINGS><total_length><Settings_subid><length><data><Settings_subid><length><data>...
 ``` 
-
 #### **SUBID_AUTO_IRRIGATION_TYPE**
 This tuple can be used to set a device to either irrigate by the hour or using data from the sensors. If hourly irrigation is chosen, the device will dispense the same amount of water dispensed by a button press or a sensor reading once every hour. When irrigating by sensor readings, the device will irrigate each time it gets valid soil humidity sensor data. there is a one hour cool down between sensor readings to give dispensed water enough time to sip into the soil before adding more water. Water will stop flowing if the total amount of water hits the upper limit of water to dispense in a day.
 
@@ -247,21 +257,6 @@ for device with serial number ```e00fce689a754705e79a0e37```.
 All messages sent to the device must be channeled throu the respective download topic and the device must send any payload through its respective  
 Upload topic.  
 The Messages published over MQTT must be in the format expressed above. 
-
-# UPDATE SETTINGS VIA PARTICLE CLOUD
-On particle cloud functions API presented on each device's dashboard, it is possible to update the device settings. To do this, enter a string qith the equivalent hex numbers in ascii string format. For isntacne. to change the auto irrigation type, it is required that you send the following bytes via USB **10,03,0D,01,01**, to send the same via the Particle cloud, send **"10030D0101"** while ignoring the quotes.  
-
-The result should be **0** for a successful settings change and **-1** if it fails
-
-# ERRORS/EVENTS TO CONSIDER
-
-1. Not/connected to cloud
-2. Not/connected to Network
-3. Not/connected to MQTT broker
-4. Battery Low
-5. SD Card Fault
-6. Unreachable Spear
-7. Button Press
 # WATER IRRIGATION LOGIC
 ## Button Control Logic
 The button will now open or close the valve if pressed for 3 seconds or more. Pressing and holding the button for longer than ten seconds will disable or enable auto irrigation. 

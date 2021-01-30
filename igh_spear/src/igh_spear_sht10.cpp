@@ -30,9 +30,11 @@ void igh_spear_sht10_setup(void)
 
     payload_data_store[SENSOR_SOIL_HUMIDITY].id = SOIL_HUMIDITY;
     payload_data_store[SENSOR_SOIL_HUMIDITY].new_data = false;
+    payload_data_store[SENSOR_SOIL_HUMIDITY].byte_count = 2;
 
     payload_data_store[SENSOR_SOIL_TEMPERATURE].id = SOIL_TEMPERATURE;
     payload_data_store[SENSOR_SOIL_TEMPERATURE].new_data = false;
+    payload_data_store[SENSOR_SOIL_TEMPERATURE].byte_count = 2;
 }
 
 void igh_spear_sht10_test_service(void)

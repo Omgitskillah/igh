@@ -25,6 +25,7 @@ void igh_spear_soil_moisture_sensor_setup(void)
 
     payload_data_store[SENSOR_SOIL_MOISTURE].id = SOIL_MOISTURE;
     payload_data_store[SENSOR_SOIL_MOISTURE].new_data = false;
+    payload_data_store[SENSOR_SOIL_MOISTURE].byte_count = 2;
 }
 
 void igh_spear_soil_mousture_test_service(void)

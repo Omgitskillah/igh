@@ -11,11 +11,17 @@
 
 #include "flash/FlashStorage.h"
 
-typedef enum operation_state
+typedef enum _operation_state_e
 {
   STATE_SHIPPING = 0x00,
   STATE_LIVE =     0x42
-};
+} operation_state_e;
+
+typedef enum _serial_sensor_type_e
+{
+  SERIAL_SENSOR_NPK = 0x01,
+  SERIAL_SENSOR_CO2 = 0x02
+} serial_sensor_type_e;
 typedef struct Settings
 {
   uint8_t checksum;
@@ -26,10 +32,12 @@ typedef struct Settings
   uint16_t battery_low_threshold;
   // data collection interval in seconds
   unsigned long data_collection_interval;
+  uint8_t serial_sensor_type;
 } igh_spear_settings;
 
 extern igh_spear_settings active_system_setting;
 extern igh_spear_settings new_system_settings; 
+extern const uint8_t fw_ver[];
 
 void igh_spear_settings_init( void );
 void igh_spear_settings_test_service(void);

@@ -30,6 +30,7 @@ void igh_spear_lux_meter_setup(void)
 
   payload_data_store[SENSOR_LIGHT_INTENSITY].id = LIGHT_INTENSITY;
   payload_data_store[SENSOR_LIGHT_INTENSITY].new_data = false;
+  payload_data_store[SENSOR_LIGHT_INTENSITY].byte_count = 2;
 }
 
 uint16_t igh_spear_lux_meter_read(void)

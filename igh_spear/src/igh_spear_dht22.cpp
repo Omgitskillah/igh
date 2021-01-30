@@ -29,9 +29,11 @@ void igh_spear_dht22_setup(void)
 
     payload_data_store[SENSOR_AIR_HUMIDITY].id = AIR_HUMIDITY;
     payload_data_store[SENSOR_AIR_HUMIDITY].new_data = false;
+    payload_data_store[SENSOR_AIR_HUMIDITY].byte_count = 2;
 
     payload_data_store[SENSOR_AIR_TEMPERATURE].id = AIR_TEMPERATURE;
     payload_data_store[SENSOR_AIR_TEMPERATURE].new_data = false;
+    payload_data_store[SENSOR_AIR_TEMPERATURE].byte_count = 2;
 }
 
 void igh_spear_dht22_test_service(void)

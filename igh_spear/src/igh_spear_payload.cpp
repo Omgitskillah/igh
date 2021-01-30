@@ -18,22 +18,24 @@
 #include "igh_spear_mhz19.h"
 #include "igh_spear_npk.h"
 #include "igh_spear_payload.h"
-
-// these two cannot both be declared at the same time
+#include "version.h"
 
 /**
  *  this is limited by the maximum 
  * bytes the RFM module can transmit 
  * with encryption
  * */
-#define SIZE_OF_MSG_HEADER     2
-#define SIZE_OF_RF_ID          2
-#define SIZE_OF_BATT_THRESHOLD 2
-#define SIZE_OF_OP_STATE       1
-#define SIZE_OF_SEND_INTERVAL  4
-#define MAX_PAYLOAD_LENGTH     60 
-#define ONE_SECOND             1000
-#define SETTINGS_CLIENT        1984
+#define SIZE_OF_MSG_HEADER               2
+#define SIZE_OF_RF_ID                    2
+#define SIZE_OF_BATT_THRESHOLD           2
+#define SIZE_OF_OP_STATE                 1
+#define SIZE_OF_SPEAR_SERIAL_SENSOR_TYPE 1
+#define SIZE_OF_SEND_INTERVAL            4
+#define MAX_PAYLOAD_LENGTH               60 
+#define ONE_SECOND                       1000
+#define SETTINGS_CLIENT                  1984
+
+const uint8_t fw_ver[] = {IGH_SPEAR_VERSION};
 
 uint8_t resp[] = "<SETTINGS:OK>";
 
@@ -44,6 +46,8 @@ unsigned long payload_millis_counter = 0;
 uint8_t payload_scratchpad[MAX_PAYLOAD_LENGTH];
 
 igh_spear_sensor_data  payload_data_store[NUM_OF_SENSORS];
+
+bool spear_serial_sensor_type_updated = false;
 
 void igh_spear_payload_collect_sensor_data( void );
 uint8_t igh_spear_payload_parse_new_settings( uint8_t * data );
@@ -66,6 +70,12 @@ uint8_t igh_spear_payload_build_pkt( void )
     memcpy(&payload_scratchpad[i], active_system_setting.serial_number, sizeof(active_system_setting.serial_number)); 
     i += sizeof(active_system_setting.serial_number);
 
+    // add spear fw version
+    payload_scratchpad[i++] = SPEAR_FW_VERSION; 
+    payload_scratchpad[i++] = sizeof(fw_ver); 
+    memcpy(&payload_scratchpad[i], fw_ver, sizeof(fw_ver)); 
+    i += sizeof(fw_ver);
+
     // add sensor data
     uint8_t sensor_count = 0;
     for( sensor_count; sensor_count < NUM_OF_SENSORS; sensor_count++ )
@@ -76,9 +86,9 @@ uint8_t igh_spear_payload_build_pkt( void )
             payload_scratchpad[i++] = sizeof(payload_data_store[sensor_count].bytes);
             
             memcpy(&payload_scratchpad[i], payload_data_store[sensor_count].bytes, 
-                    sizeof(payload_data_store[sensor_count].bytes));
+                    sizeof(payload_data_store[sensor_count].byte_count));
 
-            i += sizeof(payload_data_store[sensor_count].bytes);
+            i += sizeof(payload_data_store[sensor_count].byte_count);
 
             // don't send old data
             payload_data_store[sensor_count].new_data = false;
@@ -93,7 +103,7 @@ uint8_t igh_spear_payload_build_pkt( void )
 
 void igh_spear_payload_tick( void )
 {
-    if( STATE_LIVE == active_system_setting.op_state &&
+    if( (STATE_LIVE == active_system_setting.op_state) &&
         (active_system_setting.battery_low_threshold < igh_spear_get_battery_mV()) )
     {
         if( (millis() - payload_millis_counter) >= ONE_SECOND )
@@ -178,11 +188,14 @@ void igh_spear_payload_get_new_settings( void )
                 sprintf(&debug_buff[i*2], "%02X", active_system_setting.serial_number[i]);
             }
             igh_spear_log(debug_buff);
-            sprintf(debug_buff, "\nSHIELD ID: %d\nSPEAR ID: %d\nDATA INTERVAL: %d\nOP STATE: %d\nBatt Voltage threshold: %dmV\n", 
+            sprintf(debug_buff, "\nFW VERSION: %d.%d.%d", fw_ver[0], fw_ver[1], fw_ver[2]);
+            igh_spear_log(debug_buff);
+            sprintf(debug_buff, "\nSHIELD ID: %d\nSPEAR ID: %d\nDATA INTERVAL: %d\nOP STATE: %d\nSERIAL SENSOR TYPE: %d\nBatt Voltage threshold: %dmV\n", 
                     active_system_setting.parent_shield_rf_id,
                     active_system_setting.spear_rf_id,
                     active_system_setting.data_collection_interval,
                     active_system_setting.op_state,
+                    active_system_setting.serial_sensor_type,
                     active_system_setting.battery_low_threshold);
             igh_spear_log(debug_buff);
 #endif
@@ -209,6 +222,14 @@ uint8_t igh_spear_payload_parse_new_settings( uint8_t * data )
             {
                 new_system_settings.op_state = data[2];
                 pkt_len = SIZE_OF_OP_STATE + SIZE_OF_MSG_HEADER;
+            }
+            break;
+        case SPEAR_SERIAL_SENSOR_TYPE:
+            if( len == SIZE_OF_SPEAR_SERIAL_SENSOR_TYPE )
+            {
+                new_system_settings.serial_sensor_type = data[2];
+                pkt_len = SIZE_OF_SPEAR_SERIAL_SENSOR_TYPE + SIZE_OF_MSG_HEADER;
+                spear_serial_sensor_type_updated = true;
             }
             break;
         case SPEAR_RF_ID:
@@ -258,10 +279,6 @@ void igh_spear_payload_collect_sensor_data( void )
     igh_spear_soil_mousture_service();
     igh_spear_sht10_service();
     igh_spear_dht22_service();
-#ifdef CO2_SENSOR
     igh_spear_mhz19_service();
-#endif
-#ifdef NPK_SENSOR
     igh_spear_npk_service();
-#endif
 }
