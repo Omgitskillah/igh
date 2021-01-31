@@ -103,6 +103,7 @@ void igh_mqtt_service( void )
         {
             /* try to connect */
             mqtt_connected = 0;
+            mqtt_subscribed = 0;
 
             if( (millis() - reconnect_interval) > 10000 )
             {

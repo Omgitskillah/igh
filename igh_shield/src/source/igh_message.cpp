@@ -409,7 +409,7 @@ void igh_message_print_valid_settings( void )
     Serial.print("MAX WATER TO DISPENSE: "); Serial.print(igh_current_threshold_settings.water_dispensed_period_high); Serial.println("L");
     Serial.print("THRESHOLDS SETTINGS CHECKSUM: "); Serial.println(igh_current_threshold_settings.checksum);
 
-    Serial.print("TOTAL WATER DISPENSED: "); Serial.print(total_water_dispensed_Liters); Serial.println("L");
+    Serial.print("TOTAL WATER DISPENSED: "); Serial.print(String(total_water_dispensed_Liters)); Serial.println("L");
 #endif
 }
 

@@ -78,7 +78,7 @@ void igh_water_flow_meter_service( void )
     }
 
 #ifdef IGH_DEBUG
-    Serial.print(total_water_dispensed_Liters); Serial.print("L, "); Serial.print(current_valve_open_water_flow); Serial.println("L");
+    Serial.print(String(total_water_dispensed_Liters)); Serial.print("L, "); Serial.print(current_valve_open_water_flow); Serial.println("L");
 #endif
 }
 
