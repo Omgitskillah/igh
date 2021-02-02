@@ -15,6 +15,7 @@
 #define SYSTEM_THRESHOLDS_ADDRESS         (int)0x0200
 #define SYSTEM_ERRORS_ADDRESS             (int)0x0400
 #define SYSTEM_NV_WATER_STORE_ADDRESS     (int)0x0600
+#define SYSTEM_NV_DAY                     (int)0x0800
 
 #define ONE_SECOND_MS 1000 // one second in ms
 #define THREE_SECONDS 3 // 3 second in s
@@ -310,4 +311,16 @@ float igh_eeprom_get_water_flow_in_nv( void )
   float nv_water = 0;
   EEPROM.get(SYSTEM_NV_WATER_STORE_ADDRESS, nv_water);
   return nv_water;
+}
+
+uint32_t igh_eeprom_get_time_in_nv( void )
+{
+  uint32_t time_in_nv;
+  EEPROM.get(SYSTEM_NV_DAY, time_in_nv);
+  return time_in_nv;
+}
+
+void igh_eeprom_update_time_in_nv( uint32_t new_unix_time )
+{
+  EEPROM.put(SYSTEM_NV_DAY, new_unix_time);
 }

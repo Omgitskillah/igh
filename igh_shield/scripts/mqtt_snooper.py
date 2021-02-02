@@ -51,6 +51,12 @@ def get_tuple_name( tuple_id ):
         0x18 : "SPEAR_BATT_LOW_THRESHOLD",
         0x19 : "SHIELD_BATT_LOW_THRESHOLD",
         0x1A : "BUTTON_PRESS",
+        0x1B : "SHIELD_FW_VERSION",
+        0x1C : "SOIL_POTASSIUM",
+        0x1D : "SOIL_PHOSPHOROUS",
+        0x1E : "SPEAR_SERIAL_SENSOR_TYPE",
+        0x1F : "SPEAR_FW_VERSION",
+        0xFC : "EVENT",
         0xFD : "RESTART",
         0xFE : "DATA_PKT",
         0xFF : "END_OF_PKT_ID"
@@ -105,7 +111,11 @@ def process_and_upload_tuples( packet, start, stop, _boron_id ):
                     if tuple_id == 0x02:
                         current_unix_time = uint32_var
             else: # print out the bytes for longer data
-                streamer.log( tuple_name, str(tuple_data.hex()) )
+                if (tuple_id == 0x1F) or (tuple_id == 0x1B):
+                    _version = str(tuple_data[0]) + "." + str(tuple_data[1]) + "." + str(tuple_data[2])
+                    streamer.log( tuple_name, _version )
+                else:
+                    streamer.log( tuple_name, str(tuple_data.hex()) )
                 print( str(tuple_data.hex()) )
             byte_tracker += tuple_len + 2
 

@@ -38,6 +38,7 @@ extern uint8_t irrigation_settings_updated;
 void igh_irrigation_by_the_clock( void );
 void igh_irrigation_by_sensor_data( void );
 void igh_irrigation_disable_unused_timers( void );
+float igh_irrigation_calculate_water_to_dispense( void );
 
 Timer igh_irrigation_by_the_clock_timer(ONE_HOUR, igh_irrigation_by_the_clock);
 Timer igh_irrigation_by_sensor_data_timer(SENSOR_IRRIGATION_COOLDOWN, igh_irrigation_by_sensor_data);
@@ -69,15 +70,27 @@ void igh_irrigation_minimum_water_to_dispense( void )
     );
 }
 
+float igh_irrigation_calculate_water_to_dispense( void )
+{
+    float water_to_dispense = (float)igh_current_system_settings.water_amount_by_button_press;
+    float water_left_to_hit_max = igh_current_threshold_settings.water_dispensed_period_high - total_water_dispensed_Liters;
+    if( water_left_to_hit_max < water_to_dispense )
+    {
+        water_to_dispense = water_left_to_hit_max;
+    }
+    return water_to_dispense;
+}
+
 void igh_irrigation_by_the_clock( void )
 {
 #ifdef IGH_DEBUG
     Serial.println("CLOCK IRRIGATION REQUESTED");
 #endif
+    float water_to_dispense = igh_irrigation_calculate_water_to_dispense();
     igh_valve_change_state(
         VALVE_OPEN,
         igh_current_system_settings.water_dispenser_period, 
-        (float)igh_current_system_settings.water_amount_by_button_press
+        water_to_dispense
     );
 }
 
@@ -88,10 +101,11 @@ void igh_irrigation_over_mqtt( void )
 #ifdef IGH_DEBUG
         Serial.println("MQTT IRRIGATION REQUESTED");
 #endif
+        float water_to_dispense = igh_irrigation_calculate_water_to_dispense();
         igh_valve_change_state(
             remote_valve_state,
             igh_current_system_settings.water_dispenser_period, 
-            (float)igh_current_system_settings.water_amount_by_button_press
+            water_to_dispense
         );
 
         remote_valve_command = false;
@@ -192,51 +206,60 @@ void igh_irrigation_mngr( void )
         irrigation_settings_updated = false;
     }
 
-    /* avoid going over the upper limit */
-    if( total_water_dispensed_Liters >= igh_current_threshold_settings.water_dispensed_period_high )
-    {
-        max_water_threshold_reached = true;
-    }
-
     if( false == Time.isValid() ){ return; } // avoid doing anything here if the time is not yet valid
 
-    if( (total_water_dispensed_Liters < igh_current_threshold_settings.water_dispensed_period_low) &&
-        (false == minimum_daily_water_request_flag) )
-    {
-        /** if we are yet to irrigate the minimum water, request only once */
-        igh_irrigation_minimum_water_to_dispense();
-        minimum_daily_water_request_flag = true;
-    }
+    /**
+     * If Irrigation is enabled by the system timer,
+     * check if water irrigated is still below the minimum,
+     * if below the minimum, send irrigation command once
+     * if above minimum water, start regular routine
+    */
 
     if( (true == igh_irrigation_enabled) &&
-        (false == max_water_threshold_reached) &&
-        (false == irrigation_suspended) )
+        (false == irrigation_suspended) ) 
     {
-        if( HOURLY_IRRIGATION == igh_current_system_settings.auto_irrigation_type )
+        if( (total_water_dispensed_Liters < igh_current_threshold_settings.water_dispensed_period_low) )
         {
-            /* start clock irrigation timer */
-            if( false == igh_irrigation_by_the_clock_timer.isActive() )
+            /** if we are yet to irrigate the minimum water, request only once */
+            if( (false == minimum_daily_water_request_flag) )
             {
-                igh_irrigation_by_the_clock_timer.changePeriod(igh_current_system_settings.clock_irrigation_interval);
-                igh_irrigation_by_the_clock_timer.start();
-            }
-        }
-        else if( SENSOR_IRRIGATION == igh_current_system_settings.auto_irrigation_type )
-        {
-            if( false == igh_irrigation_by_sensor_data_timer.isActive() )
-            {
-                igh_irrigation_by_sensor_data_timer.changePeriod(igh_current_system_settings.clock_irrigation_interval);
-                igh_irrigation_by_sensor_data_timer.start();
+                igh_irrigation_minimum_water_to_dispense();
+                minimum_daily_water_request_flag = true;
             }
         }
         else
-        {   /* in an unknown state */
-            igh_irrigation_disable_unused_timers();
+        {
+            minimum_daily_water_request_flag = false;
+
+            if( (total_water_dispensed_Liters < igh_current_threshold_settings.water_dispensed_period_high) )
+            {
+                if( HOURLY_IRRIGATION == igh_current_system_settings.auto_irrigation_type )
+                {
+                    /* start clock irrigation timer */
+                    if( false == igh_irrigation_by_the_clock_timer.isActive() )
+                    {
+                        igh_irrigation_by_the_clock_timer.changePeriod(igh_current_system_settings.clock_irrigation_interval);
+                        igh_irrigation_by_the_clock_timer.start();
+                    }
+                }
+                else if( SENSOR_IRRIGATION == igh_current_system_settings.auto_irrigation_type )
+                {
+                    if( false == igh_irrigation_by_sensor_data_timer.isActive() )
+                    {
+                        igh_irrigation_by_sensor_data_timer.changePeriod(igh_current_system_settings.clock_irrigation_interval);
+                        igh_irrigation_by_sensor_data_timer.start();
+                    }
+                }
+                else
+                {   /* in an unknown state */
+                    igh_irrigation_disable_unused_timers();
+                }
+            }
+            else
+            {
+                igh_irrigation_disable_unused_timers();
+            }
         }
-    }
-    else
-    {
-        igh_irrigation_disable_unused_timers();
     }
     
 }
