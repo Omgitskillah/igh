@@ -83,6 +83,10 @@ void igh_valve_mngr( void )
                 igh_valve_timer.stop();
             }
             igh_valve_reset_state();
+#ifdef IGH_DEBUG
+            Serial.println("EVENT: VALVE CLOSE REQUEST");
+#endif
+            igh_message_event(EVENT_VAVLE_CLOSED, true);
         }
     }
 
@@ -172,7 +176,7 @@ void igh_valve_change_state( valve_position_e _valve_state, uint32_t _open_durat
             // if someone wants to close the valve, reset the state
             igh_valve_reset_state();
 #ifdef IGH_DEBUG
-            Serial.println("VALVE CLOSE REQUEST");
+            Serial.println("EVENT: VALVE CLOSE REQUEST");
 #endif
             igh_message_event(EVENT_VAVLE_CLOSED, true);
         }
@@ -182,7 +186,7 @@ void igh_valve_change_state( valve_position_e _valve_state, uint32_t _open_durat
             current_valve_ctrl.open_duration = _open_duration;
             current_valve_ctrl.open_litres = _open_flow;
 #ifdef IGH_DEBUG
-            Serial.println("VALVE OPEN REQUEST: "); Serial.print(_valve_state); Serial.print(", "); Serial.print(_open_duration); Serial.print(", "); Serial.println(_open_flow);
+            Serial.println("EVENT: VALVE OPEN REQUEST: "); Serial.print(_valve_state); Serial.print(", "); Serial.print(_open_duration); Serial.print(", "); Serial.println(_open_flow);
             
 #endif
             igh_message_event(EVENT_VAVLE_OPENED, true);

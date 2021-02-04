@@ -88,7 +88,7 @@ void igh_water_flow_meter_reset_nv( void )
     total_water_dispensed_Liters = 0;
     igh_water_flow_meter_update_nv( total_water_dispensed_Liters );
 #ifdef IGH_DEBUG
-    Serial.println("IRRIGATION SYSTEM RESET");
+    Serial.println("EVENT: IRRIGATION SYSTEM RESET");
 #endif
     igh_message_event(EVENT_RESET_IRRIGATION, true);
 }

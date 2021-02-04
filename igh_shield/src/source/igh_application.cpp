@@ -72,7 +72,7 @@ void igh_application_publish_restart( void )
         (true == system_reset) )
     {
 #ifdef IGH_DEBUG
-        Serial.println("DEVICE RESTART");
+        Serial.println("EVENT: DEVICE RESTART");
 #endif        
         igh_message_event(EVENT_DEVICE_RESTART, true);
         system_reset = false;

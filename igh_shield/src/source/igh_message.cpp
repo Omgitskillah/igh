@@ -32,13 +32,28 @@ uint8_t igh_message_get_serial_hex_data( uint8_t * buffer, uint8_t len );
 void igh_message_print_valid_settings( void );
 void igh_message_parse_current_humidity( uint8_t * incoming_data );
 void igh_message_process_sd_data( void );
+void igh_message_setup_home_ping( void );
 
 Timer message_store_timer( ONE_SECOND, igh_message_process_sd_data );
 Timer messag_ping_home_timer( THIRTY_MINS, igh_message_ping_home );
 
 void igh_message_setup( void )
 {
+    if( message_store_timer.isActive() )
+    {
+        message_store_timer.stop();
+    }
     message_store_timer.start();
+    igh_message_setup_home_ping();
+}
+
+void igh_message_setup_home_ping( void )
+{
+    if( messag_ping_home_timer.isActive() )
+    {
+        messag_ping_home_timer.stop();
+    }
+    messag_ping_home_timer.changePeriod(igh_current_system_settings.reporting_interval);
     messag_ping_home_timer.start();
 }
 
@@ -156,7 +171,7 @@ void igh_message_publish_built_payload( uint32_t current_time, uint8_t * buffer,
                 if( false == igh_sd_log_save_data_point( (unsigned long)current_time, buffer, msg_len ) )
                 {
 #ifdef IGH_DEBUG
-                    Serial.println("SD WRITE ERROR");
+                    Serial.println("EVENT: SD WRITE ERROR");
 #endif
                     igh_message_event(EVENT_SD_CARD_ERROR, false);
                 }
@@ -178,7 +193,7 @@ void igh_message_event( igh_event_id_e event, bool store_data_point )
 void igh_message_ping_home( void )
 {
 #ifdef IGH_DEBUG
-    Serial.println("PING HOME");
+    Serial.println("EVENT: PING HOME");
 #endif
     igh_message_event( EVENT_CALL_HOME, true );
 }
@@ -228,7 +243,7 @@ uint8_t igh_message_process_mqtt_data( uint8_t * buffer, uint8_t incoming_len )
                 // if the serial number does not match, do nothing as this message wasn't meant for this device,
                 // This ideally should never happen
 #ifdef IGH_DEBUG
-                Serial.println("WRONG MQTT DEVICE COMMAND");
+                Serial.println("EVENT: WRONG MQTT DEVICE COMMAND");
 #endif
                 igh_message_event(EVENT_CMD_SENT_TO_WRONG_DEVICE, true);
             }
@@ -245,7 +260,7 @@ uint8_t igh_message_process_mqtt_data( uint8_t * buffer, uint8_t incoming_len )
                 else
                 {
 #ifdef IGH_DEBUG
-                    Serial.println("UNKNOWN MQTT COMMAND");
+                    Serial.println("EVENT: UNKNOWN MQTT COMMAND");
 #endif                    
                     igh_message_event(EVENT_UNKNOWN_MQTT_CMD, true);
                 }
@@ -254,7 +269,7 @@ uint8_t igh_message_process_mqtt_data( uint8_t * buffer, uint8_t incoming_len )
         else
         {
 #ifdef IGH_DEBUG
-            Serial.println("UNKNOWN MQTT COMMAND");
+            Serial.println("EVENT: UNKNOWN MQTT COMMAND");
 #endif 
             igh_message_event(EVENT_UNKNOWN_MQTT_CMD, true);
         }
@@ -263,7 +278,7 @@ uint8_t igh_message_process_mqtt_data( uint8_t * buffer, uint8_t incoming_len )
     else
     {
 #ifdef IGH_DEBUG
-        Serial.println("UNKNOWN MQTT COMMAND");
+        Serial.println("EVENT: UNKNOWN MQTT COMMAND");
 #endif 
         igh_message_event(EVENT_UNKNOWN_MQTT_CMD, true);
     }
@@ -297,14 +312,14 @@ void igh_message_get_new_settings( void )
                 // update the checksum for the threshold settings
                 igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
 #ifdef IGH_DEBUG
-                Serial.println("SETTINGS UPDATED SUCCESSFULY");
+                Serial.println("EVENT: SETTINGS UPDATED SUCCESSFULY");
 #endif 
                 igh_message_event( EVENT_SETTINGS_UPDATE_SUCCESS, true );
             }
             else
             {
 #ifdef IGH_DEBUG
-                Serial.println("SETTINGS FAILED");
+                Serial.println("EVENT: SETTINGS FAILED");
 #endif
                 igh_message_event( EVENT_SETTINGS_UPDATE_FAIL, true );
             }
@@ -346,11 +361,18 @@ void igh_message_get_new_settings( void )
             mqtt_set_broker = 1;
             initialize_rfm69 = 1;
 #ifdef IGH_DEBUG
-            Serial.println("SYSTEM SETTINGS RESET");
+            Serial.println("EVENT: SYSTEM SETTINGS RESET");
 #endif             
             igh_message_event( EVENT_SYSTEM_RESET, true );
         }
     }
+
+    if( true == new_reporting_interval_set )
+    {
+        igh_message_setup_home_ping();
+        new_reporting_interval_set = false;
+    }
+
 }
 
 void igh_message_commit_new_settings( void )
@@ -471,7 +493,7 @@ void igh_message_parse_current_humidity( uint8_t * incoming_data )
             {
                 /* Do nothing */
 #ifdef IGH_DEBUG
-                Serial.println("INVALID SOIL DATA");
+                Serial.println("EVENT: INVALID SOIL DATA");
 #endif 
                 igh_message_event( EVENT_INVALID_SOIL_DATA, true );
             }
@@ -507,7 +529,7 @@ void igh_message_process_sd_data( void )
                     else
                     {
 #ifdef IGH_DEBUG
-                        Serial.println("SD DEL ERROR");
+                        Serial.println("EVENT: SD DEL ERROR");
 #endif
                         igh_message_event(EVENT_SD_CARD_ERROR, false);
                     }
@@ -515,7 +537,7 @@ void igh_message_process_sd_data( void )
                 else
                 {
 #ifdef IGH_DEBUG
-                    Serial.println(" MQTT ERROR");
+                    Serial.println("EVENT:  MQTT ERROR");
 #endif
                     igh_message_event(EVENT_MQTT_ERROR, true);
                 }   
@@ -523,7 +545,7 @@ void igh_message_process_sd_data( void )
             else
             {
 #ifdef IGH_DEBUG
-                Serial.println("SD OPEN ERROR");
+                Serial.println("EVENT: SD OPEN ERROR");
 #endif
                 igh_message_event(EVENT_SD_CARD_ERROR, false);
             }

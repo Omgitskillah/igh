@@ -142,14 +142,14 @@ void igh_irrigation_toggle( void )
 if( true == irrigation_suspended )
     {
 #ifdef IGH_DEBUG
-        Serial.println("IRRIGATION SUSPENDED");
+        Serial.println("EVENT: IRRIGATION SUSPENDED");
 #endif      
         igh_message_event(EVENT_IRRIGATION_SUSPENDED, true);
     }
     else
     {
 #ifdef IGH_DEBUG
-        Serial.println("IRRIGATION RESUMED");
+        Serial.println("EVENT: IRRIGATION RESUMED");
 #endif      
         igh_message_event(EVENT_IRRIGATION_RESUMED, true);
     }
@@ -165,7 +165,7 @@ void igh_irrigation_by_button( void )
             (float)igh_current_system_settings.water_amount_by_button_press
         );
 #ifdef IGH_DEBUG
-        Serial.println("IRRIGATION STARTED BY BUTTON");
+        Serial.println("EVENT: IRRIGATION STARTED BY BUTTON");
 #endif      
         igh_message_event(EVANT_BUTTON_IRRIGATION_ON, true);
     }
@@ -178,7 +178,7 @@ void igh_irrigation_by_button( void )
             (float)igh_current_system_settings.water_amount_by_button_press
         );
 #ifdef IGH_DEBUG
-        Serial.println("IRRIGATION STOPPED BY BUTTON");
+        Serial.println("EVENT: IRRIGATION STOPPED BY BUTTON");
 #endif      
         igh_message_event(EVANT_BUTTON_IRRIGATION_OFF, true);
     }

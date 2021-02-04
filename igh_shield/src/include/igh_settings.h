@@ -226,6 +226,7 @@ uint8_t igh_settings_calculate_checksum(void * p_struct, size_t total_bytes);
 extern thresholds igh_current_threshold_settings;
 extern system_settings igh_current_system_settings;
 extern uint8_t new_settings_available;
+extern uint8_t new_reporting_interval_set; 
 
 #ifdef __cplusplus
 }

@@ -76,7 +76,7 @@ void igh_time_keeper_churn( void )
             if( true == enable_irrigation_flag )
             {
 #ifdef IGH_DEBUG
-                Serial.println("IRRIGATION DISABLED");
+                Serial.println("EVENT: IRRIGATION DISABLED");
 #endif
                 igh_message_event(EVENT_IRRIGATION_DISABLED, true);
                 enable_irrigation_flag = false;
@@ -92,7 +92,7 @@ void igh_time_keeper_churn( void )
             if( false == enable_irrigation_flag )
             {
 #ifdef IGH_DEBUG
-                Serial.println("IRRIGATION ENABLED");
+                Serial.println("EVENT: IRRIGATION ENABLED");
 #endif
                 igh_message_event(EVENT_IRRIGATION_ENABLED, true);
                 

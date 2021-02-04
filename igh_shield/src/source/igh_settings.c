@@ -39,6 +39,7 @@ uint8_t irrigation_settings_updated = 0;
 uint8_t initialize_rfm69 = 0;
 uint8_t mqtt_set_broker = 1; // make sure we set the broker on init
 uint8_t new_settings_available = 0;
+uint8_t new_reporting_interval_set = 0; 
 
 
 // functions
@@ -276,6 +277,7 @@ uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_t
                     uint8_t new_reporting_interval[LENGTH_SUBID_REPORTING_INTERVAL]; 
                     memcpy(new_reporting_interval, &settings[current_data_index], LENGTH_SUBID_REPORTING_INTERVAL);
                     igh_current_system_settings.reporting_interval = GET32_LI(new_reporting_interval);
+                    new_reporting_interval_set = 1;
                 }
                 else
                 {
