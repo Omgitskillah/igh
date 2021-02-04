@@ -306,3 +306,8 @@ You can clear the memory settings by doing the following:
 5. There will be a prompt stating `EEPROM CLEARED` if successful
 
 *This will result in the systm defaults being set as the running settings and will require sending of the required settings to update them. This means that the Device serial number will be lost along with connectivity settings for MQTT and RF module.*
+
+# How to change the settings via MQTT
+
+Open the script `update_settings_mqtt.py` then replace the array on line `14` of the code with the new settings you want to change using the format explained in settings above. 
+Run the script. The script will return a message `Connected with result code 0` if successful
