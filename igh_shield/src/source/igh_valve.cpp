@@ -155,8 +155,8 @@ void igh_valve_open( void )
 
 void igh_valve_idle( void )
 {
-    if( (LOW == digitalRead(IGH_VALVE_YELLOW)) &&
-        (LOW == digitalRead(IGH_VALVE_BLUE)) )
+    if( (HIGH == digitalRead(IGH_VALVE_YELLOW)) ||
+        (HIGH == digitalRead(IGH_VALVE_BLUE)) )
     {
         /* only change things if in the wrong state */
         digitalWrite(IGH_VALVE_YELLOW, LOW);
