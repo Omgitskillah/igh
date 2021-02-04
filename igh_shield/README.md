@@ -309,5 +309,11 @@ You can clear the memory settings by doing the following:
 
 # How to change the settings via MQTT
 
-Open the script `update_settings_mqtt.py` then replace the array on line `14` of the code with the new settings you want to change using the format explained in settings above. 
-Run the script. The script will return a message `Connected with result code 0` if successful
+On a machine runing python 3, run the following command from the directory where `update_settings_mqtt.py ` has been saved or downloaded to.
+```
+update_settings_mqtt.py "e00fce68d7e96ed967e4cf0c" "1006020480EE3600"
+```
+the format required is
+```
+update_settings_mqtt.py "device_boron_id" "settings_hex_sting"
+```
