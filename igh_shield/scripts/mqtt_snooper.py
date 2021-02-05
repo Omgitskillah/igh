@@ -106,10 +106,14 @@ def process_and_upload_tuples( packet, start, stop, _boron_id ):
                     print( "%.2f" % float_var )
                 else: #assume it is a uint32, timestamps
                     [uint32_var] = struct.unpack('<I', tuple_data)
-                    streamer.log(tuple_name, uint32_var)
                     print( uint32_var )
                     if tuple_id == 0x02:
                         current_unix_time = uint32_var
+                        _timestamp = datetime.datetime.fromtimestamp(current_unix_time)
+                        str_timestamp = _timestamp.strftime('%Y-%m-%d_%H-%M-%S')
+                        streamer.log(tuple_name, str_timestamp)
+                    else:    
+                        streamer.log(tuple_name, uint32_var)
             else: # print out the bytes for longer data
                 if (tuple_id == 0x1F) or (tuple_id == 0x1B):
                     _version = str(tuple_data[0]) + "." + str(tuple_data[1]) + "." + str(tuple_data[2])
