@@ -33,6 +33,8 @@ void igh_message_print_valid_settings( void );
 void igh_message_parse_current_humidity( uint8_t * incoming_data );
 void igh_message_process_sd_data( void );
 void igh_message_setup_home_ping( void );
+uint8_t igh_message_process_settings_request(uint8_t * settings);
+bool igh_message_build_settings_request_packet( uint8_t * request );
 
 Timer message_store_timer( ONE_SECOND, igh_message_process_sd_data );
 Timer messag_ping_home_timer( THIRTY_MINS, igh_message_ping_home );
@@ -140,6 +142,15 @@ void igh_message_build_payload( igh_msg_type msg_type, uint8_t * payload, uint8_
         memcpy(&igh_msg_buffer[i], payload, payload_len);
         i += payload_len;
     }
+    else
+    {
+        // dump the message if it cannot fit
+#ifdef IGH_DEBUG
+        Serial.println("MESSAGING ERROR: PACKET TOO LONG");
+#endif
+        memset( igh_msg_buffer, 0, sizeof(igh_msg_buffer) );
+        return;
+    }
     // add the payload length
     igh_msg_buffer[payload_len_index] = i - j;
     // Add Frame End 
@@ -178,6 +189,24 @@ void igh_message_publish_built_payload( uint32_t current_time, uint8_t * buffer,
             }
         }
     }
+}
+
+bool igh_message_build_settings_request_packet( uint8_t * request )
+{
+    bool ret = false;
+    uint8_t settings_read[MESSAGE_SIZE];
+    uint8_t settings_request_start_index = PAYLOAD_INDEX + 2;
+
+    uint8_t read_settings_len = igh_settings_build_settings_request_payload( request, settings_read, settings_request_start_index);
+
+    if( 0 != read_settings_len )
+    {
+        // send the data back to the broker
+        igh_message_build_payload( SETTINGS_MSG, settings_read, read_settings_len, true );
+        ret = true;
+    }
+
+    return ret;
 }
 
 void igh_message_event( igh_event_id_e event, bool store_data_point )
@@ -257,6 +286,14 @@ uint8_t igh_message_process_mqtt_data( uint8_t * buffer, uint8_t incoming_len )
                         message_type = SETTINGS_MSG;
                     }
                 }
+                if( SETTINGS_REQUEST == buffer[MSG_TYPE_INDEX] )
+                {
+                    // process settings here
+                    if(igh_message_process_settings_request(buffer))
+                    {
+                        message_type = SETTINGS_REQUEST;
+                    }
+                }
                 else
                 {
 #ifdef IGH_DEBUG
@@ -284,6 +321,21 @@ uint8_t igh_message_process_mqtt_data( uint8_t * buffer, uint8_t incoming_len )
     }
 
     return message_type; // should return the extracted tuple id for processing later
+}
+
+uint8_t igh_message_process_settings_request(uint8_t * settings)
+{
+    uint8_t ret = 0; 
+    igh_pkt_id settings_type = (igh_pkt_id)settings[PAYLOAD_INDEX];
+    switch(settings_type)
+    {
+        case IGH_READ_SETTINGS:
+            ret = igh_message_build_settings_request_packet(settings);
+            break;
+        default:
+            break;
+    }
+    return ret;
 }
 
 void igh_message_get_new_settings( void )

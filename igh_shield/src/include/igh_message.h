@@ -108,7 +108,8 @@ enum igh_msg_type
     MSG_ACK = 0x41,
     SENSOR_DATA = 0x44,
     EVENT_MSG = 0x45,
-    SETTINGS_MSG = 0x53  
+    SETTINGS_MSG = 0x53,  
+    SETTINGS_REQUEST = 0x54  
 };
 typedef enum igh_msg_type igh_msg_type;
 

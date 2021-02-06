@@ -46,9 +46,7 @@ uint8_t new_reporting_interval_set = 0;
 #ifndef TEST
 LOCAL void igh_settings_get_defaults(void);
 LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
-LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
 #endif
-
 
 LOCAL void igh_settings_get_defaults(void) // Total bytes 
 {
@@ -697,9 +695,7 @@ void igh_settings_reset_system_to_default(void)
     igh_current_threshold_settings.checksum = igh_settings_calculate_checksum(&igh_current_threshold_settings, sizeof(igh_current_threshold_settings));
 }
 
-// payload build settings for sending
-
-LOCAL uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index)
+uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index)
 {
     uint8_t buffer_index_tracker = start_index;
     uint8_t settings_request_tracker = FIRST_TUPLE_INDEX;
@@ -968,8 +964,6 @@ uint8_t igh_settings_process_settings(uint8_t * settings)
             break;
         case IGH_SEND_SETTINGS:
             ret = igh_settings_parse_new_settings(settings);
-            break;
-        case IGH_READ_SETTINGS:
             break;
         default:
             break;

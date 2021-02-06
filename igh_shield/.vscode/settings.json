@@ -21,7 +21,11 @@
         "utility": "cpp",
         "xtr1common": "cpp",
         "xlocale": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "igh_default_settings.h": "c",
+        "igh_irrigation.h": "c",
+        "igh_settings.h": "c",
+        "igh_message.h": "c"
     },
     "particle.targetPlatform": "boron",
     "particle.targetDevice": "chicken_chipotle",

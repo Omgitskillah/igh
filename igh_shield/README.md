@@ -38,13 +38,14 @@ Maximum length of data is 256 bytes over MQTT protocol
 | 0x3C  | 1 byte | 1 byte   | 0x55/0x44 | 12 bytes | 1 byte | variable | 0x3E |
 
 ### *Msg type*
-|value | Type            |
-| :--- | :---            |
-| 0x44 | Sensor data msg | 
-| 0x53 | Settings msg    |
-| 0x45 | Error msg       |
-| 0x41 | Message ACK     |
-| 0x00 | Unknown type    |
+|value | Type                  |
+| :--- | :---                  |
+| 0x44 | Sensor data msg       | 
+| 0x54 | Settings request msg  |
+| 0x53 | Settings msg          |
+| 0x45 | Error msg             |
+| 0x41 | Message ACK           |
+| 0x00 | Unknown type          |
 
 ### *direction*
 |value | direction            |
@@ -170,7 +171,7 @@ Here is a list of supported events and their values. Events are packaged in tupl
 | EVENT_INVALID_SOIL_DAT         | 0x62    |
 
 ### **IGH_READ_SETTINGS**
-In order to get the current settings in a device, the cloud platform must send a message with and **IGH_READ_SETTINGS** tuple in the payload.  
+In order to get the current settings in a device, the cloud platform must send a message with a **IGH_READ_SETTINGS** tuple in the payload.  
 The read settings tuple should be in the following format:  
 ```<IGH_READ_SETTINGS><length><Settings_subid><Settings_subid>...```  
 The settings subid are listed in the table below.  
@@ -217,6 +218,7 @@ The device will respond with the requested settings in the next payload in the f
 |SUBID_SPEAR_BATTERY_LEVEL_HIGH     | 0x39     | 2          |   
 |SUBID_DAILY_WATER_DISPENSED_MAX    | 0x3A     | 4          |   
 
+*NOTE: Requesting too many settings that will require an overal packet larger than 255 will be ignored by the device*
 ### **IGH_SETTINGS**
 The **IGH_SETTINGS** tuple is used to send new settings down to the device in the following byte stream format using the SUBIDs listed above.  
 
