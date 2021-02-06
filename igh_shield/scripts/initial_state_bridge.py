@@ -110,7 +110,7 @@ def process_and_upload_tuples( packet, start, stop, _boron_id ):
                     if tuple_id == 0x02:
                         current_unix_time = uint32_var
                         _timestamp = datetime.datetime.fromtimestamp(current_unix_time)
-                        str_timestamp = _timestamp.strftime('%Y-%m-%d_%H-%M-%S')
+                        str_timestamp = _timestamp.strftime('%Y/%m/%d,%H:%M:%S')
                         streamer.log(tuple_name, str_timestamp)
                     else:    
                         streamer.log(tuple_name, uint32_var)
@@ -128,7 +128,7 @@ def process_and_upload_tuples( packet, start, stop, _boron_id ):
 
     timestamp = datetime.datetime.fromtimestamp(current_unix_time)
     print("***********************************************************" )
-    print("STORED TIME STAMP: ", timestamp.strftime('%Y-%m-%d_%H-%M-%S'))
+    print("STORED TIME STAMP: ", timestamp.strftime('%Y/%m/%d,%H:%M:%S'))
     print("***********************************************************" )
 
 #define callback
