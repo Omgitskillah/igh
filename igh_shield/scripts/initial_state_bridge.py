@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import time
 import random
 import string
@@ -35,7 +37,7 @@ def get_tuple_name( tuple_id ):
         0x08 : "CARBON_DIOXIDE",
         0x09 : "AIR_TEMPERATURE",
         0x0A : "SOIL_TEMPERATURE",
-        0x0B : "SOIL_NPK",
+        0x0B : "SOIL_NITROGEN",
         0x0C : "LIGHT_INTENSITY",
         0x0D : "SHIELD_BATTERY_LEVEL",
         0x0E : "SPEAR_BATTERY_LEVEL",

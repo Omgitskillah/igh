@@ -50,7 +50,7 @@ typedef enum igh_pkt_id
     CARBON_DIOXIDE            = 0x08,
     AIR_TEMPERATURE           = 0x09,
     SOIL_TEMPERATURE          = 0x0A,
-    SOIL_NPK                  = 0x0B,
+    SOIL_NITROGEN             = 0x0B,
     LIGHT_INTENSITY           = 0x0C,
     SHIELD_BATTERY_LEVEL      = 0x0D,
     SPEAR_BATTERY_LEVEL       = 0x0E,
