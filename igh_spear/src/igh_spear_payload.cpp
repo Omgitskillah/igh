@@ -83,12 +83,13 @@ uint8_t igh_spear_payload_build_pkt( void )
         if( true == payload_data_store[sensor_count].new_data )
         {
             payload_scratchpad[i++] = payload_data_store[sensor_count].id;
-            payload_scratchpad[i++] = sizeof(payload_data_store[sensor_count].bytes);
+            payload_scratchpad[i++] = payload_data_store[sensor_count].byte_count;
             
-            memcpy(&payload_scratchpad[i], payload_data_store[sensor_count].bytes, 
-                    sizeof(payload_data_store[sensor_count].byte_count));
+            memcpy( &payload_scratchpad[i], 
+                    payload_data_store[sensor_count].bytes, 
+                    payload_data_store[sensor_count].byte_count);
 
-            i += sizeof(payload_data_store[sensor_count].byte_count);
+            i += payload_data_store[sensor_count].byte_count;
 
             // don't send old data
             payload_data_store[sensor_count].new_data = false;

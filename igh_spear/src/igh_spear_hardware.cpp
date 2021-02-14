@@ -35,6 +35,7 @@ void igh_spear_hardware_setup(void)
     heartbeat_state_time = HEART_ON_TIME;
     payload_data_store[SENSOR_SPEAR_BATTERY_LEVEL].id = SPEAR_BATTERY_LEVEL;
     payload_data_store[SENSOR_SPEAR_BATTERY_LEVEL].new_data = false;
+    payload_data_store[SENSOR_SPEAR_BATTERY_LEVEL].byte_count = 2;
 }
 
 uint16_t igh_spear_get_raw_battery_voltage(void)
