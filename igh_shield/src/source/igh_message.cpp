@@ -504,7 +504,14 @@ void igh_message_receive_and_stage_sensor_data( void )
             // only process valid data
             // read data needed by the shield
             igh_message_parse_current_humidity(rx_buffer);
-
+#ifdef IGH_DEBUG
+            Serial.print("SPEAR DATA: ");
+            for( uint8_t i = 0; i < sizeof(rx_buffer); i++ )
+            {
+                Serial.print(rx_buffer[i], HEX);
+            }
+            Serial.println();
+#endif  
             igh_message_build_payload( SENSOR_DATA,
                                        rx_buffer,
                                        data_rx_len,
@@ -540,6 +547,9 @@ void igh_message_parse_current_humidity( uint8_t * incoming_data )
                 memcpy(new_humidity_reading, &incoming_data[current_data_index], SIZE_OF_SOIL_HUMIDITY);
                 new_humidity = GET16_LI(new_humidity_reading);
                 igh_irrigation_update_sensor_data( new_humidity );
+#ifdef IGH_DEBUG
+            Serial.print("NEW HUMIDITY DATA: "); Serial.println(new_humidity);
+#endif 
             }
             else
             {

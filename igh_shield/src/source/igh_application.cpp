@@ -73,7 +73,7 @@ void igh_application_publish_restart( void )
     {
 #ifdef IGH_DEBUG
         Serial.println("EVENT: DEVICE RESTART");
-#endif        
+#endif
         igh_message_event(EVENT_DEVICE_RESTART, true);
         system_reset = false;
     }

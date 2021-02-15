@@ -124,10 +124,11 @@ void igh_irrigation_by_sensor_data( void )
 #ifdef IGH_DEBUG
             Serial.println("SENSOR IRRIGATION REQUESTED");
 #endif   
+            float water_to_dispense = igh_irrigation_calculate_water_to_dispense();
             igh_valve_change_state(
                 VALVE_OPEN,
                 igh_current_system_settings.water_dispenser_period, 
-                (float)igh_current_system_settings.water_amount_by_button_press
+                water_to_dispense
             );
         }
 
@@ -246,8 +247,15 @@ void igh_irrigation_mngr( void )
                 {
                     if( false == igh_irrigation_by_sensor_data_timer.isActive() )
                     {
-                        igh_irrigation_by_sensor_data_timer.changePeriod(igh_current_system_settings.clock_irrigation_interval);
-                        igh_irrigation_by_sensor_data_timer.start();
+                        if( true == current_irrigation_data.updated )
+                        {
+#ifdef IGH_DEBUG
+                            Serial.println("SENSOR IRRIGATION TIMER STARTED");
+#endif   
+                            // only start the timer if there is new sensor data that is valid
+                            igh_irrigation_by_sensor_data_timer.changePeriod(igh_current_system_settings.clock_irrigation_interval);
+                            igh_irrigation_by_sensor_data_timer.start();
+                        }
                     }
                 }
                 else
