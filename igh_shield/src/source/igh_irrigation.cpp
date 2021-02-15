@@ -16,6 +16,7 @@
 #define ONE_HOUR                    3600000
 #define SENSOR_IRRIGATION_COOLDOWN  ONE_HOUR // wait this long before you can irrigate again using sensors
 
+bool irrigation_by_sensor_timer_expired = true;
 bool irrigation_suspended = false;
 bool igh_irrigation_enabled = false;
 bool max_water_threshold_reached = false;
@@ -39,9 +40,10 @@ void igh_irrigation_by_the_clock( void );
 void igh_irrigation_by_sensor_data( void );
 void igh_irrigation_disable_unused_timers( void );
 float igh_irrigation_calculate_water_to_dispense( void );
+void igh_irrigation_by_sensor_data_timer_handler( void );
 
 Timer igh_irrigation_by_the_clock_timer(ONE_HOUR, igh_irrigation_by_the_clock);
-Timer igh_irrigation_by_sensor_data_timer(SENSOR_IRRIGATION_COOLDOWN, igh_irrigation_by_sensor_data);
+Timer igh_irrigation_by_sensor_data_timer(SENSOR_IRRIGATION_COOLDOWN, igh_irrigation_by_sensor_data_timer_handler, true);
 
 void igh_irrigation_init( void )
 {
@@ -112,18 +114,36 @@ void igh_irrigation_over_mqtt( void )
     }
 }
 
+void igh_irrigation_by_sensor_data_timer_handler( void )
+{
+    irrigation_by_sensor_timer_expired = true;
+}
+
 void igh_irrigation_by_sensor_data( void )
 {
     /**Check sensor data and 
      * action it accordingly */
     if( true == current_irrigation_data.updated )
     {
-        if( (current_irrigation_data.reading < current_irrigation_data.upper_threshold) &&
+#ifdef IGH_DEBUG
+        Serial.print("SOIL HUMIDITY UPPER THRESHOLD: "); Serial.println(current_irrigation_data.upper_threshold);
+        Serial.print("CURRENT SOIL HUMIDITY: "); Serial.println(current_irrigation_data.reading);
+        Serial.print("SOIL HUMIDITY LOWER THRESHOLD: "); Serial.println(current_irrigation_data.lower_threshold);
+#endif   
+        if( true == irrigation_by_sensor_timer_expired &&
+            (current_irrigation_data.reading < current_irrigation_data.upper_threshold) &&
             (current_irrigation_data.reading < current_irrigation_data.lower_threshold) )
         {
 #ifdef IGH_DEBUG
             Serial.println("SENSOR IRRIGATION REQUESTED");
-#endif   
+#endif      
+            if( false == igh_irrigation_by_the_clock_timer.isActive() ) 
+            {
+                igh_irrigation_by_sensor_data_timer.changePeriod(igh_current_system_settings.clock_irrigation_interval);
+                igh_irrigation_by_sensor_data_timer.start();
+                irrigation_by_sensor_timer_expired = false;
+            }
+
             float water_to_dispense = igh_irrigation_calculate_water_to_dispense();
             igh_valve_change_state(
                 VALVE_OPEN,
@@ -245,18 +265,7 @@ void igh_irrigation_mngr( void )
                 }
                 else if( SENSOR_IRRIGATION == igh_current_system_settings.auto_irrigation_type )
                 {
-                    if( false == igh_irrigation_by_sensor_data_timer.isActive() )
-                    {
-                        if( true == current_irrigation_data.updated )
-                        {
-#ifdef IGH_DEBUG
-                            Serial.println("SENSOR IRRIGATION TIMER STARTED");
-#endif   
-                            // only start the timer if there is new sensor data that is valid
-                            igh_irrigation_by_sensor_data_timer.changePeriod(igh_current_system_settings.clock_irrigation_interval);
-                            igh_irrigation_by_sensor_data_timer.start();
-                        }
-                    }
+                    igh_irrigation_by_sensor_data();
                 }
                 else
                 {   /* in an unknown state */
