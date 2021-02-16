@@ -23,7 +23,7 @@ It is imperative that after each itteration of code, a standard system is subjec
 5. CO2 Sesnor
 6. NPK Sensor
 7. Lux Meter
-8. System Settings :heavy_check_mark:
+8. System Settings
 
 Tests on the devices should be performed using the test suite at this [google sheets](https://docs.google.com/spreadsheets/d/1aRA9xHEJYj3mzZMMTfezHIbYy6dl5QJ9LwqFd2dbHtI/edit?usp=sharing)
 
@@ -37,8 +37,9 @@ When a test fails, create a new issue in this [illuminum github repo](https://gi
 - Each test suite is an entire sheet on its own and should not be modified after the test is complete. 
 - To create a new test suite, duplicate the sheet and rename the new tab with the new date and reference the appropriate firmware version under test. 
 
-
-
+# IMPORTANT LINKS
+- [IGH Firmware Outline and Messaging protocol](https://github.com/Omgitskillah/igh/tree/master/igh_shield/README.md)
+- [IGH Hardware Bringup Procedure](https://github.com/Omgitskillah/igh/blob/master/pre_release/README.md)
 
 
 
