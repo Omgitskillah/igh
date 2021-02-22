@@ -12,7 +12,6 @@
 #include "dct.h"
 #include "./simcard.inc"
 
-SYSTEM_MODE(CURRENT_SYSTEM_MODE);
 SYSTEM_THREAD(ENABLED);
 
 // Local variable

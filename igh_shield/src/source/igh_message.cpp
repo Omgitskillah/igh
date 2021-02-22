@@ -46,7 +46,6 @@ void igh_message_setup( void )
         message_store_timer.stop();
     }
     message_store_timer.start();
-    igh_message_setup_home_ping();
 }
 
 void igh_message_setup_home_ping( void )
@@ -417,12 +416,6 @@ void igh_message_get_new_settings( void )
 #endif             
             igh_message_event( EVENT_SYSTEM_RESET, true );
         }
-    }
-
-    if( true == new_reporting_interval_set )
-    {
-        igh_message_setup_home_ping();
-        new_reporting_interval_set = false;
     }
 
 }

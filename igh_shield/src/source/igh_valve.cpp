@@ -10,6 +10,7 @@
 #include "include/igh_message.h"
 #include "particle_api/igh_hardware.h"
 #include "include/igh_valve.h"
+#include "include/igh_power_mgt.h"
 
 bool valve_timer_expired = false;
 bool set_flow_expired = false;
@@ -114,6 +115,18 @@ void igh_valve_flow_action( void )
 void igh_valve_ctrl( void )
 {
     // runs on system clock
+    
+    if( false == igh_power_mgt_battery_ok() &&
+        VALVE_OPEN == current_valve_ctrl.valve_state )
+    {
+        //reject valve open request
+        current_valve_ctrl.valve_state = VALVE_CLOSE;
+#ifdef IGH_DEBUG
+        Serial.println("EVENT: LOW BATTERY, VALVE OPEN REQUEST REJECTED");
+#endif
+        igh_message_event(EVENT_LOW_BATTERY_MODE, true);
+    }
+
     if( VALVE_CLOSE == current_valve_ctrl.valve_state ) 
     {
         igh_valve_close();

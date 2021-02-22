@@ -20,7 +20,7 @@ extern "C" {
 #define DEFAULT_WATER_DISP_PERIOD               1800000 // 30 mins, how long the valve should stay open in milliseconds
 #define DEFAULT_NEW_OPSTATE                     OP_INACTIVE
 #define DEFAULT_AUTO_IRRIGATION_TYPE            HOURLY_IRRIGATION
-#define DEFAULT_REPORTING_INTERVAL              1800000 // 30 mins   
+#define DEFAULT_REPORTING_INTERVAL              7200000 // 120 mins   
 #define DEFAULT_WATER_BY_BUTTON                 100 // 100 Litres   
 #define DEFAULT_DATA_RESOLUTION                 600  // 10 mins
 #define DEFAULT_SERIAL_NUMBER                   {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff}
@@ -38,7 +38,7 @@ extern "C" {
 #define DEFAULT_SOIL_TEMPERATURE_LOW            0            
 #define DEFAULT_SOIL_NPK_LOW                    0            
 #define DEFAULT_LIGHT_INTENSITY_LOW             0            
-#define DEFAULT_SHIELD_BATTERY_LEVEL_LOW        0            
+#define DEFAULT_SHIELD_BATTERY_LEVEL_LOW        3500 // voltage in millivolts
 #define DEFAULT_SPEAR_BATTERY_LEVEL_LOW         0           
 #define DEFAULT_WATER_DISPENSED_PERIOD_LOW      300  //300 Litres            
 // Low Threshold Trigger        

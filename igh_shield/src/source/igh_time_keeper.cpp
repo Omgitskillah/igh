@@ -71,7 +71,7 @@ void igh_time_keeper_churn( void )
             {
                 igh_water_flow_meter_reset_nv();
                 midnight_reset_done = true;
-            }            
+            }
             igh_irrigation_enabled = false;
             if( true == enable_irrigation_flag )
             {

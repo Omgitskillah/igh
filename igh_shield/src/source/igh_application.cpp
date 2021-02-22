@@ -20,6 +20,7 @@
 #include "include/igh_water_flow_meter.h"
 #include "include/igh_application.h"
 #include "include/igh_time_keeper.h"
+#include "include/igh_power_mgt.h"
 
 bool system_reset = true;
 
@@ -64,6 +65,7 @@ void igh_application_churn( void )
     igh_mqtt_service();
     igh_application_publish_restart();
     igh_valve_mngr();
+    igh_power_mgt_modem_comms_manager();
 }
 
 void igh_application_publish_restart( void )
