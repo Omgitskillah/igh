@@ -46,6 +46,7 @@ void init_valve( void )
     pinMode(IGH_VALVE_BLUE, OUTPUT);
     pinMode(IGH_VALVE_CLOSE, INPUT_PULLUP);
     pinMode(IGH_VALVE_OPEN, INPUT_PULLUP);
+    pinMode(IGH_VALVE_EN, OUTPUT);
     igh_valve_idle();
     /* init valve ctrs struct */
     igh_valve_reset_state();
@@ -131,6 +132,7 @@ void igh_valve_close( void )
 {
     if( HIGH == digitalRead(IGH_VALVE_CLOSE) )
     {
+        digitalWrite(IGH_VALVE_EN, HIGH);
         digitalWrite(IGH_VALVE_YELLOW, HIGH);
         digitalWrite(IGH_VALVE_BLUE, LOW);
     }
@@ -144,6 +146,7 @@ void igh_valve_open( void )
 {
     if( HIGH == digitalRead(IGH_VALVE_OPEN) )
     {
+        digitalWrite(IGH_VALVE_EN, HIGH);
         digitalWrite(IGH_VALVE_YELLOW, LOW);
         digitalWrite(IGH_VALVE_BLUE, HIGH);
     }
@@ -161,6 +164,7 @@ void igh_valve_idle( void )
         /* only change things if in the wrong state */
         digitalWrite(IGH_VALVE_YELLOW, LOW);
         digitalWrite(IGH_VALVE_BLUE, LOW);
+        digitalWrite(IGH_VALVE_EN, LOW); // disable the H-bridge
     }
 }
 

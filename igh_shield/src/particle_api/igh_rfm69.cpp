@@ -6,6 +6,7 @@
  *******************************************************************************/
 #include "igh_rfm69.h"
 #include "include/igh_settings.h"
+#include "particle_api/igh_hardware.h"
 #include "include/igh_shield.h"
 
 int16_t NETWORKID   = 100;

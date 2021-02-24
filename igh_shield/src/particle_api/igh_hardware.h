@@ -20,8 +20,14 @@
 #define IGH_VALVE_BLUE          D1
 #define IGH_VALVE_CLOSE         A1
 #define IGH_VALVE_OPEN          A0
+#define IGH_VALVE_EN            A3
 
 #define IGH_WATER_FLOW_PIN      D5
+
+#define RFM69_CS                A2 
+#define RFM69_IRQ               D8
+#define RFM69_IRQN              D8 
+#define RFM69_RST               D6 
 
 // time constants
 #define THREE_SECONDS          (3)

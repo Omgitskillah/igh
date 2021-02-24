@@ -16,12 +16,6 @@
 #define ENCRYPTKEY      "IGH-RFM69HCW-KEY" 
 #define IS_RFM69HCW     true
 
-/// Pin mapping
-#define RFM69_CS      A2 
-#define RFM69_IRQ     D8
-#define RFM69_IRQN    D8 
-#define RFM69_RST     D6 
-
 /* Functions */
 uint8_t igh_rfm69_test_service(void);
 void igh_rfm69_test(void);
