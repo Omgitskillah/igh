@@ -54,6 +54,12 @@ void igh_water_flow_meter_service( void )
 {
     uint32_t copy_flow_meter_pulses = 0;
     
+    if( true == reset_water_flow )
+    {
+        igh_water_flow_meter_reset_nv();
+        reset_water_flow = false;
+    }
+
     detach_flow_meter_interrupt();
     
     copy_flow_meter_pulses = flow_meter_pulses;
@@ -65,6 +71,8 @@ void igh_water_flow_meter_service( void )
     float flow_Liters = flowRate / ONE_MIN_IN_SECONDS;
 
     total_water_dispensed_Liters += flow_Liters; 
+
+    total_water_dispensed_snapshot = total_water_dispensed_Liters;
 
     if( VALVE_OPEN == current_valve_ctrl.valve_state )
     {

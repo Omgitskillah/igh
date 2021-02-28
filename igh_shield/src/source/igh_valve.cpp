@@ -124,6 +124,8 @@ void igh_valve_ctrl( void )
         igh_valve_open();
     }
 
+    valve_state_to_send = current_valve_ctrl.valve_state;
+
     // keep track of the water flow here
     igh_valve_flow_action();
 }

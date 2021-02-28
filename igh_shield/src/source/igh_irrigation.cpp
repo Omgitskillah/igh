@@ -20,9 +20,7 @@ bool irrigation_by_sensor_timer_expired = true;
 bool irrigation_suspended = false;
 bool igh_irrigation_enabled = false;
 bool max_water_threshold_reached = false;
-bool remote_valve_command = false;
 bool minimum_daily_water_request_flag = false;
-valve_position_e remote_valve_state = VALVE_CLOSE;
 
 typedef struct _irrigation_sensor_data_str
 {
@@ -33,8 +31,6 @@ typedef struct _irrigation_sensor_data_str
 }irrigation_sensor_data_str;
 
 irrigation_sensor_data_str current_irrigation_data;
-
-extern uint8_t irrigation_settings_updated;
 
 void igh_irrigation_by_the_clock( void );
 void igh_irrigation_by_sensor_data( void );
@@ -105,7 +101,7 @@ void igh_irrigation_over_mqtt( void )
 #endif
         float water_to_dispense = igh_irrigation_calculate_water_to_dispense();
         igh_valve_change_state(
-            remote_valve_state,
+            (valve_position_e)remote_valve_state,
             igh_current_system_settings.water_dispenser_period, 
             water_to_dispense
         );
@@ -225,6 +221,12 @@ void igh_irrigation_mngr( void )
     {
         igh_irrigation_disable_unused_timers();
         irrigation_settings_updated = false;
+    }
+
+    if( true == irrigation_sensor_data_updated )
+    {
+        igh_irrigation_update_sensor_data( new_humidity );
+        irrigation_sensor_data_updated = false;
     }
 
     if( false == Time.isValid() ){ return; } // avoid doing anything here if the time is not yet valid
