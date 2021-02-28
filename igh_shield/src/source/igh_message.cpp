@@ -53,6 +53,7 @@ uint8_t igh_message_process_settings_tuples( uint8_t * settings, uint8_t byte_tr
 uint8_t igh_message_parse_new_settings(uint8_t * settings);
 uint8_t igh_message_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
 uint8_t igh_message_remote_valvle_control(uint8_t * settings);
+void handle_all_system_events(system_event_t event );
 
 Timer message_store_timer( ONE_SECOND, igh_message_process_sd_data );
 Timer messag_ping_home_timer( THIRTY_MINS, igh_message_ping_home );
@@ -65,6 +66,21 @@ void igh_message_setup( void )
     }
     message_store_timer.start();
     igh_message_setup_home_ping();
+    System.on( all_events, handle_all_system_events );
+}
+
+void handle_all_system_events(system_event_t event )
+{
+    Serial.printlnf( "System event: %d", event );
+    uint8_t event_payload[SYSTEM_EVENT_PAYLOAD_LEN];
+    event_payload[0] = SYSTEM_EVENT;
+    event_payload[1] = SIZE_OF_SYSTEM_EVENT;
+    event_payload[2] = (uint8_t)event;
+    event_payload[3] = (uint8_t)( event >> 8);
+    event_payload[4] = (uint8_t)( event >> 16);
+    event_payload[5] = (uint8_t)( event >> 24);
+
+    igh_message_build_payload( EVENT_MSG, event_payload, SYSTEM_EVENT_PAYLOAD_LEN, true );
 }
 
 void igh_message_setup_home_ping( void )
@@ -230,8 +246,8 @@ void igh_message_event( igh_event_id_e event, bool store_data_point )
 {
     uint8_t event_payload[EVENT_PAYLOAD_LEN];
     event_payload[0] = EVENT;
-    event_payload[0] = SIZE_OF_EVENT;
-    event_payload[0] = (uint8_t)event;
+    event_payload[1] = SIZE_OF_EVENT;
+    event_payload[2] = (uint8_t)event;
 
     igh_message_build_payload( EVENT_MSG, event_payload, EVENT_PAYLOAD_LEN, store_data_point );
 }

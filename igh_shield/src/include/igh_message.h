@@ -62,6 +62,7 @@ typedef enum igh_pkt_id
     SOIL_PHOSPHOROUS          = 0x1D,
     SPEAR_SERIAL_SENSOR_TYPE  = 0x1E,
     SPEAR_FW_VERSION          = 0x1F,
+    SYSTEM_EVENT              = 0xFB,
     EVENT                     = 0xFC,
     RESTART                   = 0xFD,
     DATA_PKT                  = 0xFE,
@@ -86,6 +87,7 @@ typedef enum igh_pkt_id
 #define SIZE_OF_SHIELD_BATTERY_LEVEL    4
 #define SIZE_OF_SPEAR_BATTERY_LEVEL     2
 #define SIZE_OF_RESTART                 1
+#define SIZE_OF_SYSTEM_EVENT            4
 #define SIZE_OF_EVENT                   1
 #define SIZE_OF_VALVE_POSITION          1
 #define SIZE_OF_BUTTON_PRESS            1
@@ -223,6 +225,7 @@ enum igh_settings_subid
 #define LENGTH_SUBID_WATER_DISPENSED_PERIOD_HIGH    4
 
 #define EVENT_PAYLOAD_LEN 3
+#define SYSTEM_EVENT_PAYLOAD_LEN 6
 
 extern volatile uint8_t irrigation_settings_updated;
 extern volatile uint8_t irrigation_sensor_data_updated;

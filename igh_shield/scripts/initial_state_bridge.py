@@ -58,6 +58,7 @@ def get_tuple_name( tuple_id ):
         0x1D : "SOIL_PHOSPHOROUS",
         0x1E : "SPEAR_SERIAL_SENSOR_TYPE",
         0x1F : "SPEAR_FW_VERSION",
+        0xFB : "SYSTME_EVENT",
         0xFC : "EVENT",
         0xFD : "RESTART",
         0xFE : "DATA_PKT",
