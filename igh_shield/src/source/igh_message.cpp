@@ -211,6 +211,7 @@ void igh_message_publish_built_payload( uint32_t current_time, uint8_t * buffer,
         {
             if( true == store_data_point )
             {
+                message_store_timer.stop(); // stop the SD logging timer to avoid collisions 
                 // store data
                 if( false == igh_sd_log_save_data_point( (unsigned long)current_time, buffer, msg_len ) )
                 {
@@ -218,7 +219,11 @@ void igh_message_publish_built_payload( uint32_t current_time, uint8_t * buffer,
                     Serial.println("EVENT: SD WRITE ERROR");
 #endif
                     igh_message_event(EVENT_SD_CARD_ERROR, false);
+
+                    // try to recalaim the SD card
+                    igh_sd_log_setup();
                 }
+                message_store_timer.start(); // restart timer
             }
         }
     }
@@ -1476,6 +1481,8 @@ void igh_message_process_sd_data( void )
                         Serial.println("EVENT: SD DEL ERROR");
 #endif
                         igh_message_event(EVENT_SD_CARD_ERROR, false);
+                        // try to recalaim the SD card
+                        igh_sd_log_setup();
                     }
                 }
                 else
@@ -1492,6 +1499,8 @@ void igh_message_process_sd_data( void )
                 Serial.println("EVENT: SD OPEN ERROR");
 #endif
                 igh_message_event(EVENT_SD_CARD_ERROR, false);
+                // try to recalaim the SD card
+                igh_sd_log_setup();
             }
         }
         else
