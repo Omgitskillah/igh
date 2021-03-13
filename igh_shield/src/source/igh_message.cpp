@@ -38,8 +38,19 @@ uint8_t remote_valve_state = 0;
 volatile bool remote_valve_command = false;
 float total_water_dispensed_snapshot = 0;
 volatile bool reset_water_flow = false;
+unsigned long logger_timer = 0;
 
 uint8_t igh_msg_buffer[MESSAGE_SIZE];
+
+typedef struct sd_data_point_str
+{
+    bool saved;
+    uint32_t time_stamp;
+    uint8_t len;
+    uint8_t igh_sd_msg_buffer[MESSAGE_SIZE];
+} sd_data_point;
+sd_data_point new_data_point;
+
 void igh_message_publish_built_payload( uint32_t current_time, uint8_t * buffer, uint8_t msg_len, bool store_data_point );
 uint8_t igh_message_get_serial_hex_data( uint8_t * buffer, uint8_t len );
 void igh_message_print_valid_settings( void );
@@ -54,19 +65,25 @@ uint8_t igh_message_parse_new_settings(uint8_t * settings);
 uint8_t igh_message_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
 uint8_t igh_message_remote_valvle_control(uint8_t * settings);
 void handle_all_system_events(system_event_t event );
+void igh_message_get_new_settings( void );
+void igh_message_commit_new_settings( void );
+void igh_message_receive_and_stage_sensor_data( void );
 
-Timer message_store_timer( ONE_SECOND, igh_message_process_sd_data );
 Timer messag_ping_home_timer( THIRTY_MINS, igh_message_ping_home );
 
 void igh_message_setup( void )
 {
-    if( message_store_timer.isActive() )
-    {
-        message_store_timer.stop();
-    }
-    message_store_timer.start();
+    new_data_point.saved = true;
     igh_message_setup_home_ping();
     System.on( all_events, handle_all_system_events );
+}
+
+void igh_message_churn( void )
+{
+    igh_message_get_new_settings();
+    igh_message_commit_new_settings();
+    igh_message_receive_and_stage_sensor_data();
+    igh_message_process_sd_data();
 }
 
 void handle_all_system_events(system_event_t event )
@@ -211,19 +228,11 @@ void igh_message_publish_built_payload( uint32_t current_time, uint8_t * buffer,
         {
             if( true == store_data_point )
             {
-                message_store_timer.stop(); // stop the SD logging timer to avoid collisions 
-                // store data
-                if( false == igh_sd_log_save_data_point( (unsigned long)current_time, buffer, msg_len ) )
-                {
-#ifdef IGH_DEBUG
-                    Serial.println("EVENT: SD WRITE ERROR");
-#endif
-                    igh_message_event(EVENT_SD_CARD_ERROR, false);
-
-                    // try to recalaim the SD card
-                    igh_sd_log_setup();
-                }
-                message_store_timer.start(); // restart timer
+                new_data_point.time_stamp = current_time;
+                memset( new_data_point.igh_sd_msg_buffer, 0, sizeof(new_data_point.igh_sd_msg_buffer) );
+                memcpy( new_data_point.igh_sd_msg_buffer, buffer, msg_len );
+                new_data_point.len = msg_len;
+                new_data_point.saved = false;
             }
         }
     }
@@ -1454,60 +1463,73 @@ void igh_message_parse_current_humidity( uint8_t * incoming_data )
 
 void igh_message_process_sd_data( void )
 {
-    // throttle sending data
-    if( 1 == mqtt_connected )
+    if( new_data_point.saved == false )
     {
-        char next_file[FILE_NAME_SIZE];
-        if( true == igh_sd_log_get_next_file_name(next_file) )
+        if( false == igh_sd_log_save_data_point( (unsigned long)new_data_point.time_stamp, new_data_point.igh_sd_msg_buffer, new_data_point.len ) )
         {
-            uint8_t sd_data_point[MAX_FILE_SIZE];
-            if( true == igh_sd_log_read_data_point(next_file, sd_data_point, MAX_FILE_SIZE) )
-            {
 #ifdef IGH_DEBUG
-                Serial.print("Uploading: "); Serial.print((String)next_file);
+            Serial.println("EVENT: SD WRITE ERROR");
+#endif
+            igh_message_event(EVENT_SD_CARD_ERROR, false);
+        }
+        // dump the message if we ever fail
+        new_data_point.saved = true;
+    }
+
+    if( (millis() - logger_timer) > ONE_SECOND )
+    {
+        // check to send data stored every second
+        if( 1 == mqtt_connected )
+        {
+            char next_file[FILE_NAME_SIZE];
+            if( true == igh_sd_log_get_next_file_name(next_file) )
+            {
+                uint8_t sd_data_point[MAX_FILE_SIZE];
+                if( true == igh_sd_log_read_data_point(next_file, sd_data_point, MAX_FILE_SIZE) )
+                {
+#ifdef IGH_DEBUG
+                    Serial.print("Uploading: "); Serial.print((String)next_file);
 #endif
 
-                if( true == igh_mqtt_publish_data(sd_data_point, sd_data_point[1]) )
-                {
-                    if( true == igh_sd_log_remove_data_point(next_file) ) 
+                    if( true == igh_mqtt_publish_data(sd_data_point, sd_data_point[1]) )
                     {
+                        if( true == igh_sd_log_remove_data_point(next_file) ) 
+                        {
 #ifdef IGH_DEBUG
-                        Serial.println(" OK");
+                            Serial.println(" OK");
 #endif
+                        }
+                        else
+                        {
+#ifdef IGH_DEBUG
+                            Serial.println("EVENT: SD DEL ERROR");
+#endif
+                            igh_message_event(EVENT_SD_CARD_ERROR, false);
+                        }
                     }
                     else
                     {
 #ifdef IGH_DEBUG
-                        Serial.println("EVENT: SD DEL ERROR");
+                        Serial.println("EVENT:  MQTT ERROR");
 #endif
-                        igh_message_event(EVENT_SD_CARD_ERROR, false);
-                        // try to recalaim the SD card
-                        igh_sd_log_setup();
-                    }
+                        igh_message_event(EVENT_MQTT_ERROR, true);
+                    }   
                 }
                 else
                 {
 #ifdef IGH_DEBUG
-                    Serial.println("EVENT:  MQTT ERROR");
+                    Serial.println("EVENT: SD OPEN ERROR");
 #endif
-                    igh_message_event(EVENT_MQTT_ERROR, true);
-                }   
+                    igh_message_event(EVENT_SD_CARD_ERROR, false);
+                }
             }
             else
             {
 #ifdef IGH_DEBUG
-                Serial.println("EVENT: SD OPEN ERROR");
+                // Serial.println("No new file to send");
 #endif
-                igh_message_event(EVENT_SD_CARD_ERROR, false);
-                // try to recalaim the SD card
-                igh_sd_log_setup();
             }
         }
-        else
-        {
-#ifdef IGH_DEBUG
-            // Serial.println("No new file to send");
-#endif
-        }
+        logger_timer = millis();
     }
 }

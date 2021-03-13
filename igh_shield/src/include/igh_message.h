@@ -245,9 +245,7 @@ void igh_message_setup( void );
 void igh_message_ping_home( void );
 void igh_message_build_payload( igh_msg_type msg_type, uint8_t * payload, uint8_t payload_len, bool store_data_point );
 void igh_message_event( igh_event_id_e event, bool store_data_point );
-void igh_message_get_new_settings( void );
-void igh_message_commit_new_settings( void );
-void igh_message_receive_and_stage_sensor_data( void );
+void igh_message_churn( void );
 uint8_t igh_message_process_mqtt_data( uint8_t * buffer, uint8_t incoming_len );
 
 #endif
