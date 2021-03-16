@@ -28,6 +28,7 @@ const uint8_t fw_ver[] = {
 volatile uint8_t irrigation_settings_updated = 0;
 volatile uint8_t irrigation_sensor_data_updated = 0;
 uint16_t new_humidity = 0xFFFF;
+uint16_t new_soil_moisture = 0xFFFF;
 volatile uint8_t timezone_updated = 0;
 uint8_t initialize_rfm69 = 0;
 uint8_t volatile mqtt_set_broker = 1; // make sure we set the broker on init
@@ -1444,7 +1445,7 @@ void igh_message_parse_current_humidity( uint8_t * incoming_data )
                 new_humidity = GET16_LI(new_humidity_reading);
                 irrigation_sensor_data_updated = true;
 #ifdef IGH_DEBUG
-            Serial.print("NEW HUMIDITY DATA: "); Serial.println(new_humidity);
+                Serial.print("NEW HUMIDITY DATA: "); Serial.println(new_humidity);
 #endif 
             }
             else
@@ -1456,6 +1457,29 @@ void igh_message_parse_current_humidity( uint8_t * incoming_data )
                 igh_message_event( EVENT_INVALID_SOIL_DATA, true );
             }
         }
+
+        if( SOIL_MOISTURE == current_tuple_id )
+        {
+            if( SIZE_OF_SOIL_MOISTURE == current_tuple_length )
+            {
+                uint8_t new_moisture_reading[SIZE_OF_SOIL_MOISTURE]; 
+                memcpy(new_moisture_reading, &incoming_data[current_data_index], SIZE_OF_SOIL_MOISTURE);
+                new_soil_moisture = GET16_LI(new_moisture_reading);
+                irrigation_sensor_data_updated = true;
+#ifdef IGH_DEBUG
+                Serial.print("NEW SOIL MOISTURE DATA: "); Serial.println(new_soil_moisture);
+#endif 
+            }
+            else
+            {
+                /* Do nothing */
+#ifdef IGH_DEBUG
+                Serial.println("EVENT: INVALID SOIL DATA");
+#endif 
+                igh_message_event( EVENT_INVALID_SOIL_DATA, true );
+            }
+        }
+        
         // move index to next tuple id
         byte_tracker += current_tuple_length + TUPLE_HEADER_LEN;
     }

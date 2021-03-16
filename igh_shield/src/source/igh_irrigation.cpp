@@ -44,15 +44,28 @@ Timer igh_irrigation_by_sensor_data_timer(SENSOR_IRRIGATION_COOLDOWN, igh_irriga
 void igh_irrigation_init( void )
 {
     current_irrigation_data.updated = false;
-    current_irrigation_data.upper_threshold = igh_current_threshold_settings.soil_humidity_high;
-    current_irrigation_data.lower_threshold = igh_current_threshold_settings.soil_humidity_low;
+
+    // for humidity data
+    // current_irrigation_data.upper_threshold = igh_current_threshold_settings.soil_humidity_high;
+    // current_irrigation_data.lower_threshold = igh_current_threshold_settings.soil_humidity_low;
+
+    // for moisture data
+    current_irrigation_data.upper_threshold = igh_current_threshold_settings.soil_moisture_high;
+    current_irrigation_data.lower_threshold = igh_current_threshold_settings.soil_moisture_low;
 }
 
 void igh_irrigation_update_sensor_data( uint16_t sensor_data )
 {
     current_irrigation_data.reading = sensor_data;
-    current_irrigation_data.upper_threshold = igh_current_threshold_settings.soil_humidity_high;
-    current_irrigation_data.lower_threshold = igh_current_threshold_settings.soil_humidity_low;
+    
+    // for humidity data
+    // current_irrigation_data.upper_threshold = igh_current_threshold_settings.soil_humidity_high;
+    // current_irrigation_data.lower_threshold = igh_current_threshold_settings.soil_humidity_low;
+
+    // for moisture data
+    current_irrigation_data.upper_threshold = igh_current_threshold_settings.soil_moisture_high;
+    current_irrigation_data.lower_threshold = igh_current_threshold_settings.soil_moisture_low;
+    
     current_irrigation_data.updated = true;
 }
 
@@ -225,7 +238,10 @@ void igh_irrigation_mngr( void )
 
     if( true == irrigation_sensor_data_updated )
     {
-        igh_irrigation_update_sensor_data( new_humidity );
+        // for humidity data
+        // igh_irrigation_update_sensor_data( new_humidity );
+        // for soil moisture data
+        igh_irrigation_update_sensor_data( new_soil_moisture );
         irrigation_sensor_data_updated = false;
     }
 

@@ -230,6 +230,7 @@ enum igh_settings_subid
 extern volatile uint8_t irrigation_settings_updated;
 extern volatile uint8_t irrigation_sensor_data_updated;
 extern uint16_t new_humidity;
+extern uint16_t new_soil_moisture;
 extern volatile uint8_t timezone_updated;
 extern uint8_t initialize_rfm69;
 extern volatile uint8_t mqtt_set_broker; // make sure we set the broker on init

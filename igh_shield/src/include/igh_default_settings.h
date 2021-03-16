@@ -29,22 +29,22 @@ extern "C" {
 #define DEFAULT_MQTT_USERNAME                   "shields"
 #define DEFAULT_MQTT_PASSWORD                   "940610b43b1"
 #define DEFAULT_CLOCK_IRRIGATION_INTERVAL        7200000// clock irrigation interval in milliseconds, 2 hours
-//High Threshold tirggers       
-#define DEFAULT_SOIL_MOISTURE_LOW               0            
-#define DEFAULT_AIR_HUMIDITY_LOW                0            
-#define DEFAULT_SOIL_HUMIDITY_LOW               1780 // ~60% RAW*31.22                 
-#define DEFAULT_CARBON_DIOXIDE_LOW              0   
-#define DEFAULT_AIR_TEMPERATURE_LOW             0            
-#define DEFAULT_SOIL_TEMPERATURE_LOW            0            
-#define DEFAULT_SOIL_NPK_LOW                    0            
-#define DEFAULT_LIGHT_INTENSITY_LOW             0            
-#define DEFAULT_SHIELD_BATTERY_LEVEL_LOW        0            
-#define DEFAULT_SPEAR_BATTERY_LEVEL_LOW         0           
-#define DEFAULT_WATER_DISPENSED_PERIOD_LOW      300  //300 Litres            
-// Low Threshold Trigger        
-#define DEFAULT_SOIL_MOISTURE_HIGH              255             
+//High Threshold tirggers
+#define DEFAULT_SOIL_MOISTURE_LOW               1780 // not callibrated
+#define DEFAULT_AIR_HUMIDITY_LOW                0
+#define DEFAULT_SOIL_HUMIDITY_LOW               1780 // ~60% RAW*31.22
+#define DEFAULT_CARBON_DIOXIDE_LOW              0
+#define DEFAULT_AIR_TEMPERATURE_LOW             0
+#define DEFAULT_SOIL_TEMPERATURE_LOW            0
+#define DEFAULT_SOIL_NPK_LOW                    0
+#define DEFAULT_LIGHT_INTENSITY_LOW             0
+#define DEFAULT_SHIELD_BATTERY_LEVEL_LOW        0
+#define DEFAULT_SPEAR_BATTERY_LEVEL_LOW         0
+#define DEFAULT_WATER_DISPENSED_PERIOD_LOW      300  //300 Litres
+// Low Threshold Trigger
+#define DEFAULT_SOIL_MOISTURE_HIGH              2860 // not callibrated
 #define DEFAULT_AIR_HUMIDITY_HIGH               255          
-#define DEFAULT_SOIL_HUMIDITY_HIGH              2860 // ~90%  RAW*31.22              
+#define DEFAULT_SOIL_HUMIDITY_HIGH              2860 // ~90%  RAW*31.22
 #define DEFAULT_CARBON_DIOXIDE_HIGH             255   
 #define DEFAULT_AIR_TEMPERATURE_HIGH            255            
 #define DEFAULT_SOIL_TEMPERATURE_HIGH           255            
