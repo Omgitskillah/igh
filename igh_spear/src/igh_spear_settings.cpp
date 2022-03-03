@@ -25,7 +25,7 @@ unsigned long default_data_collection_interval = 5; // time in seconds
 
 igh_spear_settings active_system_setting;
 igh_spear_settings default_system_settings;
-igh_spear_settings new_system_settings;  
+igh_spear_settings new_system_settings;
 
 /* Local functions */
 void igh_spear_settings_get_defaults( void );

@@ -8,6 +8,7 @@
 #include "include/igh_settings.h"
 #include "particle_api/igh_hardware.h"
 #include "include/igh_shield.h"
+#include "include/igh_message.h"
 
 int16_t NETWORKID   = 100;
 int16_t NODEID      = 7;

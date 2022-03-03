@@ -8,6 +8,7 @@
 #include "Particle.h"
 #include "include/igh_shield.h"
 #include "include/igh_button.h"
+#include "include/igh_message.h"
 #include "igh_eeprom.h"
 
 // We only have 4KB for the Boron

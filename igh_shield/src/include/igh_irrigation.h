@@ -7,10 +7,10 @@
 #ifndef IGH_IRRIGATION
 #define IGH_IRRIGATION
 
+#include <stdbool.h>
+
 extern bool igh_irrigation_enabled;
 extern bool irrigation_suspended;
-extern bool remote_valve_command;
-extern valve_position_e remote_valve_state;
 
 void igh_irrigation_by_button( void );
 void igh_irrigation_mngr( void );

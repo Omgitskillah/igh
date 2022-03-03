@@ -54,11 +54,9 @@ void igh_application_churn( void )
      * Functions that should run as fast as possible
     */
     igh_boron_service();
-    igh_message_get_new_settings();
-    igh_message_commit_new_settings();
+    igh_message_churn();
     igh_time_keeper_churn();
     igh_button_mngr();
-    igh_message_receive_and_stage_sensor_data();
     igh_irrigation_mngr();
     igh_rfm69_service();
     igh_mqtt_service();

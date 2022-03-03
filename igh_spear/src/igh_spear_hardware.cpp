@@ -52,7 +52,7 @@ uint16_t igh_spear_get_battery_mV( void )
 
 void igh_spear_hardware_heartbeat(void)
 {
-    if( (millis() - heartbeat_timer) > heartbeat_state_time)
+    if( (millis() - heartbeat_timer) > heartbeat_state_time )
     {
         digitalWrite(IGH_SPEAR_LED, !digitalRead(IGH_SPEAR_LED));
         heartbeat_state_time = ( digitalRead(IGH_SPEAR_LED) ? HEART_ON_TIME : HEART_OFF_TIME );

@@ -89,108 +89,16 @@ extern uint8_t deviceID_string[24];
 
 #define INDEX_RFM69_NETWORK_ID  10 // 10th byte of the serial number is the Network ID
 #define INDEX_RFM69_NODE_ID     11 // 11th byte of the Serial number is the Node ID
-extern uint8_t initialize_rfm69;
-extern uint8_t mqtt_set_broker;
-extern uint8_t timezone_updated;
 
-enum igh_settings_subid
-{
-    // System settings
-    SUBID_OPSTATE = 0x01,
-    SUBID_REPORTING_INTERVAL,
-    SUBID_DATA_RESOLUTION,
-    SUBID_SET_SERIAL_NUMBER,
-    SUBID_MQTT_BROKER,
-    SUBID_MQTT_BROKER_PORT,
-    SUBID_TIMEZONE,
-    SUBID_IRRIGATION_HR,
-    SUBID_WATER_DISP_PERIOD,
-    SUBID_MQTT_USERNAME,
-    SUBID_MQTT_PASSWORD,
-    SUBID_WATER_AMOUNT_BY_BUTTON,
-    SUBID_AUTO_IRRIGATION_TYPE,
-    SUBID_CLOCK_IRRIGATION_INTERVAL,
-    
-    //High Threshold tirggers
-    SUBID_SOIL_MOISTURE_LOW = 0x10,          
-    SUBID_AIR_HUMIDITY_LOW,           
-    SUBID_SOIL_HUMIDITY_LOW,               
-    SUBID_CARBON_DIOXIDE_LOW,
-    SUBID_AIR_TEMPERATURE_LOW,        
-    SUBID_SOIL_TEMPERATURE_LOW,       
-    SUBID_SOIL_NPK_LOW,               
-    SUBID_LIGHT_INTENSITY_LOW,        
-    SUBID_SHIELD_BATTERY_LEVEL_LOW,   
-    SUBID_SPEAR_BATTERY_LEVEL_LOW,   
-    SUBID_WATER_DISPENSED_PERIOD_LOW,
-
-    // Low Threshold Trigger
-    SUBID_SOIL_MOISTURE_HIGH = 0x30,          
-    SUBID_AIR_HUMIDITY_HIGH,           
-    SUBID_SOIL_HUMIDITY_HIGH,                
-    SUBID_CARBON_DIOXIDE_HIGH,
-    SUBID_AIR_TEMPERATURE_HIGH,        
-    SUBID_SOIL_TEMPERATURE_HIGH,       
-    SUBID_SOIL_NPK_HIGH,               
-    SUBID_LIGHT_INTENSITY_HIGH,        
-    SUBID_SHIELD_BATTERY_LEVEL_HIGH,   
-    SUBID_SPEAR_BATTERY_LEVEL_HIGH,             
-    SUBID_WATER_DISPENSED_PERIOD_HIGH,
-};
-
-    // System settings
-#define LENGTH_SUBID_OPSTATE                        1
-#define LENGTH_SUBID_REPORTING_INTERVAL             4
-#define LENGTH_SUBID_DATA_RESOLUTION                4
-#define LENGTH_SUBID_SET_SERIAL_NUMBER              12
-#define LENGTH_SUBID_MQTT_PORT                      2
-#define LENGTH_SUBID_SUBID_TIMEZONE                 2
-#define LENGTH_SUBID_AUTO_IRRIGATION_TYPE           1
-#define MAX_TIMEZONE                                12
-#define NEGATIVE_TIME_ZONE                          0x00
-#define POSITIVE_TIME_ZONE                          0xFF
-#define LENGTH_SUBID_SUBID_IRRIGATION_HR            1
-#define MAX_HOUR                                    23
-#define MIN_HOUR                                    0
-#define LENGTH_SUBID_WATER_DISP_PERIOD              4
-#define LENGTH_SUBID_SUBID_WATER_AMOUNT_BY_BUTTON   4
-#define LENGTH_SUBID_CLOCK_IRRIGATION_INTERVAL      4
-//High Threshold tirggers
-#define LENGTH_SUBID_SOIL_MOISTURE_LOW              2          
-#define LENGTH_SUBID_AIR_HUMIDITY_LOW               2           
-#define LENGTH_SUBID_SOIL_HUMIDITY_LOW              2               
-#define LENGTH_SUBID_CARBON_DIOXIDE_LOW             2
-#define LENGTH_SUBID_AIR_TEMPERATURE_LOW            2        
-#define LENGTH_SUBID_SOIL_TEMPERATURE_LOW           2       
-#define LENGTH_SUBID_SOIL_NPK_LOW                   2               
-#define LENGTH_SUBID_LIGHT_INTENSITY_LOW            2        
-#define LENGTH_SUBID_SHIELD_BATTERY_LEVEL_LOW       2   
-#define LENGTH_SUBID_SPEAR_BATTERY_LEVEL_LOW        2   
-#define LENGTH_SUBID_WATER_DISPENSED_PERIOD_LOW     4
-// Low Threshold Trigger
-#define LENGTH_SUBID_SOIL_MOISTURE_HIGH             2          
-#define LENGTH_SUBID_AIR_HUMIDITY_HIGH              2           
-#define LENGTH_SUBID_SOIL_HUMIDITY_HIGH             2                
-#define LENGTH_SUBID_CARBON_DIOXIDE_HIGH            2
-#define LENGTH_SUBID_AIR_TEMPERATURE_HIGH           2           
-#define LENGTH_SUBID_SOIL_TEMPERATURE_HIGH          2       
-#define LENGTH_SUBID_SOIL_NPK_HIGH                  2               
-#define LENGTH_SUBID_LIGHT_INTENSITY_HIGH           2        
-#define LENGTH_SUBID_SHIELD_BATTERY_LEVEL_HIGH      2   
-#define LENGTH_SUBID_SPEAR_BATTERY_LEVEL_HIGH       2             
-#define LENGTH_SUBID_WATER_DISPENSED_PERIOD_HIGH    4
-
-
-// SHT1x Multipliers
-#define SOIL_TEMPERATURE_MULTIPLIER_D1              (-39.66)
-#define SOIL_TEMPERATURE_MULTIPLIER_D2              (0.01)
-#define SOIL_HUMIDITY_MULTIPLIER_C1                 (-2.0468)
-#define SOIL_HUMIDITY_MULTIPLIER_C2                 (0.0367)
-#define SOIL_HUMIDITY_MULTIPLIER_C3                 (-1.59955e-6)
-#define SOIL_HUMIDITY_MULTIPLIER_T1                 (0.01)
-#define SOIL_HUMIDITY_MULTIPLIER_T2                 (0.00008)
-#define ROOM_TEMPERATURE                            (25.0)
-
+// Macro functions for breaking large numbers into multiple bytes and the opposite
+#define GET16(buf)          (((uint16_t)(buf)[0]<<8)+(buf)[1])
+#define GET16_LI(buf)       (((uint16_t)(buf)[1]<<8)+(buf)[0])
+#define PUT16(val, buf)     {(buf)[1]=((val)&0xff);(buf)[0]=((val)>>8);}
+#define PUT16_LI(val, buf)  {(buf)[0]=((val)&0xff);(buf)[1]=((val)>>8);}
+#define GET32(buf)          (((uint32_t)(buf)[0]<<24)+((uint32_t)(buf)[1]<<16)+((uint32_t)(buf)[2]<<8)+(buf)[3])
+#define GET32_LI(buf)       (((uint32_t)(buf)[3]<<24)+((uint32_t)(buf)[2]<<16)+((uint32_t)(buf)[1]<<8)+(buf)[0])
+#define PUT32(val, buf)     {(buf)[3]=((val)&0xff);(buf)[2]=(((val)>>8)&0xff);(buf)[1]=(((val)>>16)&0xff);(buf)[0]=(((val)>>24)&0xff);}
+#define PUT32_LI(val, buf)  {(buf)[0]=((val)&0xff);(buf)[1]=(((val)>>8)&0xff);(buf)[2]=(((val)>>16)&0xff);(buf)[3]=(((val)>>24)&0xff);}
 
 extern system_settings igh_default_system_settings;
 extern system_settings igh_current_system_settings;
@@ -211,22 +119,15 @@ extern uint8_t default_broker_url[];
 
 #ifdef TEST
 LOCAL void igh_settings_get_defaults(void);
-LOCAL uint8_t igh_settings_parse_new_settings(uint8_t * settings);
-LOCAL uint8_t igh_settings_remote_valvle_control(uint8_t * settings);
 #endif
 
-uint8_t igh_settings_process_settings_tuples( uint8_t * settings, uint8_t byte_tracker, uint8_t end_index );
 void igh_settings_reset_system_to_default(void);
-uint8_t igh_settings_process_settings(uint8_t * settings);
 uint8_t igh_settings_calculate_checksum(void * p_struct, size_t total_bytes);
-uint8_t igh_settings_build_settings_request_payload(uint8_t * settings_req, uint8_t * buffer, uint8_t start_index);
 
 // Reporting interval
 // Data Collection interval
 extern thresholds igh_current_threshold_settings;
 extern system_settings igh_current_system_settings;
-extern uint8_t new_settings_available;
-extern uint8_t new_reporting_interval_set; 
 
 #ifdef __cplusplus
 }
